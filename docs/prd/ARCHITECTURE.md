@@ -320,6 +320,4 @@ Diputuskan ("pakai usulan"):
 - Versi minimum Android: mengikuti `minSdkVersion` bawaan versi Capacitor yang dipakai saat Fase 5. Tidak diturunkan secara manual.
 - Browser: dua versi terakhir Chrome, Edge, Firefox, dan Safari (termasuk Safari iOS). `OffscreenCanvas` dan `backdrop-filter` punya fallback (bagian 6 dan DESIGN.md 7.3).
 - Domain: subdomain bawaan `*.vercel.app` sampai pemilik menyiapkan domain sendiri.
-
-Masih butuh data dari pemilik (tidak ada usulan yang bisa dibuat tanpa data ini):
-- Perangkat Android kelas menengah acuan untuk target 60 fps. Wajib ada sebelum Fase 2 selesai, karena kriteria performa diuji di perangkat itu.
+- Perangkat acuan: Samsung Galaxy A13, Android 14 (milik pemilik). Semua target performa di bagian 12 diuji di perangkat ini lewat Chrome Android dan remote debugging `chrome://inspect`. Uji pertama dijalankan setelah kontrol sentuh Fase 3 ada, karena permainan belum bisa dikendalikan di HP sebelum itu.

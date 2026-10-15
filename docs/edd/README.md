@@ -11,5 +11,5 @@ Rancangan teknis rinci yang menjadi acuan langsung saat menulis kode. Diturunkan
 Urutan prioritas jika ada perbedaan: SPEC.md untuk aturan permainan, DESIGN.md untuk tampilan, EDD untuk cara membangun. Perubahan dari PRD yang dibuat EDD dicatat di `EDD-3-build.md` bagian 7.
 
 Data yang masih ditunggu dari pemilik:
-- Perangkat Android acuan untuk target 60 fps (sebelum Fase 2 selesai).
+- (Selesai) Perangkat acuan: Samsung Galaxy A13, Android 14.
 - Konsep ikon aplikasi (sebelum Fase 5).

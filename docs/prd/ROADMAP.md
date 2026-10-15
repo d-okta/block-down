@@ -37,7 +37,7 @@ Kriteria selesai:
 - [x] Ghost, Hold (1 kali per piece, redup saat terkunci), dan Next 5 tampil benar. Bukti: screenshot dan label aria Hold "Simpan: S, Terkunci" setelah C kedua.
 - [x] DAS 167 ms dan ARR 33 ms: tes otomatis `tests/client.test.ts` (pengulangan pertama di 167 ms, lalu tiap 33 ms; ARR 0 menghasilkan 10 geser dalam satu tick). Rasa di tangan tetap perlu dicoba pemilik.
 - [x] Lock delay: tes core 18 sampai 20.
-- [ ] Gambar tajam di DPR 1, 2, dan 3. Emulasi Chrome: DPR 1 (sel 22 px, canvas di posisi piksel bulat), DPR 2 (44 px), dan DPR 3 (66 px), screenshot tajam. Uji di layar fisik menunggu HP acuan dari pemilik.
+- [ ] Gambar tajam di DPR 1, 2, dan 3. Emulasi Chrome: DPR 1 (sel 22 px, canvas di posisi piksel bulat), DPR 2 (44 px), dan DPR 3 (66 px), screenshot tajam. Uji di layar fisik dijalankan di Samsung Galaxy A13 setelah kontrol sentuh Fase 3 ada.
 - [x] Tanpa `createLinearGradient`, `createPattern`, `Path2D`, atau `ctx.font` selama bermain. Bukti: penghitung API selama 20 detik bermain = 0. Heap setelah GC naik 180 KB dalam 20 detik (lihat catatan alokasi).
 - [x] Rekor tersimpan setelah reload. JSON rusak di localStorage tidak membuat aplikasi crash dan data lama tidak ditimpa.
 - [x] Pause otomatis saat tab disembunyikan.
@@ -64,7 +64,7 @@ Ukuran 20 detik bermain (Chrome desktop, DPR 3, bukan perangkat acuan): frame me
 
 Alokasi saat permainan berjalan tanpa input (sampling heap V8, 10 detik, sekitar 1440 frame): sekitar 15 byte per frame, sama di DPR 1 dan DPR 3. Pelacakan dengan mematikan bagian kode satu per satu: tidak berasal dari core, input, atau HUD, melainkan dari jalur pemanggilan `drawImage` di renderer, padahal `drawImage` di halaman kosong mengalokasikan 0 byte. Penyebab pastinya belum ditemukan. Besarnya (sekitar 21 KB per 10 detik) jauh di bawah ambang yang memicu jeda GC yang terasa, jadi tidak menghalangi Fase 3. Diukur ulang di HP acuan.
 
-Belum selesai: uji di HP acuan (DPR fisik, 60 fps, alokasi).
+Belum selesai: uji di Samsung Galaxy A13 (DPR fisik, 60 fps, alokasi). Uji ini dijalankan bersama kriteria sentuh Fase 3, karena permainan baru bisa dikendalikan di HP setelah kontrol sentuh ada.
 
 ## Fase 3: Sentuh, semua mode, Pengaturan, i18n
 
@@ -139,5 +139,5 @@ Keputusan lain sudah dicatat di bagian Keputusan masing-masing dokumen.
 
 | Keputusan | Batas waktu | Asal |
 |---|---|---|
-| Perangkat Android kelas menengah acuan 60 fps | Sebelum Fase 2 selesai | ARCHITECTURE.md bagian 14 |
+| Uji performa di Samsung Galaxy A13 (perangkat acuan) | Bersama kriteria sentuh Fase 3 | ARCHITECTURE.md bagian 14 |
 | Konsep ikon aplikasi | Sebelum Fase 5 | DESIGN.md bagian 10 |
