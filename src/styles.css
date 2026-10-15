@@ -323,6 +323,71 @@ button {
   font-size: 0.875rem;
 }
 
+/* Pemberitahuan sentuh dan daftar kontrol saling menggantikan sesuai jenis perangkat. */
+.touch-notice {
+  display: none;
+  margin: 24px 0 0;
+  padding: 12px 16px;
+  border: 1px solid var(--line-control);
+  border-radius: var(--r-control);
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .touch-notice {
+    display: block;
+  }
+  .controls {
+    display: none;
+  }
+}
+
+.controls {
+  margin-top: 32px;
+}
+
+.controls-title {
+  margin: 0 0 8px;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.controls dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.controls dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.controls dt {
+  color: var(--text-dim);
+  font-size: 0.875rem;
+}
+
+.controls dd {
+  margin: 0;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--line-control);
+  border-radius: var(--r-block);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
 /* ---------- game ---------- */
 
 .game {

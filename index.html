@@ -48,6 +48,21 @@
           </div>
           <p class="notice" id="menu-notice" hidden></p>
         </div>
+
+        <!-- Hanya tampil di perangkat tanpa mouse/keyboard; dihapus saat kontrol sentuh Fase 3 ada. -->
+        <p class="touch-notice" data-i18n="menu.touchNotice"></p>
+
+        <section class="controls" aria-labelledby="controls-title">
+          <h2 id="controls-title" class="controls-title" data-i18n="menu.controlsTitle"></h2>
+          <dl>
+            <div><dt data-i18n="menu.controls.move"></dt><dd><kbd>←</kbd> <kbd>→</kbd></dd></div>
+            <div><dt data-i18n="menu.controls.soft"></dt><dd><kbd>↓</kbd></dd></div>
+            <div><dt data-i18n="menu.controls.hard"></dt><dd><kbd>Space</kbd></dd></div>
+            <div><dt data-i18n="menu.controls.rotate"></dt><dd><kbd>Z</kbd> <kbd>X</kbd> <kbd>↑</kbd></dd></div>
+            <div><dt data-i18n="menu.controls.hold"></dt><dd><kbd>C</kbd></dd></div>
+            <div><dt data-i18n="menu.controls.pause"></dt><dd><kbd>Esc</kbd> <kbd>P</kbd></dd></div>
+          </dl>
+        </section>
       </section>
 
       <section id="scr-game" class="screen game" hidden>
