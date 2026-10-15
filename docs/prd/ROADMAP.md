@@ -1,0 +1,143 @@
+# BlockDown: Roadmap
+
+Dokumen ini bagian dari PRD BlockDown, bersama DESIGN.md, SPEC.md, dan ARCHITECTURE.md.
+
+Aturan umum:
+- Satu fase dianggap selesai hanya jika semua kriteria selesainya bisa dicek dan sudah dicek. Bukti dicatat di catatan rilis atau deskripsi PR fase itu.
+- `npm run check` (`tsc` dan `node --test`) lulus di akhir setiap fase.
+- Tidak ada tombol atau teks yang menyebut fitur dari fase yang belum selesai (R-24, R-26).
+
+Urutan kerja sebelum Fase 1:
+1. PRD ini (4 file) disetujui pemilik.
+2. Desain dari Google Stitch dibandingkan dengan DESIGN.md. Setiap perbedaan dicatat di DESIGN.md bagian 9.1. (Selesai.)
+3. Keputusan terbuka dijawab pemilik ("pakai usulan"). (Selesai, kecuali perangkat acuan dan konsep ikon aplikasi.)
+4. Dari PRD dan desain final, disusun dokumen EDD di `docs/edd/` (rancangan teknis rinci). EDD menjadi acuan langsung untuk menulis kode. (Selesai.)
+
+---
+
+## Fase 1: Core logic dan tes
+
+Lingkup: `src/core/` lengkap sesuai SPEC.md bagian 1 sampai 8 dan 10, `src/i18n/` (kamus awal), serta `tests/core.test.ts`.
+
+Kriteria selesai:
+- [x] `node --test` lulus untuk semua kelompok di ARCHITECTURE.md bagian 11. Bukti: `npm run check`, 28 tes lulus, 0 gagal.
+- [x] Tabel kick di tes dibaca langsung dari SPEC.md bagian 3 (tes 1 mem-parse tabel markdown), bukan dari kode. Bukti: mengubah satu angka di `srs.ts` membuat tes 1 gagal.
+- [x] Grep `src/core/` tidak menemukan `window`, `document`, `performance`, `Math.random`, atau `Date`.
+- [x] Permainan dengan seed dan daftar aksi yang sama menghasilkan skor dan board akhir yang sama di dua kali jalan (tes 24).
+- [x] Clear tidak menunda spawn (tes 21).
+
+Uji mutasi tambahan (setiap perubahan dikembalikan setelah dicek): menghapus aturan kick tes ke-5 untuk T-Spin, mengubah batas reset ke 16, menghapus pengali B2B, dan menghapus reset hitungan saat piece turun lebih rendah. Masing-masing membuat minimal satu tes gagal.
+
+## Fase 2: Renderer, keyboard, Maraton bisa dimainkan
+
+Lingkup: `loop.ts`, `render/` (tanpa efek reward), `input/keyboard.ts`, `input/repeat.ts`, HUD dasar, Menu dengan satu mode Maraton, Pause, Game Over, dan penyimpanan rekor Maraton.
+
+Kriteria selesai:
+- [x] Maraton 150 dan Maraton tanpa batas bisa dimainkan dari Menu sampai Game Over hanya dengan keyboard. Bukti: click-through otomatis di Chrome (catatan di bawah).
+- [x] Ghost, Hold (1 kali per piece, redup saat terkunci), dan Next 5 tampil benar. Bukti: screenshot dan label aria Hold "Simpan: S, Terkunci" setelah C kedua.
+- [x] DAS 167 ms dan ARR 33 ms: tes otomatis `tests/client.test.ts` (pengulangan pertama di 167 ms, lalu tiap 33 ms; ARR 0 menghasilkan 10 geser dalam satu tick). Rasa di tangan tetap perlu dicoba pemilik.
+- [x] Lock delay: tes core 18 sampai 20.
+- [ ] Gambar tajam di DPR 1, 2, dan 3. Emulasi Chrome: DPR 1 (sel 22 px, canvas di posisi piksel bulat), DPR 2 (44 px), dan DPR 3 (66 px), screenshot tajam. Uji di layar fisik menunggu HP acuan dari pemilik.
+- [x] Tanpa `createLinearGradient`, `createPattern`, `Path2D`, atau `ctx.font` selama bermain. Bukti: penghitung API selama 20 detik bermain = 0. Heap setelah GC naik 180 KB dalam 20 detik (lihat catatan alokasi).
+- [x] Rekor tersimpan setelah reload. JSON rusak di localStorage tidak membuat aplikasi crash dan data lama tidak ditimpa.
+- [x] Pause otomatis saat tab disembunyikan.
+
+Click-through Fase 2 (Chrome headless, 390x844, DPR 2), kontrol lalu hasil:
+- Menu dibuka: fokus di Maraton, `lang=id`, rekor "Belum ada".
+- Enter di Maraton: varian terbuka, fokus ke "150 baris". Panah bawah: fokus ke "Tanpa batas".
+- Klik EN: `lang=en`, "Marathon", "No record". Klik ID: kembali.
+- Klik "150 baris": layar Game, canvas 440x880 px perangkat (sel 22 px CSS).
+- Space: hard drop, skor naik. C: hold. C kedua: diabaikan, label "Terkunci".
+- Tahan kiri 600 ms, panah atas, Z, tahan bawah: geser berulang, putar, soft drop.
+- Esc: Pause terbuka, fokus "Lanjutkan", waktu sesi tampil, skor tidak berubah selama 800 ms. Tab: fokus ke "Ulangi". Esc: Pause tertutup.
+- Tombol jeda: Pause terbuka. Lanjutkan: tertutup.
+- P lalu Ulangi: konfirmasi terbuka, fokus "Batal". Esc: kembali ke Pause. Ulangi lalu OK: permainan baru, skor 0.
+- Tab browser disembunyikan: Pause terbuka otomatis.
+- Tumpuk sampai penuh: Game Over "Permainan Selesai", tag "Rekor baru", fokus "Main Lagi". Esc: dialog tetap terbuka.
+- Ke Menu: rekor tampil. Reload: rekor tetap. Main Lagi: permainan baru.
+- localStorage diisi `{rusak`: Menu tampil, rekor "Belum ada", data lama tidak ditimpa.
+- Browser `en-US`: bahasa awal en. Browser `fr-FR`: bahasa awal id.
+- Overflow 0 px di Menu (320, 390, 600, 1024) dan Game (320x568, 390x844, 844x390, 1024x768, 1440x900).
+- Error konsol, halaman, dan jaringan: tidak ada.
+
+Ukuran 20 detik bermain (Chrome desktop, DPR 3, bukan perangkat acuan): frame median 6,9 ms, p99 7,2 ms, maks 7,6 ms.
+
+Alokasi saat permainan berjalan tanpa input (sampling heap V8, 10 detik, sekitar 1440 frame): sekitar 15 byte per frame, sama di DPR 1 dan DPR 3. Pelacakan dengan mematikan bagian kode satu per satu: tidak berasal dari core, input, atau HUD, melainkan dari jalur pemanggilan `drawImage` di renderer, padahal `drawImage` di halaman kosong mengalokasikan 0 byte. Penyebab pastinya belum ditemukan. Besarnya (sekitar 21 KB per 10 detik) jauh di bawah ambang yang memicu jeda GC yang terasa, jadi tidak menghalangi Fase 3. Diukur ulang di HP acuan.
+
+Belum selesai: uji di HP acuan (DPR fisik, 60 fps, alokasi).
+
+## Fase 3: Sentuh, semua mode, Pengaturan, i18n
+
+Lingkup: `input/touch.ts` (Tombol dan Gestur), `input/gamepad.ts`, mode Sprint 40, Ultra, dan Zen, layar Pengaturan lengkap, pemetaan ulang tombol, serta i18n ID/EN di semua layar.
+
+Kriteria selesai:
+- [ ] Keempat mode (dengan dua varian Maraton) bisa dimulai dari Menu dan berakhir sesuai SPEC.md bagian 10. Setiap mode di `modes.ts` punya baris di Menu.
+- [ ] Sprint mencatat waktu dalam ms, dan top out tidak dicatat sebagai rekor.
+- [ ] Ultra berhenti tepat di 120.000 ms waktu tick, dan Pause menghentikan timer.
+- [ ] Zen mengosongkan board saat top out, dan skor tetap.
+- [ ] Satu permainan Maraton bisa diselesaikan hanya dengan sentuhan, di mode Tombol dan di mode Gestur, pada HP Android dan iPhone (browser).
+- [ ] Semua target sentuh minimal 44px (tombol permainan 56px), diukur di DevTools pada lebar 320 dan 390.
+- [ ] Tidak ada overflow horizontal di 320, 390, 600, 768, dan 1024 px, portrait dan landscape.
+- [ ] Gamepad standar bisa memainkan permainan dan menavigasi menu.
+- [ ] Setiap pengaturan berlaku langsung dan bertahan setelah reload.
+- [ ] Mengganti bahasa di Menu dan di Pengaturan mengubah semua teks dan `<html lang>`. Bahasa awal mengikuti `navigator.language`, dengan cadangan `id`.
+- [ ] Grep tidak menemukan string untuk pemain di luar `src/i18n/`. Tes key identik lulus.
+- [ ] Semua layar dan dialog bisa dipakai dengan Tab, Enter, Space, dan Esc, dengan cincin fokus terlihat.
+
+## Fase 4: Motion, suara, haptics, aksesibilitas
+
+Lingkup: tiga lapis motion (DESIGN.md bagian 8), `audio/` (sintesis efek dan musik), `platform/haptics.ts`, mode aman buta warna, intensitas efek, kurangi animasi, dan audit aksesibilitas.
+
+Kriteria selesai:
+- [ ] Storyboard 4 Baris berjalan sesuai urutan waktu di DESIGN.md (direkam dan dicek per frame).
+- [ ] Selama efek reward berjalan, piece berikutnya bisa langsung digeser dan diputar (diuji dengan hard drop berturut-turut saat 4 Baris).
+- [ ] Partikel tidak pernah melebihi 300, dan heap tidak tumbuh selama satu menit dengan efek Penuh.
+- [ ] Shake hanya muncul di 4 Baris, T-Spin dengan baris, dan Bersih Total, dengan simpangan maksimal 4px.
+- [ ] Dengan `prefers-reduced-motion: reduce` di sistem: tanpa shake, tanpa partikel, hanya fade, dan pita ambient diam.
+- [ ] Setiap kejadian di tabel suara SPEC.md bagian 14 berbunyi. Tidak ada file mp3 untuk efek. Tidak ada suara sebelum gestur pertama, dan tidak ada error di konsol.
+- [ ] Combo panjang menghasilkan melodi pentatonik yang naik.
+- [ ] Getar bekerja di Android, dan kontrol Getar nonaktif dengan alasan di perangkat yang tidak mendukung.
+- [ ] Mode aman buta warna: ketujuh jenis blok bisa dibedakan dalam screenshot grayscale.
+- [ ] Callout dan hasil Game Over diumumkan oleh TalkBack dan NVDA.
+- [ ] Teks bisa diperbesar ke 200% tanpa terpotong di Menu dan Pengaturan.
+- [ ] Delivery Gate antislop (DESIGN.md bagian 11) dijalankan ulang dengan bukti nyata dan click-through per kontrol. Semua item lolos.
+- [ ] Pre-Flight taste-skill (DESIGN.md bagian 12) dijalankan ulang.
+- [ ] Target performa ARCHITECTURE.md bagian 12 terpenuhi di perangkat acuan.
+
+## Fase 5: Android, PWA, Vercel, listing toko
+
+Lingkup: proyek Capacitor Android, manifest dan service worker PWA, deploy Vercel, ikon aplikasi, dan teks listing Play Store.
+
+Kriteria selesai:
+- [ ] `npx cap sync android` dan build release menghasilkan AAB dengan appId `com.nusavisionmedia.blockdown`.
+- [ ] APK berjalan di perangkat acuan. Tombol kembali Android membuka dan menutup Pause, lalu keluar dari Menu.
+- [ ] Safe-area benar di perangkat dengan notch dan navigasi gestur.
+- [ ] PWA bisa dipasang, lalu dimainkan dalam mode pesawat setelah kunjungan pertama.
+- [ ] Deploy Vercel dari branch utama, dengan URL produksi tercatat.
+- [ ] Ikon aplikasi final sudah disetujui pemilik. Tidak ada placeholder yang tersisa.
+- [ ] Listing toko (ID dan EN) ditulis dari daftar fitur yang lolos Fase 1 sampai 4. Setiap kalimat listing bisa ditunjuk ke fitur yang ada. Tidak ada angka, klaim, atau testimoni yang dikarang, dan tidak ada kata merek dagang permainan blok jatuh.
+- [ ] Screenshot listing diambil dari build asli, bukan mockup.
+- [ ] Kebijakan privasi tersedia jika diwajibkan toko. Isinya sesuai kenyataan: data hanya disimpan di perangkat.
+
+## Fase 6: Sistem meta (fase 2 produk)
+
+Lingkup kandidat: koin, item, toko, quest, rank, daily reward, notifikasi, dan leaderboard online.
+
+Fase ini belum dirancang. Sebelum dimulai, dibutuhkan PRD terpisah yang menjawab:
+- Fitur mana yang benar-benar dipakai, dan apakah fitur itu menjaga ketenangan arah desain.
+- Backend dan akun untuk leaderboard, termasuk anti-curang. Rekor lokal fase 1 tidak tepercaya (SPEC.md bagian 13).
+- Migrasi skema penyimpanan dari `schema: 1`.
+- Dampak ke listing toko dan kebijakan privasi.
+
+Kriteria selesai fase ini ditulis di PRD tersebut.
+
+---
+
+## Keputusan yang masih menunggu data pemilik
+
+Keputusan lain sudah dicatat di bagian Keputusan masing-masing dokumen.
+
+| Keputusan | Batas waktu | Asal |
+|---|---|---|
+| Perangkat Android kelas menengah acuan 60 fps | Sebelum Fase 2 selesai | ARCHITECTURE.md bagian 14 |
+| Konsep ikon aplikasi | Sebelum Fase 5 | DESIGN.md bagian 10 |

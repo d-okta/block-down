@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&amp;family=Sora:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#111319;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "inverse-primary": "#2e53d0", "on-primary-fixed-variant": "#0038b8", "on-tertiary-container": "#4e3e00", "outline": "#8e90a0", "on-surface": "#e1e2e9", "surface-container-low": "#191c21", "outline-variant": "#444654", "on-primary": "#002584", "inverse-on-surface": "#2e3036", "background": "#111319", "tertiary": "#e4c45b", "primary-fixed-dim": "#b7c4ff", "surface-bright": "#36393f", "tertiary-fixed-dim": "#e4c45b", "secondary-fixed-dim": "#6bd6e4", "secondary": "#6bd6e4", "on-secondary-fixed-variant": "#004f57", "on-error-container": "#ffdad6", "error": "#ffb4ab", "on-primary-fixed": "#001453", "surface-container-lowest": "#0b0e13", "on-secondary-fixed": "#001f23", "inverse-surface": "#e1e2e9", "on-error": "#690005", "surface-variant": "#32353a", "on-secondary-container": "#002f34", "secondary-container": "#269fac", "primary": "#b7c4ff", "surface-container": "#1d2025", "on-tertiary-fixed-variant": "#564500", "primary-fixed": "#dde1ff", "surface-dim": "#111319", "tertiary-fixed": "#ffe081", "on-surface-variant": "#c4c5d6", "surface-container-high": "#272a30", "secondary-fixed": "#90f1ff", "surface-container-highest": "#32353a", "tertiary-container": "#c7a943", "on-secondary": "#00363c", "primary-container": "#6b89ff", "surface-tint": "#b7c4ff", "on-tertiary-fixed": "#231b00", "on-primary-container": "#002074", "error-container": "#93000a", "on-background": "#e1e2e9", "surface": "#111319", "on-tertiary": "#3c2f00" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "space-xl": "1.5rem", "space-md": "0.75rem", "margin": "1rem", "gutter": "0.5rem", "space-lg": "1rem", "space-xs": "0.25rem", "margin-mobile": "0.75rem", "gutter-desktop": "1rem", "margin-safe-bottom": "env(safe-area-inset-bottom, 1rem)", "margin-safe-top": "env(safe-area-inset-top, 1rem)" }, "fontFamily": { "stat-counter": ["JetBrains Mono"], "headline-md": ["Sora"], "headline-xl": ["Sora"], "body-sm": ["Sora"], "headline-xl-mobile": ["Sora"], "headline-lg": ["Sora"], "body-md": ["Sora"], "label-sm": ["Sora"], "display-stat-md": ["JetBrains Mono"], "display-stat-lg": ["JetBrains Mono"], "headline-sm": ["Sora"], "label-lg": ["Sora"], "body-lg": ["Sora"], "label-md": ["Sora"] }, "fontSize": { "stat-counter": ["14px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "500" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }], "headline-xl-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600" }], "display-stat-md": ["20px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "600" }], "display-stat-lg": ["28px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface font-body-md text-body-md text-on-surface flex flex-col min-h-screen selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-14 px-margin-mobile flex items-center justify-between"><div class="flex items-center gap-space-xs"><button aria-label="Back" class="w-11 h-11 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[20px]">arrow_back</span></button><h1 class="font-headline-sm text-headline-sm font-semibold tracking-tight text-on-surface uppercase">Game Arena</h1></div><div class="flex items-center gap-space-xs"><button aria-label="Pause Game" class="w-11 h-11 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">pause</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col flex-1 relative w-full pt-14 pb-safe bg-surface"><div class="flex flex-col w-full relative select-none overflow-hidden pb-margin-safe-bottom">
+<!-- Dimmed Matrix Arena Backdrop -->
+<div aria-hidden="true" class="relative w-full px-margin-mobile pt-space-xs flex justify-center items-center opacity-40 filter grayscale pointer-events-none">
+<div class="w-full max-w-[340px] aspect-[10/18] bg-surface-container-lowest rounded-lg p-1.5 flex flex-col justify-between shadow-sm">
+<!-- Simulated 10x20 Grid Blocks (Locked/Dissolving stack) -->
+<div class="w-full h-full grid grid-cols-10 grid-rows-18 gap-[2px] opacity-75">
+<!-- Empty upper cells -->
+<div class="col-span-10 row-span-11"></div>
+<!-- Ghosted block rows at the bottom -->
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<!-- Row 13 -->
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<!-- Row 14 -->
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<!-- Row 15 -->
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<!-- Row 16 -->
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<!-- Row 17 -->
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<!-- Row 18 -->
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-variant rounded-[2px]"></div>
+<div class="bg-surface-container-high rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- Modal Presentation Overlay -->
+<div class="absolute inset-0 z-20 flex items-center justify-center px-margin-mobile py-space-md bg-surface/75 backdrop-blur-md">
+<!-- Focused HUD Result Terminal -->
+<div class="w-full max-w-[358px] bg-surface-container rounded-xl shadow-xl p-space-lg flex flex-col gap-space-lg">
+<!-- Header Module -->
+<div class="flex flex-col items-center text-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant tracking-widest uppercase">
+          Maraton
+        </span>
+<h2 class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">
+          Permainan Selesai
+        </h2>
+</div>
+<!-- Final Score Plate -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex flex-col items-center justify-center gap-1.5 shadow-sm">
+<span class="font-label-sm text-label-sm text-outline tracking-wider uppercase">
+          Skor Akhir
+        </span>
+<div class="flex items-center justify-center gap-space-sm">
+<span class="font-display-stat-lg text-display-stat-lg text-on-surface tabular-nums">
+            0
+          </span>
+<!-- Rekor Baru Outline Tag -->
+<span class="font-label-sm text-label-sm text-primary px-2 py-0.5 rounded bg-primary/10 tracking-wider uppercase">
+            Rekor baru
+          </span>
+</div>
+</div>
+<!-- Telemetry Breakdown Table -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex flex-col gap-2.5">
+<!-- Level -->
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Level</span>
+<span class="font-stat-counter text-stat-counter text-on-surface tabular-nums">0</span>
+</div>
+<div class="w-full h-[1px] bg-surface-container-highest"></div>
+<!-- Baris -->
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Baris</span>
+<span class="font-stat-counter text-stat-counter text-on-surface tabular-nums">0</span>
+</div>
+<div class="w-full h-[1px] bg-surface-container-highest"></div>
+<!-- 4 Baris -->
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">4 Baris</span>
+<span class="font-stat-counter text-stat-counter text-on-surface tabular-nums">0</span>
+</div>
+<div class="w-full h-[1px] bg-surface-container-highest"></div>
+<!-- T-Spin -->
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">T-Spin</span>
+<span class="font-stat-counter text-stat-counter text-on-surface tabular-nums">0</span>
+</div>
+<div class="w-full h-[1px] bg-surface-container-highest"></div>
+<!-- Combo terpanjang -->
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Combo terpanjang</span>
+<span class="font-stat-counter text-stat-counter text-on-surface tabular-nums">0</span>
+</div>
+</div>
+<!-- Tactile Action Triggers -->
+<div class="flex flex-col gap-space-sm w-full pt-space-xs">
+<!-- Play Again / Main Lagi -->
+<button class="w-full h-12 bg-primary hover:bg-primary-container active:scale-[0.98] transition-all rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-sm group" type="button">
+<span class="material-symbols-outlined text-on-primary text-[20px] transition-transform group-active:rotate-45">replay</span>
+<span class="font-label-lg text-label-lg font-semibold text-on-primary tracking-tight">Main Lagi</span>
+</button>
+<!-- Return to Menu / Ke Menu -->
+<button class="w-full h-12 bg-surface-container-high hover:bg-surface-container-highest active:scale-[0.98] transition-all rounded-xl flex items-center justify-center gap-2 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">home</span>
+<span class="font-label-lg text-label-lg text-on-surface tracking-tight">Ke Menu</span>
+</button>
+</div>
+</div>
+</div>
+</div></main></body></html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>BlockDown</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Sora:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body {
+        width: 100vw;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        background-color: #0F1217;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom, 24px);
+      }
+      .pt-safe {
+        padding-top: env(safe-area-inset-top, 44px);
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "app-bg": "#0F1217",
+            "surface-base": "#161B22",
+            "surface-active": "#1E2530",
+            "text-main": "#E6E9EF",
+            "text-muted": "#8A93A3",
+            "accent": "#5B7CFA",
+          },
+          fontFamily: {
+            sans: ["Sora", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+          },
+          borderRadius: {
+            panel: "12px",
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-[#0F1217] text-[#E6E9EF] font-sans antialiased flex flex-col min-h-screen select-none">
+<!-- Top Bar -->
+<header class="w-full pt-safe px-5 z-20">
+<div class="h-14 flex items-center justify-end gap-2">
+<!-- Segmented Language Switch -->
+<div aria-label="Pilihan Bahasa" class="flex items-center bg-[#161B22] border border-[#1E2530] p-0.5 rounded-[8px] h-9" role="radiogroup">
+<button class="px-2.5 h-full rounded-[6px] bg-[#1E2530] text-[#E6E9EF] text-xs font-semibold tracking-wide transition-colors flex items-center justify-center" type="button">
+          ID
+        </button>
+<button class="px-2.5 h-full rounded-[6px] text-[#8A93A3] hover:text-[#E6E9EF] text-xs font-medium tracking-wide transition-colors flex items-center justify-center" type="button">
+          EN
+        </button>
+</div>
+<!-- Settings Button -->
+<button aria-label="Buka Pengaturan" class="h-9 px-3 min-w-[44px] flex items-center gap-1.5 bg-[#161B22] border border-[#1E2530] hover:bg-[#1E2530] text-[#8A93A3] hover:text-[#E6E9EF] rounded-[8px] transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+<span class="text-xs font-medium tracking-normal">Pengaturan</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col justify-between px-5 pt-4 pb-safe max-w-[420px] mx-auto w-full">
+<!-- Upper Section: Wordmark with dropped block -->
+<div class="flex flex-col items-center pt-6 pb-8">
+<div aria-label="BlockDown" class="inline-flex items-baseline tracking-[-0.04em] text-[40px] font-bold text-[#E6E9EF] leading-none">
+<span>BlockD</span>
+<!-- Dropped square block replacing letter 'o' -->
+<span aria-hidden="true" class="inline-block relative mx-[1px] w-[22px] h-[22px] translate-y-[3px] bg-[#5B7CFA] rounded-[3px] shadow-[inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-1px_0_rgba(0,0,0,0.35)]"></span>
+<span>wn</span>
+</div>
+<p class="mt-3 text-xs tracking-widest text-[#8A93A3] uppercase font-medium">
+        Edisi Minimalis
+      </p>
+</div>
+<!-- Mode Selection List (4 Cards) -->
+<div aria-label="Mode Permainan" class="flex flex-col gap-2.5 w-full my-auto" role="list">
+<!-- Mode 1: Maraton (Focused State with accent ring) -->
+<button class="w-full min-h-[76px] rounded-panel bg-[#1E2530] ring-2 ring-[#5B7CFA] p-4 flex items-center justify-between text-left transition-all active:scale-[0.99] focus:outline-none" role="listitem" type="button">
+<div class="flex flex-col pr-3">
+<div class="flex items-center gap-2">
+<span class="text-base font-semibold text-[#E6E9EF]">Maraton</span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#5B7CFA]"></span>
+</div>
+<span class="text-xs text-[#8A93A3] mt-1 leading-normal font-normal">Naik level sampai kamu menyerah</span>
+</div>
+<div class="flex flex-col items-end shrink-0 pl-1">
+<span class="text-[10px] uppercase tracking-wider text-[#8A93A3] font-medium mb-0.5">Rekor</span>
+<span class="font-mono text-xs text-[#8A93A3] tabular-nums font-normal">Belum ada</span>
+</div>
+</button>
+<!-- Mode 2: Sprint 40 -->
+<button class="w-full min-h-[76px] rounded-panel bg-[#161B22] hover:bg-[#1E2530] border border-[#1E2530] p-4 flex items-center justify-between text-left transition-colors active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#5B7CFA]" role="listitem" type="button">
+<div class="flex flex-col pr-3">
+<span class="text-base font-semibold text-[#E6E9EF]">Sprint 40</span>
+<span class="text-xs text-[#8A93A3] mt-1 leading-normal font-normal">Hapus 40 baris secepat mungkin</span>
+</div>
+<div class="flex flex-col items-end shrink-0 pl-1">
+<span class="text-[10px] uppercase tracking-wider text-[#8A93A3] font-medium mb-0.5">Rekor</span>
+<span class="font-mono text-xs text-[#8A93A3] tabular-nums font-normal">Belum ada</span>
+</div>
+</button>
+<!-- Mode 3: Ultra -->
+<button class="w-full min-h-[76px] rounded-panel bg-[#161B22] hover:bg-[#1E2530] border border-[#1E2530] p-4 flex items-center justify-between text-left transition-colors active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#5B7CFA]" role="listitem" type="button">
+<div class="flex flex-col pr-3">
+<span class="text-base font-semibold text-[#E6E9EF]">Ultra</span>
+<span class="text-xs text-[#8A93A3] mt-1 leading-normal font-normal">Skor tertinggi dalam 2 menit</span>
+</div>
+<div class="flex flex-col items-end shrink-0 pl-1">
+<span class="text-[10px] uppercase tracking-wider text-[#8A93A3] font-medium mb-0.5">Rekor</span>
+<span class="font-mono text-xs text-[#8A93A3] tabular-nums font-normal">Belum ada</span>
+</div>
+</button>
+<!-- Mode 4: Zen -->
+<button class="w-full min-h-[76px] rounded-panel bg-[#161B22] hover:bg-[#1E2530] border border-[#1E2530] p-4 flex items-center justify-between text-left transition-colors active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#5B7CFA]" role="listitem" type="button">
+<div class="flex flex-col pr-3">
+<span class="text-base font-semibold text-[#E6E9EF]">Zen</span>
+<span class="text-xs text-[#8A93A3] mt-1 leading-normal font-normal">Tanpa kalah, tanpa waktu</span>
+</div>
+<div class="flex flex-col items-end shrink-0 pl-1">
+<span class="text-[10px] uppercase tracking-wider text-[#8A93A3] font-medium mb-0.5">Rekor</span>
+<span class="font-mono text-xs text-[#8A93A3] tabular-nums font-normal">Belum ada</span>
+</div>
+</button>
+</div>
+<!-- Quiet Footer Status -->
+<div class="py-4 text-center">
+<span class="font-mono text-[11px] text-[#8A93A3] tracking-wide">v1.0.4 • BlockDown Studio</span>
+</div>
+</main>
+</body></html>

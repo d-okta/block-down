@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&amp;family=Sora:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#111319;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "inverse-primary": "#2e53d0", "on-primary-fixed-variant": "#0038b8", "on-tertiary-container": "#4e3e00", "outline": "#8e90a0", "on-surface": "#e1e2e9", "surface-container-low": "#191c21", "outline-variant": "#444654", "on-primary": "#002584", "inverse-on-surface": "#2e3036", "background": "#111319", "tertiary": "#e4c45b", "primary-fixed-dim": "#b7c4ff", "surface-bright": "#36393f", "tertiary-fixed-dim": "#e4c45b", "secondary-fixed-dim": "#6bd6e4", "secondary": "#6bd6e4", "on-secondary-fixed-variant": "#004f57", "on-error-container": "#ffdad6", "error": "#ffb4ab", "on-primary-fixed": "#001453", "surface-container-lowest": "#0b0e13", "on-secondary-fixed": "#001f23", "inverse-surface": "#e1e2e9", "on-error": "#690005", "surface-variant": "#32353a", "on-secondary-container": "#002f34", "secondary-container": "#269fac", "primary": "#b7c4ff", "surface-container": "#1d2025", "on-tertiary-fixed-variant": "#564500", "primary-fixed": "#dde1ff", "surface-dim": "#111319", "tertiary-fixed": "#ffe081", "on-surface-variant": "#c4c5d6", "surface-container-high": "#272a30", "secondary-fixed": "#90f1ff", "surface-container-highest": "#32353a", "tertiary-container": "#c7a943", "on-secondary": "#00363c", "primary-container": "#6b89ff", "surface-tint": "#b7c4ff", "on-tertiary-fixed": "#231b00", "on-primary-container": "#002074", "error-container": "#93000a", "on-background": "#e1e2e9", "surface": "#111319", "on-tertiary": "#3c2f00" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "space-xl": "1.5rem", "space-md": "0.75rem", "margin": "1rem", "gutter": "0.5rem", "space-lg": "1rem", "space-xs": "0.25rem", "margin-mobile": "0.75rem", "gutter-desktop": "1rem", "margin-safe-bottom": "env(safe-area-inset-bottom, 1rem)", "margin-safe-top": "env(safe-area-inset-top, 1rem)" }, "fontFamily": { "stat-counter": ["JetBrains Mono"], "headline-md": ["Sora"], "headline-xl": ["Sora"], "body-sm": ["Sora"], "headline-xl-mobile": ["Sora"], "headline-lg": ["Sora"], "body-md": ["Sora"], "label-sm": ["Sora"], "display-stat-md": ["JetBrains Mono"], "display-stat-lg": ["JetBrains Mono"], "headline-sm": ["Sora"], "label-lg": ["Sora"], "body-lg": ["Sora"], "label-md": ["Sora"] }, "fontSize": { "stat-counter": ["14px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "500" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }], "headline-xl-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.08em", "fontWeight": "600" }], "display-stat-md": ["20px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "600" }], "display-stat-lg": ["28px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface font-body-md text-body-md text-on-surface flex flex-col min-h-screen selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-14 px-margin-mobile flex items-center justify-between"><div class="flex items-center gap-space-xs"><button aria-label="Back" class="w-11 h-11 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[20px]">arrow_back</span></button><h1 class="font-headline-sm text-headline-sm font-semibold tracking-tight text-on-surface uppercase">Game Arena</h1></div><div class="flex items-center gap-space-xs"><button aria-label="Pause Game" class="w-11 h-11 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">pause</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col flex-1 relative w-full pt-14 pb-safe bg-surface"><div class="flex flex-col w-full relative select-none">
+<!-- Underneath: Frozen Gameplay Matrix & Tactical HUD -->
+<div class="w-full px-margin-mobile flex flex-col gap-space-sm opacity-35 filter blur-[2px] pointer-events-none transition-all duration-300">
+<!-- Top Telemetry Row -->
+<div class="grid grid-cols-3 gap-space-xs bg-surface-container-low p-space-xs rounded-xl shadow-sm">
+<div class="flex flex-col items-center justify-center p-space-xs bg-surface-container rounded-lg">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Skor</span>
+<span class="font-stat-counter text-stat-counter text-on-surface font-semibold tracking-tight">048.920</span>
+</div>
+<div class="flex flex-col items-center justify-center p-space-xs bg-surface-container rounded-lg">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Level</span>
+<span class="font-stat-counter text-stat-counter text-primary font-bold">08</span>
+</div>
+<div class="flex flex-col items-center justify-center p-space-xs bg-surface-container rounded-lg">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Baris</span>
+<span class="font-stat-counter text-stat-counter text-on-surface font-semibold">074</span>
+</div>
+</div>
+<!-- Arena Central Layout: Hold, 10x20 Field, Queue -->
+<div class="flex items-start justify-center gap-space-xs w-full">
+<!-- Left Rail: Hold Panel -->
+<div class="w-16 flex flex-col gap-space-xs shrink-0">
+<div class="bg-surface-container-low p-2 rounded-xl flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-outline uppercase mb-2">Simpan</span>
+<div class="w-12 h-12 bg-surface-container rounded-lg p-1 grid grid-cols-4 grid-rows-2 gap-[2px] items-center justify-center">
+<!-- Minified I-piece representation -->
+<div class="col-span-4 grid grid-cols-4 gap-[2px]">
+<div class="w-2.5 h-2.5 bg-secondary rounded-[2px]"></div>
+<div class="w-2.5 h-2.5 bg-secondary rounded-[2px]"></div>
+<div class="w-2.5 h-2.5 bg-secondary rounded-[2px]"></div>
+<div class="w-2.5 h-2.5 bg-secondary rounded-[2px]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Center: 10x20 Matrix Field -->
+<div class="flex-1 max-w-[210px] aspect-[10/20] bg-surface-container-lowest rounded-xl p-1 relative overflow-hidden flex flex-col justify-end">
+<!-- Structural Matrix Lattice & Frozen Stacked Minoes -->
+<div class="w-full h-full grid grid-cols-10 grid-rows-20 gap-[1px] opacity-90">
+<!-- Row 1-14: Empty Grid Cells -->
+<div class="col-span-10 row-span-14 grid grid-cols-10 grid-rows-14 gap-[1px]">
+<!-- Floating T-piece frozen mid-drop -->
+<div class="col-start-4 col-span-3 row-start-11 row-span-2 grid grid-cols-3 grid-rows-2 gap-[1px]">
+<div class="col-start-2 w-full h-full bg-primary-container rounded-[2px]"></div>
+<div class="col-start-1 col-span-3 row-start-2 grid grid-cols-3 gap-[1px]">
+<div class="w-full h-full bg-primary-container rounded-[2px]"></div>
+<div class="w-full h-full bg-primary-container rounded-[2px]"></div>
+<div class="w-full h-full bg-primary-container rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- Row 15-20: Stacked Base Terrain -->
+<div class="col-span-10 row-span-6 grid grid-cols-10 grid-rows-6 gap-[1px]">
+<div class="bg-tertiary rounded-[2px]"></div><div class="bg-tertiary rounded-[2px]"></div><div class="bg-tertiary rounded-[2px]"></div><div class="bg-surface-container-high rounded-[2px]"></div><div class="bg-surface-container-high rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div>
+<div class="bg-tertiary-container rounded-[2px]"></div><div class="bg-tertiary-container rounded-[2px]"></div><div class="bg-secondary-container rounded-[2px]"></div><div class="bg-secondary-container rounded-[2px]"></div><div class="bg-surface-container-high rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div>
+<div class="bg-primary-container rounded-[2px]"></div><div class="bg-primary-container rounded-[2px]"></div><div class="bg-tertiary rounded-[2px]"></div><div class="bg-tertiary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-tertiary-container rounded-[2px]"></div><div class="bg-tertiary-container rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div>
+<div class="bg-secondary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-tertiary rounded-[2px]"></div><div class="bg-tertiary rounded-[2px]"></div><div class="bg-tertiary rounded-[2px]"></div><div class="bg-primary-container rounded-[2px]"></div><div class="bg-primary-container rounded-[2px]"></div><div class="bg-primary-container rounded-[2px]"></div><div class="bg-secondary-container rounded-[2px]"></div>
+<div class="bg-primary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-tertiary-container rounded-[2px]"></div><div class="bg-tertiary-container rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div>
+<div class="bg-tertiary rounded-[2px]"></div><div class="bg-tertiary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-secondary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-primary rounded-[2px]"></div><div class="bg-primary-container rounded-[2px]"></div><div class="bg-primary-container rounded-[2px]"></div><div class="bg-tertiary-container rounded-[2px]"></div><div class="bg-tertiary-container rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- Right Rail: Antrean Queue -->
+<div class="w-16 flex flex-col gap-space-xs shrink-0">
+<div class="bg-surface-container-low p-2 rounded-xl flex flex-col items-center gap-2">
+<span class="font-label-sm text-label-sm text-outline uppercase">Antrean</span>
+<!-- Piece Preview 1 -->
+<div class="w-12 h-10 bg-surface-container rounded-lg p-1 flex items-center justify-center">
+<div class="grid grid-cols-2 grid-rows-2 gap-[2px]">
+<div class="w-2.5 h-2.5 bg-tertiary rounded-[2px]"></div>
+<div class="w-2.5 h-2.5 bg-tertiary rounded-[2px]"></div>
+<div class="w-2.5 h-2.5 bg-tertiary rounded-[2px]"></div>
+<div class="w-2.5 h-2.5 bg-tertiary rounded-[2px]"></div>
+</div>
+</div>
+<!-- Piece Preview 2 -->
+<div class="w-12 h-10 bg-surface-container rounded-lg p-1 flex items-center justify-center">
+<div class="grid grid-cols-3 grid-rows-2 gap-[2px]">
+<div class="w-2.5 h-2.5 bg-primary rounded-[2px]"></div>
+<div class="w-2.5 h-2.5 bg-primary rounded-[2px]"></div>
+<div class="w-2.5 h-2.5 bg-primary rounded-[2px]"></div>
+<div class="col-start-3 w-2.5 h-2.5 bg-primary rounded-[2px]"></div>
+</div>
+</div>
+<!-- Piece Preview 3 -->
+<div class="w-12 h-10 bg-surface-container rounded-lg p-1 flex items-center justify-center">
+<div class="grid grid-cols-3 grid-rows-2 gap-[2px]">
+<div class="col-start-1 w-2.5 h-2.5 bg-secondary-container rounded-[2px]"></div>
+<div class="col-start-2 w-2.5 h-2.5 bg-secondary-container rounded-[2px]"></div>
+<div class="col-start-2 row-start-2 w-2.5 h-2.5 bg-secondary-container rounded-[2px]"></div>
+<div class="col-start-3 row-start-2 w-2.5 h-2.5 bg-secondary-container rounded-[2px]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- On-screen Controls (Ghosted out) -->
+<div class="w-full grid grid-cols-4 gap-space-xs mt-1">
+<div class="h-12 bg-surface-container-low rounded-xl flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+</div>
+<div class="h-12 bg-surface-container-low rounded-xl flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</div>
+<div class="h-12 bg-surface-container-low rounded-xl flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[20px]">rotate_right</span>
+</div>
+<div class="h-12 bg-surface-container-low rounded-xl flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[20px]">keyboard_double_arrow_down</span>
+</div>
+</div>
+</div>
+<!-- Modal Backdrop Layer (Dark 60% Scrim + Backdrop Blur) -->
+<div class="absolute inset-0 bg-surface-container-lowest/65 backdrop-blur-md z-40 flex items-center justify-center px-margin-mobile py-6">
+<!-- Centered Modal Dialog Panel -->
+<div class="w-full max-w-[328px] bg-surface-container-high rounded-xl p-space-xl flex flex-col shadow-2xl relative overflow-hidden transition-transform duration-200">
+<!-- Top Subtle Highlight Bar -->
+<div class="absolute top-0 left-0 right-0 h-[2px] bg-primary/20"></div>
+<!-- Modal Header -->
+<div class="flex flex-col items-center justify-center text-center mb-space-xl">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center mb-space-sm text-primary shadow-sm">
+<span class="material-symbols-outlined text-[20px]">pause</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg font-bold tracking-tight text-on-surface">Jeda</h2>
+<div class="flex items-center gap-1.5 mt-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
+<span>Maraton</span>
+<span class="text-outline">•</span>
+<span class="font-stat-counter text-stat-counter text-on-surface tracking-wide">Level 08</span>
+</div>
+</div>
+<!-- Action Buttons Stack (Min 48px Touch Envelope, Sora 600) -->
+<div class="flex flex-col gap-space-md w-full">
+<!-- 1. Primary Action: Lanjutkan (Focused / Distinct Accent) -->
+<button class="group relative w-full h-[52px] min-h-[48px] bg-primary active:bg-primary-container text-on-primary font-headline-sm text-headline-sm font-semibold rounded-xl flex items-center justify-center gap-2.5 shadow-md active:scale-[0.98] transition-all duration-150" id="btn-resume" type="button">
+<span class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Lanjutkan</span>
+</button>
+<!-- 2. Secondary Action: Ulangi -->
+<button class="w-full h-[50px] min-h-[48px] bg-surface-container text-on-surface font-headline-sm text-headline-sm font-semibold rounded-xl flex items-center justify-center gap-2.5 hover:bg-surface-container-highest active:bg-surface-variant active:scale-[0.98] transition-all duration-150" id="btn-restart" type="button">
+<span class="material-symbols-outlined text-[19px] text-on-surface-variant">replay</span>
+<span>Ulangi</span>
+</button>
+<!-- 3. Secondary Action: Pengaturan -->
+<button class="w-full h-[50px] min-h-[48px] bg-surface-container text-on-surface font-headline-sm text-headline-sm font-semibold rounded-xl flex items-center justify-center gap-2.5 hover:bg-surface-container-highest active:bg-surface-variant active:scale-[0.98] transition-all duration-150" id="btn-settings" type="button">
+<span class="material-symbols-outlined text-[19px] text-on-surface-variant">tune</span>
+<span>Pengaturan</span>
+</button>
+<!-- 4. Tertiary / Subtle Action: Ke Menu -->
+<button class="w-full h-[48px] min-h-[48px] bg-surface-container-low/60 hover:bg-surface-container active:bg-surface-variant text-on-surface-variant hover:text-on-surface font-headline-sm text-headline-sm font-semibold rounded-xl flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all duration-150" id="btn-menu" type="button">
+<span class="material-symbols-outlined text-[19px] text-outline">arrow_back</span>
+<span>Ke Menu</span>
+</button>
+</div>
+<!-- Quick Session Telemetry Footer -->
+<div class="mt-space-lg pt-space-md bg-surface-container/40 -mx-space-xl -mb-space-xl px-space-xl py-space-sm flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Waktu Sesi</span>
+<span class="font-stat-counter text-stat-counter text-on-surface-variant font-medium">04:18.42</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Simple micro-interaction feedback handlers for pause overlay buttons
+  document.getElementById('btn-resume')?.addEventListener('click', () => {
+    // Navigate back to resume gameplay or trigger history back
+    if (window.history.length > 1) {
+      window.history.back();
+    }
+  });
+
+  document.getElementById('btn-restart')?.addEventListener('click', () => {
+    // Provide a tactile haptic pulse simulation
+    if (window.navigator?.vibrate) window.navigator.vibrate(20);
+  });
+
+  document.getElementById('btn-settings')?.addEventListener('click', () => {
+    if (window.navigator?.vibrate) window.navigator.vibrate(15);
+  });
+
+  document.getElementById('btn-menu')?.addEventListener('click', () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    }
+  });
+</script></main></body></html>

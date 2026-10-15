@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0F1217" />
+    <title>BlockDown</title>
+    <!-- Ikon aplikasi menunggu arahan pemilik (DESIGN 10, ROADMAP Fase 5). Baris ini mencegah permintaan favicon.ico. -->
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <main id="app">
+      <section id="scr-menu" class="screen menu" hidden>
+        <div class="menu-top">
+          <div class="seg" role="group" data-i18n-aria="menu.language">
+            <button type="button" class="seg-btn" data-locale="id" aria-pressed="true">ID</button>
+            <button type="button" class="seg-btn" data-locale="en" aria-pressed="false">EN</button>
+          </div>
+        </div>
+
+        <h1 class="logo" data-i18n-aria="a11y.logo">
+          <span aria-hidden="true">BlockD</span><span class="logo-block" aria-hidden="true"></span><span aria-hidden="true">wn</span>
+        </h1>
+
+        <div class="modes">
+          <button type="button" class="mode-row" id="mode-marathon" aria-expanded="false" aria-controls="marathon-variants">
+            <span class="mode-text">
+              <span class="mode-name" data-i18n="mode.marathon.name"></span>
+              <span class="mode-desc" data-i18n="mode.marathon.desc"></span>
+            </span>
+          </button>
+          <div class="mode-variants" id="marathon-variants" hidden>
+            <button type="button" class="mode-row variant" data-mode="marathon150">
+              <span class="mode-name" data-i18n="menu.marathon150"></span>
+              <span class="mode-record">
+                <span class="record-label" data-i18n="menu.record"></span>
+                <span class="record-value num" data-record="marathon150"></span>
+              </span>
+            </button>
+            <button type="button" class="mode-row variant" data-mode="marathonEndless">
+              <span class="mode-name" data-i18n="menu.marathonEndless"></span>
+              <span class="mode-record">
+                <span class="record-label" data-i18n="menu.record"></span>
+                <span class="record-value num" data-record="marathonEndless"></span>
+              </span>
+            </button>
+          </div>
+          <p class="notice" id="menu-notice" hidden></p>
+        </div>
+      </section>
+
+      <section id="scr-game" class="screen game" hidden>
+        <header class="game-top">
+          <span class="game-mode" id="hud-mode"></span>
+          <div class="score-box">
+            <span class="hud-label" data-i18n="hud.score"></span>
+            <output class="num score" id="hud-score">0</output>
+          </div>
+          <button type="button" class="icon-btn" id="btn-pause" data-i18n-aria="hud.pause">
+            <svg class="icon" aria-hidden="true"><use href="/icons.svg#pause" /></svg>
+          </button>
+        </header>
+
+        <div class="play-row" id="play-row">
+          <div class="side side-left">
+            <div class="stat">
+              <span class="hud-label" data-i18n="hud.hold"></span>
+              <div class="well"><canvas id="cv-hold" role="img"></canvas></div>
+            </div>
+            <div class="stat">
+              <span class="hud-label" data-i18n="hud.level"></span>
+              <span class="well num stat-value" id="hud-level">1</span>
+            </div>
+            <div class="stat">
+              <span class="hud-label" data-i18n="hud.lines"></span>
+              <span class="well num stat-value" id="hud-lines">0</span>
+            </div>
+            <div class="stat" id="stat-combo" hidden>
+              <span class="hud-label" data-i18n="hud.combo"></span>
+              <span class="well num stat-value" id="hud-combo">0</span>
+            </div>
+          </div>
+
+          <div class="field" id="field">
+            <canvas id="cv-bg" aria-hidden="true"></canvas>
+            <canvas id="cv-main" role="img"></canvas>
+          </div>
+
+          <div class="side side-right">
+            <div class="stat">
+              <span class="hud-label" data-i18n="hud.next"></span>
+              <div class="well"><canvas id="cv-next" role="img"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="dlg-pause" class="panel" aria-labelledby="pause-title">
+      <h2 id="pause-title" data-i18n="pause.title"></h2>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" data-act="resume" autofocus>
+          <svg class="icon" aria-hidden="true"><use href="/icons.svg#play_arrow" /></svg>
+          <span data-i18n="pause.resume"></span>
+        </button>
+        <button type="button" class="btn" data-act="restart">
+          <svg class="icon" aria-hidden="true"><use href="/icons.svg#replay" /></svg>
+          <span data-i18n="pause.restart"></span>
+        </button>
+        <button type="button" class="btn" data-act="menu">
+          <svg class="icon" aria-hidden="true"><use href="/icons.svg#home" /></svg>
+          <span data-i18n="pause.menu"></span>
+        </button>
+      </div>
+      <div class="panel-foot">
+        <span data-i18n="pause.sessionTime"></span>
+        <span class="num" id="pause-time"></span>
+      </div>
+    </dialog>
+
+    <dialog id="dlg-confirm" class="panel" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+      <h2 id="confirm-title" data-i18n="confirm.title"></h2>
+      <p id="confirm-body" class="panel-text" data-i18n="confirm.body"></p>
+      <div class="actions">
+        <button type="button" class="btn" data-act="cancel" autofocus data-i18n="confirm.cancel"></button>
+        <button type="button" class="btn btn-primary" data-act="ok" id="confirm-ok"></button>
+      </div>
+    </dialog>
+
+    <dialog id="dlg-over" class="panel" aria-labelledby="over-title">
+      <p class="over-mode" id="over-mode"></p>
+      <h2 id="over-title"></h2>
+      <div class="over-result">
+        <span class="hud-label" id="over-result-label"></span>
+        <span class="over-result-row">
+          <span class="num over-value" id="over-value"></span>
+          <span class="tag" id="over-new" hidden data-i18n="over.newRecord"></span>
+        </span>
+      </div>
+      <dl class="over-stats">
+        <div><dt data-i18n="over.statLevel"></dt><dd class="num" id="over-level"></dd></div>
+        <div><dt data-i18n="over.statLines"></dt><dd class="num" id="over-lines"></dd></div>
+        <div><dt data-i18n="over.statQuads"></dt><dd class="num" id="over-quads"></dd></div>
+        <div><dt data-i18n="over.statTSpins"></dt><dd class="num" id="over-tspins"></dd></div>
+        <div><dt data-i18n="over.statMaxCombo"></dt><dd class="num" id="over-combo"></dd></div>
+      </dl>
+      <p class="notice" id="over-notice" hidden></p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" data-act="again" autofocus>
+          <svg class="icon" aria-hidden="true"><use href="/icons.svg#replay" /></svg>
+          <span data-i18n="over.playAgain"></span>
+        </button>
+        <button type="button" class="btn" data-act="menu">
+          <svg class="icon" aria-hidden="true"><use href="/icons.svg#home" /></svg>
+          <span data-i18n="over.menu"></span>
+        </button>
+      </div>
+    </dialog>
+
+    <div id="live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
