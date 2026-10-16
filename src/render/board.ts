@@ -8,11 +8,17 @@ const LOCK_FLASH_MS = 90;
 
 /**
  * Menggambar board, ghost, dan piece aktif. Hanya membaca state core.
- * Lapisan latar (grid) digambar ke canvas terpisah, hanya saat ukuran atau pengaturan berubah.
+ * Tiga lapisan canvas:
+ * - latar (grid): digambar ulang hanya saat ukuran atau pengaturan berubah;
+ * - tumpukan (blok yang sudah terkunci): digambar ulang hanya saat isi board berubah;
+ * - utama: piece aktif, ghost, dan kilat lock, setiap frame.
+ * Tumpukan dipisah setelah uji di Galaxy A13: menggambar ulang sekitar 200 blok setiap frame
+ * membuat waktu kerja p99 sekitar 14 ms dari anggaran 16,7 ms.
  */
 export class BoardRenderer {
   private ctx: CanvasRenderingContext2D;
   private bgCtx: CanvasRenderingContext2D;
+  private stackCtx: CanvasRenderingContext2D;
   private atlas: Atlas | null = null;
   private cell = 0; // piksel perangkat
   private dpr = 1;
@@ -25,11 +31,17 @@ export class BoardRenderer {
   private flashStart = -1;
   private main: HTMLCanvasElement;
   private bg: HTMLCanvasElement;
+  private stack: HTMLCanvasElement;
+  /** Salinan isi board terakhir yang digambar di lapisan tumpukan. */
+  private drawn = new Uint8Array(COLS * VISIBLE_ROWS);
+  private stackValid = false;
 
-  constructor(main: HTMLCanvasElement, bg: HTMLCanvasElement) {
+  constructor(main: HTMLCanvasElement, stack: HTMLCanvasElement, bg: HTMLCanvasElement) {
     this.main = main;
+    this.stack = stack;
     this.bg = bg;
     this.ctx = main.getContext("2d", { alpha: true })!;
+    this.stackCtx = stack.getContext("2d", { alpha: true })!;
     this.bgCtx = bg.getContext("2d")!;
   }
 
@@ -39,7 +51,7 @@ export class BoardRenderer {
     const cell = Math.max(1, Math.floor(Math.min(availH / VISIBLE_ROWS, availW / COLS) * dpr));
     if (cell === this.cell && this.atlas) return cell / dpr;
     this.cell = cell;
-    for (const c of [this.main, this.bg]) {
+    for (const c of [this.main, this.stack, this.bg]) {
       c.width = cell * COLS;
       c.height = cell * VISIBLE_ROWS;
       c.style.width = `${(cell * COLS) / dpr}px`;
@@ -53,6 +65,7 @@ export class BoardRenderer {
   rebuild(): void {
     if (this.cell === 0) return;
     this.atlas = buildAtlas(this.cell, this.dpr, this.colorSafe);
+    this.stackValid = false;
     const g = this.bgCtx;
     g.clearRect(0, 0, this.bg.width, this.bg.height);
     if (!this.grid) return;
@@ -78,15 +91,7 @@ export class BoardRenderer {
     const ctx = this.ctx;
     const c = this.cell;
     ctx.clearRect(0, 0, this.main.width, this.main.height);
-
-    const b = s.board;
-    for (let y = 0; y < VISIBLE_ROWS; y++) {
-      const dy = (VISIBLE_ROWS - 1 - y) * c;
-      for (let x = 0; x < COLS; x++) {
-        const v = b[y * COLS + x]!;
-        if (v !== 0) ctx.drawImage(atlas.canvas, v * c, ROW_BLOCK * c, c, c, x * c, dy, c, c);
-      }
-    }
+    this.drawStack(s.board);
 
     if (this.flashStart >= 0) {
       const p = (now - this.flashStart) / LOCK_FLASH_MS;
@@ -109,6 +114,34 @@ export class BoardRenderer {
 
     const smooth = fallFrom - s.y === 1 ? (1 - alpha) * c : 0;
     this.drawPiece(s.type, s.rot, s.x, s.y, ROW_BLOCK, -smooth);
+  }
+
+  /** Gambar ulang lapisan tumpukan hanya jika isi board yang terlihat berubah (lock, clear, mulai ulang, Zen). */
+  private drawStack(b: Uint8Array): void {
+    const n = COLS * VISIBLE_ROWS;
+    if (this.stackValid) {
+      let same = true;
+      for (let i = 0; i < n; i++) {
+        if (b[i] !== this.drawn[i]) {
+          same = false;
+          break;
+        }
+      }
+      if (same) return;
+    }
+    this.drawn.set(b.subarray(0, n));
+    this.stackValid = true;
+    const atlas = this.atlas!;
+    const c = this.cell;
+    const g = this.stackCtx;
+    g.clearRect(0, 0, this.stack.width, this.stack.height);
+    for (let y = 0; y < VISIBLE_ROWS; y++) {
+      const dy = (VISIBLE_ROWS - 1 - y) * c;
+      for (let x = 0; x < COLS; x++) {
+        const v = b[y * COLS + x]!;
+        if (v !== 0) g.drawImage(atlas.canvas, v * c, ROW_BLOCK * c, c, c, x * c, dy, c, c);
+      }
+    }
   }
 
   private drawPiece(type: PieceType, rot: Rot, px: number, py: number, row: number, offsetY: number): void {

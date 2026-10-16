@@ -496,7 +496,8 @@ kbd {
   background: var(--surface-1);
 }
 
-#cv-main {
+#cv-main,
+#cv-stack {
   background: transparent;
   border-color: transparent;
 }

@@ -74,6 +74,18 @@ Cara mengukur: buka `https://block-down.vercel.app/?perf` di HP, mainkan sekitar
 
 Uji di Chrome desktop (HP emulasi 390x844, DPR 3): panel tidak tampil tanpa `?perf`; dengan `?perf`, kerja p99 0,6 ms, 0 frame lambat, dan jeda tidak dihitung sebagai frame lambat.
 
+Pengukuran pertama di Galaxy A13 (pemilik, Maraton, 132 detik, 7.769 frame):
+- fps 60: tercapai.
+- Lambat 92 frame (1,2%), maks 184 ms.
+- Kerja per frame p50 3,2 ms, p99 14,3 ms, maks 36,5 ms. p99 dekat batas 16,7 ms.
+- Heap 9,5 MB (satu angka, belum bisa dinilai naik atau stabil).
+
+Temuan dan perbaikan dari pengukuran itu:
+1. Renderer menggambar ulang seluruh tumpukan setiap frame. Dengan tumpukan tinggi itu sekitar 64 `drawImage` per frame. Tumpukan dipindah ke canvas sendiri (`cv-stack`) yang hanya digambar ulang saat isi board berubah. Hasil: 64,5 menjadi 7,7 `drawImage` per frame dengan tumpukan yang sama. Diuji: tumpukan tetap cocok dengan board setelah lock, mode buta warna, resize, mulai ulang, dan Main Lagi.
+2. Panel ukur sendiri mengurutkan sekitar 8.000 angka empat kali per detik, yang bisa ikut membuat frame tersendat di HP. Diganti histogram tanpa pengurutan, diperbarui tiap 2 detik. "Lambat" diganti "tersendat" dengan batas tetap 25 ms (1,5 kali satu frame 60 Hz), heap kini menampilkan nilai awal untuk melihat apakah memori naik terus, dan frame pertama setelah lanjut dari jeda tidak dihitung.
+
+Di Chrome desktop dengan CPU diperlambat 6 kali (perkiraan kasar HP kelas bawah), frame tersendat tidak terkait pembaruan panel maupun penghapusan baris; sisa tersendat kemungkinan dari browser (pengumpulan sampah atau komposit), bukan dari kode game. Perlu diukur ulang di Galaxy A13 setelah perbaikan ini.
+
 ## Fase 3: Sentuh, semua mode, Pengaturan, i18n
 
 Lingkup: `input/touch.ts` (Tombol dan Gestur), `input/gamepad.ts`, mode Sprint 40, Ultra, dan Zen, layar Pengaturan lengkap, pemetaan ulang tombol, serta i18n ID/EN di semua layar.

@@ -519,3 +519,10 @@ Keyboard bawaan menjadi satu tombol per aksi: Z, X, panah atas untuk simpan. Key
 | Tidak bisa geser lalu banting tanpa mengangkat jari | Arah dikunci untuk seluruh sentuhan; setelah mendatar, gerak tegak diabaikan. | Sentuhan dibagi menjadi segmen; gerak tegak sesudah geser memulai segmen tegak baru. |
 
 Tes gestur di `tests/client.test.ts` ditulis ulang menjadi 13 kasus. Tiga di antaranya gagal pada versi yang sedang tayang (gerak kecil, seret pelan 2,5 sel, geser lalu banting) dan lulus sesudahnya. Di browser HP emulasi, 10 percobaan per kasus: gerak kecil cepat 0,9 sel dan seret pelan 1,6 sel tidak memicu (versi tayang: 10 dari 10 memicu); geser lalu banting memicu 10 dari 10 (versi tayang: 0).
+
+## 16. Lapisan tumpukan (setelah pengukuran di Galaxy A13)
+
+- `BoardRenderer` memakai tiga canvas bertumpuk: `cv-bg` (grid), `cv-stack` (blok terkunci), `cv-main` (piece aktif, ghost, kilat lock).
+- `cv-stack` digambar ulang hanya jika 200 sel terlihat berbeda dari salinan terakhir (perbandingan `Uint8Array`, tanpa alokasi), atau setelah `rebuild()` (ukuran, buta warna, grid).
+- Dampak: dengan tumpukan tinggi, `drawImage` per frame turun dari sekitar 64 menjadi sekitar 8 (4 piece + 4 ghost).
+- Fase 4 perlu memperhatikan ini: animasi baris terhapus dan stack turun menggambar di `cv-main` atau lapisan efek, sementara `cv-stack` diperbarui sekali saat animasi selesai atau dibuat transparan selama animasi.

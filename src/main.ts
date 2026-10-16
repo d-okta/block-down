@@ -45,7 +45,7 @@ const live = $("live");
 const field = $("field");
 const cvMain = $<HTMLCanvasElement>("cv-main");
 
-const board = new BoardRenderer(cvMain, $<HTMLCanvasElement>("cv-bg"));
+const board = new BoardRenderer(cvMain, $<HTMLCanvasElement>("cv-stack"), $<HTMLCanvasElement>("cv-bg"));
 const holdView = new PreviewRenderer($<HTMLCanvasElement>("cv-hold"), 1);
 const nextView = new PreviewRenderer($<HTMLCanvasElement>("cv-next"), NEXT_COUNT);
 nextView.horizontal = true;
@@ -171,6 +171,7 @@ function startGame(id: ModeId): void {
 }
 
 function resume(): void {
+  perfPause(); // frame pertama setelah lanjut tidak dihitung sebagai tersendat
   clk.acc = 0;
   clk.last = performance.now();
   clk.offset = clk.last - clk.sim;
