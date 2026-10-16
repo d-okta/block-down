@@ -116,13 +116,13 @@ test("gestur: seret ke kanan 3 sel = 3 geser kanan", () => {
   assert.equal(out.filter((s) => s.startsWith("CW")).length, 0, "bukan ketukan");
 });
 
-test("gestur: sapu cepat ke bawah = jatuh cepat, sapu ke atas = simpan", () => {
+test("gestur: seret ke bawah = jatuh cepat, sapu ke atas = simpan", () => {
   const a = recorder();
   a.rec.down(1, 100, 100, 0);
   a.rec.move(1, 101, 120, 16);
   a.rec.move(1, 101, 160, 32);
   a.rec.up(1, 101, 200, 48);
-  assert.ok(a.out.includes("HARD+"), a.out.join(","));
+  assert.deepEqual(a.out, ["HARD+", "HARD-"]);
 
   const b = recorder();
   b.rec.down(1, 100, 200, 0);
@@ -132,14 +132,24 @@ test("gestur: sapu cepat ke bawah = jatuh cepat, sapu ke atas = simpan", () => {
   assert.deepEqual(b.out, ["HOLD+", "HOLD-"]);
 });
 
-test("gestur: seret pelan ke bawah = jatuh pelan, dilepas saat jari diangkat, tanpa jatuh cepat", () => {
+test("gestur: seret pelan ke bawah juga jatuh cepat, dipicu sebelum jari diangkat, sekali saja", () => {
   const { rec, out } = recorder();
   rec.down(1, 100, 100, 0);
-  for (let i = 1; i <= 10; i++) rec.move(1, 100, 100 + i * 6, i * 100);
-  rec.up(1, 100, 160, 1100);
-  assert.equal(out[0], "SOFT+");
-  assert.equal(out.at(-1), "SOFT-");
-  assert.ok(!out.includes("HARD+"));
+  for (let i = 1; i <= 5; i++) rec.move(1, 100, 100 + i * 6, i * 100); // 30 px = 1,5 sel
+  assert.deepEqual(out, ["HARD+", "HARD-"], "langsung saat 1,5 sel tercapai");
+  for (let i = 6; i <= 20; i++) rec.move(1, 100, 100 + i * 6, i * 100);
+  rec.up(1, 100, 220, 2100);
+  assert.deepEqual(out, ["HARD+", "HARD-"], "tidak dipicu ulang");
+  assert.ok(!out.some((s) => s.startsWith("SOFT")));
+});
+
+test("gestur: seret ke bawah kurang dari 1,5 sel tidak berbuat apa-apa", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  rec.move(1, 100, 115, 100);
+  rec.move(1, 100, 128, 300);
+  rec.up(1, 100, 128, 400);
+  assert.deepEqual(out, []);
 });
 
 test("gestur: arah dikunci, sapu ke bawah yang sedikit miring tidak menggeser", () => {
@@ -200,6 +210,13 @@ test("penyimpanan: keymap duplikat dibuang dan Escape ditolak", () => {
   assert.deepEqual(km.hard, ["Space"], "kosong kembali ke bawaan");
   assert.deepEqual(km.cw, ["KeyX", "ArrowUp"]);
   assert.deepEqual(km.hold, ["KeyC", "ShiftLeft"], "P dan Tab dicadangkan");
+});
+
+test("penyimpanan: field lama touchMode diabaikan tanpa merusak pengaturan lain", () => {
+  const { data, status } = parseSave(JSON.stringify({ schema: 1, settings: { touchMode: "buttons", dasMs: 120 } }));
+  assert.equal(status, "ok");
+  assert.equal(data.settings.dasMs, 120);
+  assert.equal("touchMode" in data.settings, false);
 });
 
 test("penyimpanan: skema lebih baru dibaca tetapi ditandai", () => {

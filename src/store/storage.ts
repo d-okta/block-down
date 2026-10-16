@@ -10,8 +10,7 @@ export const BTNS: readonly Btn[] = ["left", "right", "soft", "hard", "cw", "ccw
 
 export interface Settings {
   locale: Locale | null; // null = ikuti navigator.language
-  touchMode: "buttons" | "gestures";
-  dasMs: number;
+ dasMs: number;
   arrMs: number;
   softDropFactor: number | "instant";
   keymap: Record<Btn, string[]>;
@@ -62,8 +61,7 @@ export function defaultKeymap(): Record<Btn, string[]> {
 export function defaultSettings(): Settings {
   return {
     locale: null,
-    touchMode: "buttons",
-    dasMs: 167,
+   dasMs: 167,
     arrMs: 33,
     softDropFactor: 20,
     keymap: defaultKeymap(),
@@ -129,8 +127,7 @@ function readSettings(v: unknown): Settings {
   const sd = v["softDropFactor"];
   return {
     locale: v["locale"] === "id" || v["locale"] === "en" ? v["locale"] : null,
-    touchMode: oneOf(v["touchMode"], ["buttons", "gestures"] as const, d.touchMode),
-    dasMs: int(v["dasMs"], 50, 300, d.dasMs),
+   dasMs: int(v["dasMs"], 50, 300, d.dasMs),
     arrMs: int(v["arrMs"], 0, 100, d.arrMs),
     softDropFactor: sd === "instant" ? "instant" : Number.isSafeInteger(sd) && (sd as number) % 5 === 0 ? int(sd, 5, 40, 20) : 20,
     keymap: readKeymap(v["keymap"]),

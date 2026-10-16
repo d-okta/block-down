@@ -68,32 +68,31 @@ export const BTN = { LEFT: 0, RIGHT: 1, SOFT: 2, HARD: 3, CW: 4, CCW: 5, HOLD: 6
 - `event.repeat` diabaikan. Tombol yang dipetakan memanggil `preventDefault()`.
 - Esc selalu `PAUSE`, tidak masuk keymap.
 
-### 2.4 Sentuh: mode Tombol (`src/input/touch.ts`)
+### 2.4 Sentuh: tombol di layar (dihapus)
 
-- Setiap tombol adalah `<button>` DOM dengan `data-btn`. Listener `pointerdown`, `pointerup`, `pointercancel`, dan `pointerleave` di elemen induk.
-- `pointerdown` memanggil `setPointerCapture`, `press()`, dan `preventDefault()` (mencegah zoom ketuk dua kali dan klik tiruan).
-- Banyak jari didukung: setiap `pointerId` dicatat ke tombolnya.
-- CSS: `touch-action: none; user-select: none; -webkit-touch-callout: none`.
+Dibuat di Fase 3 lalu dihapus setelah uji di Galaxy A13 (keputusan pemilik, DESIGN 9.2). HP hanya memakai gestur.
 
-### 2.5 Sentuh: mode Gestur
+### 2.5 Sentuh: gestur (`src/input/gesture.ts`, `src/input/touch.ts`)
 
-Area: elemen pembungkus playfield. Satuan `u` = ukuran sel dalam piksel CSS.
+Area: seluruh layar Game kecuali tombol (jeda), supaya jari tidak menutupi papan. Satuan `u` = ukuran sel dalam piksel CSS.
 
-| Konstanta | Nilai awal | Arti |
+| Konstanta | Nilai | Arti |
 |---|---|---|
-| `TAP_MAX_MS` | 200 | Durasi maksimum ketuk |
+| `TAP_MAX_MS` | 220 | Durasi maksimum ketuk |
 | `TAP_MAX_MOVE` | 0.5u | Gerak maksimum ketuk |
-| `FLICK_V` | 1.5u per 16 ms | Kecepatan sapuan cepat |
-| `SOFT_STEP` | 1u | Jarak seret ke bawah per sel soft drop |
+| `LOCK_DIST` | 0.5u | Gerak pertama di atas ini mengunci arah |
+| `VERTICAL_DIST` | 1.5u | Seret tegak sejauh ini memicu jatuh cepat atau simpan |
 
 Aturan per `pointerId`:
-- Seret horizontal: setiap 1u yang ditempuh sejak titik acuan menghasilkan `press`+`release` geser, lalu titik acuan maju 1u. DAS dan ARR tidak dipakai.
-- Seret ke bawah perlahan: `SOFT` ditekan selama gerak ke bawah, dilepas saat jari berhenti atau naik.
-- Sapuan ke bawah dengan kecepatan di atas `FLICK_V` saat jari diangkat: `HARD`. Sapuan ke atas: `HOLD`.
-- Ketuk satu jari: `CW`. Ketuk saat ada dua pointer aktif: `CCW`.
-- Arah dikunci pada gerakan pertama yang melebihi 0.5u (horizontal atau vertikal), supaya hard drop tidak ikut menggeser.
+- Seret mendatar: setiap 1u yang ditempuh sejak titik acuan menghasilkan `press`+`release` geser, lalu titik acuan maju 1u. DAS dan ARR tidak dipakai.
+- Seret ke bawah sejauh 1,5u: `HARD`, langsung saat jarak tercapai (tidak menunggu jari diangkat dan tidak bergantung kecepatan), sekali per sentuhan. Ke atas: `HOLD`.
+- Tidak ada jatuh pelan lewat gestur (keputusan pemilik).
+- Ketuk satu jari: `CW`. Ketuk saat ada dua pointer aktif: `CCW`, sekali saat jari terakhir diangkat.
+- Arah dikunci pada gerakan pertama yang melebihi 0.5u, supaya jatuh cepat tidak ikut menggeser.
 
-Nilai konstanta disetel ulang di Fase 3 setelah uji di perangkat (SPEC 11.2).
+### 2.6a Orientasi
+
+Di layar sentuh (`hover: none` dan `pointer: coarse`) dengan posisi mendatar dan tinggi di bawah 600 px, CSS menyembunyikan `#app` dan menampilkan `#rotate-notice`; `main.ts` menjeda permainan lewat `matchMedia` yang sama. Jendela desktop yang lebar tidak terpengaruh.
 
 ### 2.6 Gamepad (`src/input/gamepad.ts`)
 
@@ -484,3 +483,11 @@ Rekor: `submitResult(mode, result)` membandingkan dengan rekor tersimpan (skor d
 - Zen diakhiri pemain lewat `Game.end()` dari Pause ("Akhiri sesi"). Hasil utamanya baris, dicatat sebagai rekor.
 - Landscape HP (tinggi di bawah 500 px): tombol sentuh dipindah ke kiri dan kanan papan dengan CSS grid, sesuai DESIGN 7 rentang 600 sampai 1023 px.
 - Toast kecil di bawah layar untuk pemberitahuan sesaat (gamepad, simpan gagal, kembalikan bawaan), selain `aria-live`.
+
+## 13. Revisi Fase 3 setelah uji di Galaxy A13
+
+- Tombol sentuh dihapus dari HTML, CSS, dan `main.ts`; `bindTouchButtons` dihapus. Pengaturan `touchMode` dihapus dari penyimpanan, Pengaturan, dan kamus. Data lama yang masih berisi `touchMode` dibaca tanpa error dan field itu dibuang (tes di `client.test.ts`).
+- Gestur dipasang di `#scr-game`, bukan `#field`, dan mengabaikan sentuhan yang dimulai di tombol.
+- Tata letak: statistik pindah ke satu baris di bawah skor; Simpan dan Antrean berjajar mendatar di atas papan. `PreviewRenderer.horizontal` menyusun 5 slot mendatar (5x3 sel mini per slot). Sel mini dihitung dari lebar baris antrean: `(lebar - 40) / 29`, dibatasi 7 sampai 14 px.
+- Jendela lebar (lebar 600 px ke atas dan lebih dari 0,9 kali tinggi): `main.ts` memberi kelas `side-layout`, Simpan di kiri dan Antrean tegak di kanan papan.
+- Ikon tombol sentuh dibuang dari `public/icons.svg`; ditambah `screen_rotation`.

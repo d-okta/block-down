@@ -377,12 +377,17 @@ kbd {
 
 /* ---------- game ---------- */
 
+/*
+ * Satu kolom dari atas ke bawah: mode/skor/jeda, statistik, Simpan + Antrean, papan.
+ * Papan selebar mungkin; gestur diterima di seluruh layar (DESIGN 7.2, revisi uji HP).
+ */
 .game {
-  --side: 64px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-width: 560px;
   height: 100dvh;
+  margin: 0 auto;
   overflow: hidden;
   touch-action: none;
   user-select: none;
@@ -424,48 +429,61 @@ kbd {
   font-weight: 500;
 }
 
-.play-row {
-  flex: 1;
+.stats {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  min-height: 0;
-}
-
-.side {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: var(--side);
-  flex: none;
+  gap: 24px;
+  margin: 0;
 }
 
 .stat {
   display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.stat dt {
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.stat dd {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.queue-row {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+
+.queue-box {
+  display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.queue-next {
+  flex: 1;
+  min-width: 0;
 }
 
 .well {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 6px 4px;
+  padding: 6px;
   border: 1px solid var(--line-deco);
   border-radius: var(--r-control);
   background: var(--surface-1);
 }
 
-.stat-value {
-  font-size: 1rem;
-}
-
 .field {
   position: relative;
-  align-self: flex-start;
   flex: 1 1 auto;
-  min-width: 0;
-  height: 100%;
+  min-height: 0;
   display: flex;
   justify-content: center;
 }
@@ -483,144 +501,104 @@ kbd {
   border-color: transparent;
 }
 
-@media (min-width: 600px) {
-  .game {
-    --side: 96px;
-  }
-  .hud-label,
-  .stat-value {
-    font-size: 1rem;
-  }
+/*
+ * Jendela lebar tapi pendek (desktop atau tablet dengan mouse): antrean di atas makan tinggi,
+ * jadi Simpan dan Antrean pindah ke kiri dan kanan papan, antrean tegak. Diatur oleh main.ts
+ * lewat kelas .side-layout, karena PreviewRenderer juga perlu tahu arahnya.
+ */
+.game.side-layout {
+  display: grid;
+  /* Kolom samping selebar isinya; papan mengambil sisa ruang di tengah. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  column-gap: 16px;
+  max-width: 1024px;
+}
+.game.side-layout .game-top,
+.game.side-layout .stats {
+  grid-column: 1 / -1;
+}
+.game.side-layout .queue-row {
+  display: contents;
+}
+.game.side-layout .queue-box {
+  grid-row: 3;
+  grid-column: 1;
+  justify-self: end;
+  align-self: start;
+}
+.game.side-layout .queue-next {
+  grid-column: 3;
+  justify-self: start;
+  flex: none;
+}
+.game.side-layout .field {
+  grid-row: 3;
+  grid-column: 2;
+  height: 100%;
 }
 
-/* Layar sempit (320 px): kolom samping menyempit supaya sel tidak terlalu kecil. */
+/* Layar sempit (320 px): margin lebih kecil supaya papan dan antrean tetap muat. */
 @media (max-width: 359px) {
   .game {
-    --side: 56px;
     padding-left: calc(8px + var(--safe-l));
     padding-right: calc(8px + var(--safe-r));
   }
+  .stats {
+    gap: 16px;
+  }
 }
 
-/* ---------- tombol sentuh ---------- */
+/* ---------- hanya tegak di layar sentuh ---------- */
 
-.pad {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: none;
+.rotate-notice {
+  display: none;
 }
 
-.pad-row {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
+.touch-only {
+  display: none;
 }
 
-.pad-btn {
-  display: grid;
-  place-items: center;
-  min-width: 44px;
-  height: 56px;
-  padding: 0;
-  border: 1px solid var(--line-control);
-  border-radius: var(--r-control);
-  background: transparent;
-  color: var(--text);
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.pad-btn.pressed {
-  background: var(--surface-2);
-}
-
-/* Jatuh cepat: aksi utama, satu-satunya tombol beraksen saat bermain (DESIGN 7.2). */
-.pad-hard {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-  font-weight: 600;
-}
-
-.pad-hard.pressed {
-  background: var(--accent);
-  transform: scale(0.98);
-}
-
-@media (min-width: 600px) {
-  .pad {
-    max-width: 480px;
-    width: 100%;
-    margin: 0 auto;
+@media (hover: none) and (pointer: coarse) {
+  .touch-only {
+    display: grid;
   }
 }
 
 /*
- * Layar pendek (landscape HP): tombol dipindah ke kiri dan kanan papan (DESIGN 7, rentang 600 sampai 1023 px),
- * supaya tinggi layar seluruhnya dipakai papan. Kiri: simpan, geser, jatuh pelan. Kanan: putar dan jatuh cepat.
+ * HP dalam posisi mendatar: permainan diganti pesan putar HP. Loop dijeda dari main.ts.
+ * Hanya untuk layar sentuh, supaya jendela desktop yang lebar tetap bisa bermain.
  */
-@media (max-height: 500px) and (orientation: landscape) {
-  .game {
-    display: grid;
-    /* Dua tombol 56 px + jarak 16 px di setiap sisi; papan dan HUD mengambil sisa lebar. */
-    grid-template-columns: 128px minmax(0, 1fr) 128px;
-    grid-template-rows: auto minmax(0, 1fr);
-    column-gap: 16px;
-  }
-  .game:has(.pad[hidden]) {
-    grid-template-columns: 0 minmax(0, 1fr) 0;
-  }
-  .game-top {
-    grid-column: 1 / -1;
-  }
-  .play-row {
-    grid-column: 2;
-    grid-row: 2;
-  }
-  .pad {
-    display: contents;
-  }
-  .pad[hidden] {
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+  #app,
+  dialog.panel {
     display: none !important;
   }
-  .pad-row {
-    display: contents;
+  .rotate-notice {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    text-align: center;
+    background: var(--bg);
   }
-  .pad-btn {
-    height: 56px;
-    width: 56px;
+  .rotate-notice .icon {
+    width: 48px;
+    height: 48px;
+    color: var(--text-dim);
   }
-  .pad-btn[data-btn="hold"],
-  .pad-btn[data-btn="left"],
-  .pad-btn[data-btn="right"],
-  .pad-btn[data-btn="soft"] {
-    grid-column: 1;
+  .rotate-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
   }
-  .pad-btn[data-btn="ccw"],
-  .pad-btn[data-btn="cw"],
-  .pad-hard {
-    grid-column: 3;
-  }
-  /* Tata letak kiri: [simpan] [jatuh pelan] di atas, [kiri] [kanan] di bawah. Kanan: [putar kiri] [putar kanan], lalu jatuh cepat. */
-  .pad-btn[data-btn="hold"] { grid-row: 2; align-self: end; justify-self: start; margin-bottom: 72px; }
-  .pad-btn[data-btn="soft"] { grid-row: 2; align-self: end; justify-self: end; margin-bottom: 72px; }
-  .pad-btn[data-btn="left"] { grid-row: 2; align-self: end; justify-self: start; margin-bottom: 8px; }
-  .pad-btn[data-btn="right"] { grid-row: 2; align-self: end; justify-self: end; margin-bottom: 8px; }
-  .pad-btn[data-btn="ccw"] { grid-row: 2; align-self: end; justify-self: start; margin-bottom: 72px; }
-  .pad-btn[data-btn="cw"] { grid-row: 2; align-self: end; justify-self: end; margin-bottom: 72px; }
-  .pad-hard {
-    grid-row: 2;
-    align-self: end;
-    width: 100%;
-    margin-bottom: 8px;
-  }
-  .pad-hard span {
-    display: none;
+  .rotate-body {
+    margin: 0;
+    color: var(--text-dim);
   }
 }
 

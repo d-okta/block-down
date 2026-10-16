@@ -9,8 +9,8 @@ Game puzzle blok jatuh untuk browser, dengan versi Android menyusul. Tenang saat
 Ini versi uji (Fase 3 dari 6). Yang sudah bisa dicoba:
 
 - Empat mode: Maraton (150 baris atau tanpa batas), Sprint 40, Ultra (2 menit), dan Zen.
-- Keyboard, layar sentuh (tombol di layar atau gestur), dan gamepad.
-- Pengaturan: mode sentuh, DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, ghost, grid, mode aman buta warna, dan bahasa.
+- Keyboard, gestur sentuh di HP (hanya posisi tegak), dan gamepad.
+- Pengaturan: DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, ghost, grid, mode aman buta warna, dan bahasa.
 - Ghost piece, Simpan (sekali per piece), dan 5 piece berikutnya. Lock delay 400 ms.
 - Skor lengkap: Single sampai 4 Baris, T-Spin dan Mini, Back-to-Back, Combo, Bersih Total.
 - Jeda, Game Over dengan statistik, dan rekor pribadi per mode yang tersimpan di browser.
@@ -27,15 +27,15 @@ Urutan pengerjaannya ada di [docs/prd/ROADMAP.md](docs/prd/ROADMAP.md).
 
 | Aksi | Keyboard (bisa diubah) | Gamepad | Gestur |
 |---|---|---|---|
-| Geser | ← → | D-pad kiri/kanan, stik | Seret ke samping |
-| Jatuh pelan | ↓ | D-pad bawah | Seret pelan ke bawah |
-| Jatuh cepat | Space | D-pad atas | Sapu cepat ke bawah |
-| Putar kanan | X atau ↑ | A | Ketuk |
+| Geser | â† â†’ | D-pad kiri/kanan, stik | Seret ke samping |
+| Jatuh pelan | â†“ | D-pad bawah | (tidak ada) |
+| Jatuh cepat | Space | D-pad atas | Seret ke bawah |
+| Putar kanan | X atau â†‘ | A | Ketuk |
 | Putar kiri | Z atau Ctrl | B | Ketuk dua jari |
-| Simpan | C atau Shift | LB atau RB | Sapu ke atas |
+| Simpan | C atau Shift | LB atau RB | Seret ke atas |
 | Jeda | Esc atau P | Start | Tombol jeda |
 
-Di HP, bawaannya tombol di layar. Gestur bisa dipilih di Pengaturan.
+Di HP, gestur bisa dilakukan di mana saja di layar permainan, tidak harus di atas papan.
 
 ## Menjalankan di komputer sendiri
 
@@ -44,7 +44,7 @@ Butuh Node 22.18 atau lebih baru.
 ```
 npm install
 npm run dev       # buka http://localhost:5173
-npm run check     # TypeScript + 46 tes
+npm run check     # TypeScript + 48 tes
 npm run build     # hasil di dist/
 ```
 

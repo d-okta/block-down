@@ -75,9 +75,9 @@ Kriteria selesai:
 - [x] Sprint mencatat waktu dalam ms, dan top out tidak dicatat sebagai rekor (pesan "Waktu tidak dicatat" tampil).
 - [x] Ultra berhenti tepat di tick 7200 (120.000 ms), dan Pause menghentikan timer (tes core 22b, loop berhenti saat Pause).
 - [x] Zen mengosongkan board saat top out, dan skor tetap (tes 22c). Zen diakhiri dari Pause lewat "Akhiri sesi" (tes 22e).
-- [ ] Satu permainan Maraton bisa diselesaikan hanya dengan sentuhan, di mode Tombol dan di mode Gestur, pada HP Android dan iPhone (browser). Sudah diuji di emulasi sentuh Chrome; uji di Galaxy A13 menunggu pemilik. iPhone: belum ada perangkat.
-- [x] Semua target sentuh minimal 44px, tombol permainan 56px tinggi (54 px lebar di 390, 44 px lebar di 320).
-- [x] Tidak ada overflow horizontal di 320, 390, 600, 768, dan 1024 px, portrait dan landscape.
+- [ ] Satu permainan Maraton bisa diselesaikan hanya dengan gestur, pada HP Android dan iPhone (browser). Uji pertama di Galaxy A13 oleh pemilik: lancar, gestur dipilih, lalu direvisi (lihat Revisi di bawah). Uji ulang revisi menunggu pemilik. iPhone: belum ada perangkat.
+- [x] Semua target sentuh minimal 44px. Setelah tombol sentuh dihapus, target sentuh saat bermain hanya tombol jeda (44 px); sisanya gestur di seluruh layar.
+- [x] Tidak ada overflow horizontal di 320, 360, 390, 412, 430 px (HP tegak), 600, 768, 1024, 1280, 1440 px (jendela lebar).
 - [x] Gamepad standar bisa memainkan permainan dan menavigasi menu (emulasi Gamepad API; gamepad fisik belum dicoba).
 - [x] Setiap pengaturan berlaku langsung dan bertahan setelah reload.
 - [x] Mengganti bahasa di Menu dan di Pengaturan mengubah semua teks dan `<html lang>`. Bahasa awal mengikuti `navigator.language`, dengan cadangan `id`.
@@ -96,16 +96,28 @@ Click-through Fase 3 (Chrome, desktop 1280x800, HP emulasi 390x844 DPR 3 dengan 
 - Pause, Pengaturan, kembali: Pause terbuka lagi dengan fokus di "Pengaturan".
 - Kembalikan bawaan: DAS 167 ms, jatuh cepat Space, toast tampil. Reload: pengaturan tampilan bertahan.
 - Gamepad: toast "Gamepad terhubung". D-pad memindahkan fokus Menu, A memilih mode, D-pad atas menjatuhkan piece, Start membuka Pause, B menutupnya, D-pad kanan mengubah slider di Pengaturan, B kembali ke Pause.
-- HP (sentuh): daftar kontrol keyboard tersembunyi, tombol sentuh tampil. Jatuh cepat, Simpan, tahan geser 500 ms, putar, tahan jatuh pelan bekerja. Ketuk berulang tidak memicu zoom.
-- HP landscape 844x390: tombol dipindah ke kiri dan kanan papan, tidak menutup papan, tidak saling tumpuk.
-- HP 320x568: sel 17 px, tombol 44 px, tanpa overflow.
-- Mode Gestur: tombol sentuh tersembunyi, sapu cepat ke bawah menjatuhkan piece, sapu ke atas menyimpan.
+- (Versi awal, sebelum revisi) HP: tombol sentuh dan mode Gestur bekerja; tombol dipindah ke samping saat landscape. Bagian ini diganti oleh Revisi di bawah.
 - Click-through Fase 2 dijalankan ulang: semua lulus.
 - Error konsol, halaman, dan jaringan: tidak ada.
 
 Ditemukan dan diperbaiki saat uji: tombol Start gamepad membuka Pause lalu langsung terbaca sebagai "kembali" di frame berikutnya, sehingga Pause tertutup sendiri. Perbaikan: saat berpindah konteks, tombol yang masih ditekan dicatat sebagai sudah ditekan.
 
-Belum selesai: uji di Galaxy A13 (sentuh Tombol dan Gestur, nilai konstanta gestur, 60 fps, ketajaman, alokasi), dan uji dengan gamepad fisik jika ada.
+Uji pertama di Galaxy A13 (pemilik, lewat block-down.vercel.app): permainan lancar, tampilan rapi. Keputusan pemilik dari uji itu:
+1. Tombol sentuh dihapus; HP hanya memakai gestur.
+2. Seret ke bawah langsung jatuh cepat; tidak ada jatuh pelan lewat gestur.
+3. HP hanya tegak.
+4. Tata letak disesuaikan karena tombol dihapus.
+
+Revisi setelah uji (Chrome, HP emulasi DPR 3 dengan sentuh), kontrol lalu hasil:
+- Elemen tombol sentuh tidak ada lagi. Pengaturan di HP menampilkan penjelasan gestur; pilihan Tombol/Gestur tidak ada. Di desktop penjelasan gestur tidak tampil.
+- HP 390x844: statistik satu baris, Simpan + Antrean mendatar di atas papan, sel 32 px, papan 323x647, tanpa overflow.
+- HP 320x568: sel 19 px. 360x740: 27 px. 412x915: 36 px. 430x932: 37 px. Antrean tidak keluar layar, tanpa overflow.
+- Seret pelan ke bawah 60 px dalam 2 detik: jatuh cepat (skor naik 2 per sel). Sapu cepat ke bawah: jatuh cepat. Seret ke atas: simpan. Gestur di area antrean juga bekerja. Ketuk tidak memicu zoom. Tombol jeda tetap bisa diketuk.
+- HP diputar mendatar: pesan "Putar HP ke posisi tegak", permainan tersembunyi dan dijeda. Kembali tegak: pesan hilang, Pause tetap terbuka.
+- Desktop 1280x800: Simpan di kiri, Antrean tegak di kanan, papan 340x680. Jendela 1024x600: pesan putar tidak tampil.
+- Click-through Fase 2 dan Fase 3 (tanpa bagian tombol sentuh) dijalankan ulang: lulus. Error: tidak ada.
+
+Belum selesai: uji ulang revisi di Galaxy A13 (gestur baru, tata letak baru), pengukuran 60 fps dan alokasi di perangkat, dan uji dengan gamepad fisik jika ada.
 
 ## Fase 4: Motion, suara, haptics, aksesibilitas
 

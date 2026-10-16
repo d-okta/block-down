@@ -287,23 +287,24 @@ Setiap mode adalah objek dengan fungsi `checkEnd(state)` dan `onTopOut(state)`, 
 
 ### 11.2 Sentuh
 
-Dua mode, dipilih di Pengaturan. Bawaannya Tombol.
-
-Tombol: tombol di layar untuk setiap aksi (DESIGN.md bagian 7.2). Tombol geser memakai DAS dan ARR yang sama dengan keyboard.
+Hanya gestur. Tidak ada tombol di layar dan tidak ada pilihan mode sentuh (keputusan pemilik setelah uji di Galaxy A13: gestur adalah kebiasaan genre ini di HP).
 
 Gestur (satuan jarak memakai lebar satu sel di layar):
 | Gestur | Aksi |
 |---|---|
 | Ketuk | Putar kanan |
 | Ketuk dua jari | Putar kiri |
-| Seret horizontal | Geser satu kolom setiap jarak satu sel yang ditempuh |
-| Seret ke bawah perlahan | Soft drop selama jari bergerak ke bawah |
-| Sapu ke bawah cepat | Hard drop |
-| Sapu ke atas | Hold |
+| Seret mendatar | Geser satu kolom setiap jarak satu sel yang ditempuh |
+| Seret ke bawah sejauh 1,5 sel | Hard drop, langsung saat jarak tercapai, sekali per sentuhan |
+| Seret ke atas sejauh 1,5 sel | Hold |
 
-Ambang kecepatan "cepat" dan jarak minimum ketuk ditentukan saat uji di perangkat (ROADMAP Fase 3) dan disimpan sebagai konstanta di `src/input/`.
+Soft drop tidak punya gestur (keputusan pemilik). Soft drop tetap ada di keyboard dan gamepad.
 
-Area sentuh adalah seluruh playfield. Tombol jeda selalu terlihat di kedua mode.
+Gerak pertama di atas 0,5 sel mengunci arah, supaya seret ke bawah yang sedikit miring tidak ikut menggeser. Konstanta ada di `src/input/gesture.ts`.
+
+Area sentuh adalah seluruh layar Game kecuali tombol jeda, jadi jari tidak perlu menutupi papan.
+
+Orientasi: di layar sentuh, permainan hanya tegak. Saat HP diputar mendatar, layar diganti pesan "Putar HP ke posisi tegak" dan permainan dijeda.
 
 ### 11.3 Gamepad
 
@@ -331,8 +332,7 @@ Pemetaan ulang gamepad tidak ada di fase 1. Menu juga bisa dinavigasi dengan D-p
 
 | Kelompok | Pengaturan | Bawaan |
 |---|---|---|
-| Kontrol | Mode layar sentuh | Tombol |
-| | DAS | 167 ms |
+| Kontrol | DAS | 167 ms |
 | | ARR | 33 ms |
 | | Soft drop | 20x |
 | | Tombol keyboard | Bagian 11.1 |
@@ -358,7 +358,6 @@ Semua perubahan berlaku langsung, termasuk saat dibuka dari Pause.
   schema: 1,
   settings: {
     locale: "id" | "en",
-    touchMode: "buttons" | "gestures",
     dasMs: number,        // 50..300
     arrMs: number,        // 0..100
     softDropFactor: number | "instant",  // 5..40 langkah 5

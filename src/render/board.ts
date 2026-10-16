@@ -136,6 +136,8 @@ export class PreviewRenderer {
 
   private canvas: HTMLCanvasElement;
   private slots: number;
+  /** true: slot berjajar mendatar (antrean di atas papan). */
+  horizontal = false;
 
   constructor(canvas: HTMLCanvasElement, slots: number) {
     this.canvas = canvas;
@@ -143,7 +145,7 @@ export class PreviewRenderer {
     this.ctx = canvas.getContext("2d")!;
   }
 
-  /** cssCell: ukuran sel mini dalam piksel CSS. */
+  /** cssCell: ukuran sel mini dalam piksel CSS. Setiap slot berukuran 4x3 sel (mendatar: 5x3). */
   resize(cssCell: number, dpr: number, colorSafe: boolean): void {
     const cell = Math.max(1, Math.round(cssCell * dpr));
     if (cell === this.cell && dpr === this.dpr && colorSafe === this.colorSafe) return;
@@ -151,11 +153,12 @@ export class PreviewRenderer {
     this.dpr = dpr;
     this.colorSafe = colorSafe;
     this.atlas = buildAtlas(cell, dpr, colorSafe);
-    const slotH = cell * 3;
-    this.canvas.width = cell * 4;
-    this.canvas.height = slotH * this.slots;
-    this.canvas.style.width = `${(cell * 4) / dpr}px`;
-    this.canvas.style.height = `${(slotH * this.slots) / dpr}px`;
+    const w = this.horizontal ? cell * 5 * this.slots : cell * 4;
+    const h = this.horizontal ? cell * 3 : cell * 3 * this.slots;
+    this.canvas.width = w;
+    this.canvas.height = h;
+    this.canvas.style.width = `${w / dpr}px`;
+    this.canvas.style.height = `${h / dpr}px`;
     this.last.fill(-1);
   }
 
@@ -185,8 +188,8 @@ export class PreviewRenderer {
       }
       const w = maxX - minX + 1;
       const h = maxY - minY + 1;
-      const ox = ((4 - w) * c) / 2;
-      const oy = slot * c * 3 + ((3 - h) * c) / 2;
+      const ox = this.horizontal ? slot * c * 5 + ((5 - w) * c) / 2 : ((4 - w) * c) / 2;
+      const oy = this.horizontal ? ((3 - h) * c) / 2 : slot * c * 3 + ((3 - h) * c) / 2;
       for (let i = 0; i < 8; i += 2) {
         const x = SHAPES[o + i]! - minX;
         const y = maxY - SHAPES[o + i + 1]!;

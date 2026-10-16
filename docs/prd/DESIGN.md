@@ -189,9 +189,9 @@ Aturan umum untuk semua layar:
 Rentang lebar:
 | Rentang | Tata letak |
 |---|---|
-| Ponsel portrait (lebar di bawah 600px) | Playfield di tengah, diapit kolom kiri (Simpan, statistik) dan kolom kanan (Antrean); skor di baris atas. Tombol sentuh di bawah. |
-| Ponsel landscape dan tablet (600 sampai 1023px) | Playfield setinggi layar di tengah, Hold dan statistik di kolom kiri, Next di kolom kanan. Jika mode Tombol aktif, tombol sentuh dibagi ke kiri dan kanan. |
-| Desktop (1024px ke atas) | Sama seperti tablet, dengan lebar konten maksimum dan ruang kosong yang seimbang di kedua sisi. Tombol sentuh disembunyikan jika perangkat tidak punya input sentuh (`pointer: coarse`). |
+| Ponsel (hanya tegak) | Satu kolom: mode/skor/jeda, statistik satu baris, Simpan dan Antrean mendatar, lalu papan selebar layar. Tanpa tombol sentuh. |
+| Ponsel diputar mendatar | Diganti pesan "Putar HP ke posisi tegak"; permainan dijeda. |
+| Jendela lebar (lebar 600 px ke atas dan lebih lebar dari 0,9 kali tinggi) | Papan setinggi layar di tengah, Simpan di kiri, Antrean tegak di kanan. Untuk desktop dan tablet dengan mouse. |
 
 ### 7.1 Menu
 
@@ -221,28 +221,23 @@ Isi:
 - Playfield 10x20 di atas `surface-1`, grid samar (bisa dimatikan), bingkai `line-deco`.
 - Ghost piece: outline 2px warna bloknya, tanpa isi. Bisa dimatikan.
 - Hold: satu kotak berlabel "Simpan" / "Hold". Saat hold sudah dipakai untuk piece ini, isi kotak diredupkan ke opasitas 40% dan diberi label teks "Terkunci" untuk pembaca layar.
-- Next: 5 piece berlabel "Antrean" / "Next" (label pendek agar muat di kolom 64px). Piece pertama ukuran penuh, empat sisanya 75%.
-- Baris atas: nama mode di kiri, skor `num-lg` di tengah, tombol jeda di kanan. Skor ditaruh di sini karena 9 karakter JetBrains Mono 28px butuh sekitar 151px dan tidak muat di kolom kiri (keputusan pemilik).
-- Kolom kiri: Simpan, Level, Baris, Waktu (Sprint dan Ultra), dan Combo. Combo hanya muncul saat combo sedang berjalan (1 atau lebih), lalu hilang saat combo putus. Semua angka memakai JetBrains Mono tabular. Statistik lain (persentase 4 Baris, piece per detik) tidak ditampilkan saat bermain agar layar tetap tenang.
+- Next: 5 piece berlabel "Antrean" / "Next". Di ponsel berjajar mendatar di atas papan, di jendela lebar tegak di kanan papan. Kelima piece berukuran sama.
+- Baris atas: nama mode di kiri, skor `num-lg` di tengah, tombol jeda di kanan.
+- Baris statistik di bawah skor: Level, Baris, Waktu (Sprint dan Ultra), dan Combo. Combo hanya muncul saat combo berjalan (1 atau lebih). Semua angka memakai JetBrains Mono tabular. Statistik lain (persentase 4 Baris, piece per detik) tidak ditampilkan agar layar tetap tenang.
 - Satu tombol jeda, di kanan atas. Tidak ada panah kembali di layar Game, karena "Ke Menu" ada di Pause.
-- Tombol sentuh (mode Tombol), dua baris:
-  - Baris 1: Simpan, geser kiri, geser kanan, putar kiri, putar kanan, jatuh pelan. Tepi `line-control`, tanpa isi.
-  - Baris 2: tombol lebar "Jatuh Cepat" (hard drop) dengan isi `accent`. Ini satu-satunya tombol beraksen saat bermain, karena hard drop adalah aksi utama.
-  - Setiap tombol minimal 56px karena dipakai berulang dengan cepat, dengan jarak 8px.
+- Tidak ada tombol sentuh. Kontrol sentuh lewat gestur di seluruh layar Game (SPEC 11.2), jadi jari tidak harus menutupi papan.
 - Pita ambient di belakang playfield (lihat Motion).
 
-Tata letak ponsel portrait:
+Tata letak ponsel (hanya tegak):
 ```
 [Maraton]          [ 1.234.567 ]           [Jeda]
-[Simpan] [                  ] [Antrean]
-[Level ] [  playfield 10x20 ] [  x5   ]
-[Baris ] [                  ]
-[Waktu ] [                  ]
-[Combo ] [                  ]
-[Simpan][kiri][kanan][putar kiri][putar kanan][jatuh pelan]
-[             Jatuh Cepat (aksen)                        ]
+        Level 3   Baris 24   Waktu 1:02.40
+[Simpan] [ Antrean: 5 piece mendatar          ]
+[                                             ]
+[            playfield 10x20                  ]
+[            (selebar layar)                  ]
 ```
-Catatan: Stitch menampilkan skor, level, dan baris dua kali (baris atas dan kolom kiri). Di BlockDown, skor hanya di baris atas, sedangkan level dan baris hanya di kolom kiri. Ukuran sel dihitung di EDD bagian 9.2.
+Ukuran sel pada lebar 390 px: sekitar 32 px, papan sekitar 323x647 px. Pada 320 px: 19 px. Sebelumnya, dengan kolom samping dan tombol sentuh, 22 px dan 15 px.
 
 State:
 | State | Tampilan |
@@ -288,7 +283,7 @@ Daftar bergulir dengan empat kelompok berjudul biasa:
 
 | Kelompok | Kontrol |
 |---|---|
-| Kontrol | Mode layar sentuh (Tombol, Gestur), DAS (slider, ms), ARR (slider, ms), kecepatan soft drop (slider, kelipatan gravitasi), Atur tombol keyboard, Kembalikan bawaan |
+| Kontrol | Penjelasan gestur (hanya di layar sentuh), DAS (slider, ms), ARR (slider, ms), kecepatan soft drop (slider, kelipatan gravitasi), Atur tombol keyboard, Kembalikan bawaan |
 | Tampilan | Ghost piece, Grid, Mode aman buta warna, Intensitas efek (Penuh, Sedang, Minimal), Kurangi animasi |
 | Suara | Musik (slider), Efek (slider), Getar |
 | Bahasa | Indonesia, English |
@@ -418,6 +413,17 @@ Font Stitch sama dengan brief (Sora dan JetBrains Mono), jadi tidak ada perubaha
 | Header Game | | "GAME ARENA", ikon profil, label "STANDAR 150" | Tidak dipakai. Baris atas berisi nama mode, level, dan jeda. |
 | Pengaturan | | Kartu "PRO 60FPS", label "AKTIF", footer versi dan "Engine ID" | Tidak dipakai (R-36, dekorasi tanpa fungsi). |
 | Momen Quad | | Ikon petir, denyut tanpa henti, "PTS" | Tidak dipakai (R-04, R-19). |
+
+### 9.2 Dari uji di Galaxy A13 (Fase 3)
+
+| Elemen | Sebelumnya | Sekarang | Alasan |
+|---|---|---|---|
+| Tombol sentuh | Dua baris tombol, jatuh cepat beraksen | Dihapus | Pemilik: game sejenis di HP memakai gestur. |
+| Pilihan mode sentuh di Pengaturan | Tombol atau Gestur | Dihapus; diganti penjelasan gestur (hanya di layar sentuh) | Hanya satu cara kontrol sentuh. |
+| Gestur seret ke bawah | Pelan: jatuh pelan, sapu cepat: jatuh cepat | Seret 1,5 sel ke bawah: jatuh cepat, langsung | Pemilik. |
+| Orientasi HP | Landscape dengan tombol di samping | Hanya tegak; landscape menampilkan pesan dan menjeda | Pemilik. |
+| Tata letak HP | Kolom Simpan/statistik di kiri, Antrean di kanan | Statistik satu baris, Simpan + Antrean mendatar di atas papan | Ruang bekas tombol dipakai papan: sel 22 px jadi 32 px di lebar 390 (pemilik). Menyimpang dari tata letak Stitch. |
+| Aksen saat bermain | Tombol jatuh cepat | Tidak ada | Aksen hanya di tombol utama dialog, fokus, logo, dan (Fase 4) momen reward. |
 
 ---
 

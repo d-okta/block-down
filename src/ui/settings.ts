@@ -8,7 +8,7 @@ const SOFT_STEPS = [5, 10, 15, 20, 25, 30, 35, 40] as const;
 
 export interface SettingsHooks {
   /** Dipanggil setelah nilai berubah; `what` memberi tahu bagian mana yang perlu diterapkan ulang. */
-  changed(what: "input" | "keymap" | "display" | "touch" | "locale"): void;
+  changed(what: "input" | "keymap" | "display" | "locale"): void;
   setLocale(l: Locale): void;
   announce(text: string): void;
   back(): void;
@@ -46,10 +46,7 @@ export class SettingsScreen {
       const el = (e.target as HTMLElement).closest<HTMLElement>("button");
       if (!el) return;
       const set = el.dataset["set"];
-      if (set === "touchMode") {
-        this.s.touchMode = el.dataset["value"] as Settings["touchMode"];
-        this.h.changed("touch");
-      } else if (set === "ghost" || set === "grid" || set === "colorSafe") {
+      if (set === "ghost" || set === "grid" || set === "colorSafe") {
         this.s[set] = !this.s[set];
         this.h.changed("display");
       } else if (el.dataset["locale"]) {
@@ -117,11 +114,7 @@ export class SettingsScreen {
       s.softDropFactor === "instant" ? t("settings.softDrop.instant") : t("settings.unit.x", { n: s.softDropFactor }),
     );
 
-    for (const b of this.root.querySelectorAll<HTMLElement>('[data-set="touchMode"]')) {
-      b.setAttribute("aria-pressed", String(b.dataset["value"] === s.touchMode));
-    }
-    $<HTMLElement>(this.root, "#gestures-help").hidden = s.touchMode !== "gestures";
-    for (const k of ["ghost", "grid", "colorSafe"] as const) {
+   for (const k of ["ghost", "grid", "colorSafe"] as const) {
       $<HTMLElement>(this.root, `[data-set="${k}"]`).setAttribute("aria-checked", String(s[k]));
     }
   }
@@ -219,15 +212,13 @@ export class SettingsScreen {
 
   private resetControls(): void {
     const d = defaultSettings();
-    this.s.touchMode = d.touchMode;
-    this.s.dasMs = d.dasMs;
+   this.s.dasMs = d.dasMs;
     this.s.arrMs = d.arrMs;
     this.s.softDropFactor = d.softDropFactor;
     this.s.keymap = d.keymap;
     this.h.changed("input");
     this.h.changed("keymap");
-    this.h.changed("touch");
-    this.keyMsg.textContent = "";
+   this.keyMsg.textContent = "";
     this.h.announce(t("settings.reset.done"));
   }
 }

@@ -104,69 +104,30 @@
           </button>
         </header>
 
-        <div class="play-row" id="play-row">
-          <div class="side side-left">
-            <div class="stat">
-              <span class="hud-label" data-i18n="hud.hold"></span>
-              <div class="well"><canvas id="cv-hold" role="img"></canvas></div>
-            </div>
-            <div class="stat">
-              <span class="hud-label" data-i18n="hud.level"></span>
-              <span class="well num stat-value" id="hud-level">1</span>
-            </div>
-            <div class="stat">
-              <span class="hud-label" data-i18n="hud.lines"></span>
-              <span class="well num stat-value" id="hud-lines">0</span>
-            </div>
-            <div class="stat" id="stat-time" hidden>
-              <span class="hud-label" data-i18n="hud.time"></span>
-              <span class="well num stat-value" id="hud-time">0:00</span>
-            </div>
-            <div class="stat" id="stat-combo" hidden>
-              <span class="hud-label" data-i18n="hud.combo"></span>
-              <span class="well num stat-value" id="hud-combo">0</span>
-            </div>
-          </div>
+        <!-- Statistik dalam satu baris di bawah skor; Waktu dan Combo muncul hanya saat relevan. -->
+        <dl class="stats">
+          <div class="stat"><dt data-i18n="hud.level"></dt><dd class="num" id="hud-level">1</dd></div>
+          <div class="stat"><dt data-i18n="hud.lines"></dt><dd class="num" id="hud-lines">0</dd></div>
+          <div class="stat" id="stat-time" hidden><dt data-i18n="hud.time"></dt><dd class="num" id="hud-time">0:00</dd></div>
+          <div class="stat" id="stat-combo" hidden><dt data-i18n="hud.combo"></dt><dd class="num" id="hud-combo">0</dd></div>
+        </dl>
 
-          <div class="field" id="field">
-            <canvas id="cv-bg" aria-hidden="true"></canvas>
-            <canvas id="cv-main" role="img"></canvas>
+        <!-- Simpan di kiri, Antrean 5 mendatar di kanan, tepat di atas papan. -->
+        <div class="queue-row">
+          <div class="queue-box">
+            <span class="hud-label" data-i18n="hud.hold"></span>
+            <div class="well"><canvas id="cv-hold" role="img"></canvas></div>
           </div>
-
-          <div class="side side-right">
-            <div class="stat">
-              <span class="hud-label" data-i18n="hud.next"></span>
-              <div class="well"><canvas id="cv-next" role="img"></canvas></div>
-            </div>
+          <div class="queue-box queue-next">
+            <span class="hud-label" data-i18n="hud.next"></span>
+            <div class="well"><canvas id="cv-next" role="img"></canvas></div>
           </div>
         </div>
 
-        <!-- Tombol sentuh (DESIGN 7.2). Tampil hanya di layar sentuh dengan mode Tombol. -->
-        <div class="pad" id="pad" hidden>
-          <div class="pad-row">
-            <button type="button" class="pad-btn" data-btn="hold" data-i18n-aria="controls.hold">
-              <svg class="icon" aria-hidden="true"><use href="/icons.svg#swap_horiz" /></svg>
-            </button>
-            <button type="button" class="pad-btn" data-btn="left" data-i18n-aria="controls.left">
-              <svg class="icon" aria-hidden="true"><use href="/icons.svg#arrow_left_alt" /></svg>
-            </button>
-            <button type="button" class="pad-btn" data-btn="right" data-i18n-aria="controls.right">
-              <svg class="icon" aria-hidden="true"><use href="/icons.svg#arrow_right_alt" /></svg>
-            </button>
-            <button type="button" class="pad-btn" data-btn="ccw" data-i18n-aria="controls.ccw">
-              <svg class="icon" aria-hidden="true"><use href="/icons.svg#rotate_left" /></svg>
-            </button>
-            <button type="button" class="pad-btn" data-btn="cw" data-i18n-aria="controls.cw">
-              <svg class="icon" aria-hidden="true"><use href="/icons.svg#rotate_right" /></svg>
-            </button>
-            <button type="button" class="pad-btn" data-btn="soft" data-i18n-aria="controls.soft">
-              <svg class="icon" aria-hidden="true"><use href="/icons.svg#south" /></svg>
-            </button>
-          </div>
-          <button type="button" class="pad-btn pad-hard" data-btn="hard" data-i18n-aria="controls.hard">
-            <svg class="icon" aria-hidden="true"><use href="/icons.svg#keyboard_double_arrow_down" /></svg>
-            <span data-i18n="controls.hard"></span>
-          </button>
+        <!-- Seluruh area ini menerima gestur; jari boleh di luar papan supaya papan tidak tertutup. -->
+        <div class="field" id="field">
+          <canvas id="cv-bg" aria-hidden="true"></canvas>
+          <canvas id="cv-main" role="img"></canvas>
         </div>
       </section>
 
@@ -182,16 +143,12 @@
         <section class="set-group" aria-labelledby="g-controls">
           <h2 id="g-controls" data-i18n="settings.group.controls"></h2>
 
-          <div class="set-row">
+          <!-- Hanya di layar sentuh: penjelasan gestur, karena tidak ada tombol di layar. -->
+          <div class="set-row touch-only">
             <div class="set-text">
-              <span class="set-label" id="lbl-touch" data-i18n="settings.touchMode"></span>
-              <span class="set-desc" data-i18n="settings.touchMode.desc"></span>
+              <span class="set-label" data-i18n="settings.gestures"></span>
+              <span class="set-desc" data-i18n="settings.gestures.desc"></span>
             </div>
-            <div class="seg" role="group" aria-labelledby="lbl-touch">
-              <button type="button" class="seg-btn" data-set="touchMode" data-value="buttons" data-i18n="settings.touchMode.buttons"></button>
-              <button type="button" class="seg-btn" data-set="touchMode" data-value="gestures" data-i18n="settings.touchMode.gestures"></button>
-            </div>
-            <p class="set-help" id="gestures-help" data-i18n="settings.touchMode.gesturesHelp" hidden></p>
           </div>
 
           <div class="set-row">
@@ -352,6 +309,13 @@
         </button>
       </div>
     </dialog>
+
+    <!-- Layar sentuh dalam posisi mendatar: permainan hanya tegak. Di luar #app karena #app disembunyikan. -->
+    <div class="rotate-notice" id="rotate-notice" role="alert">
+      <svg class="icon" aria-hidden="true"><use href="/icons.svg#screen_rotation" /></svg>
+      <p class="rotate-title" data-i18n="rotate.title"></p>
+      <p class="rotate-body" data-i18n="rotate.body"></p>
+    </div>
 
     <div id="toast" class="toast" role="status" hidden></div>
     <div id="live" class="sr-only" aria-live="polite" aria-atomic="true"></div>

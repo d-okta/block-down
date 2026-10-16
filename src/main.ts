@@ -5,7 +5,7 @@ import { NEXT_COUNT, ticksToMs } from "./core/constants.ts";
 import { ULTRA_TICKS, type ModeId } from "./core/modes.ts";
 import { InputRepeater, createActionBuffer, type BtnCode } from "./input/repeat.ts";
 import { Keyboard, keyLabel } from "./input/keyboard.ts";
-import { bindGestures, bindTouchButtons } from "./input/touch.ts";
+import { bindGestures } from "./input/touch.ts";
 import { GamepadInput, type MenuNav } from "./input/gamepad.ts";
 import { BoardRenderer, PreviewRenderer } from "./render/board.ts";
 import { applyI18n, fmt, formatClock, formatMs, pickLocale, setLocale, t, type Key } from "./i18n/index.ts";
@@ -42,12 +42,13 @@ const dlgConfirm = $<HTMLDialogElement>("dlg-confirm");
 const dlgOver = $<HTMLDialogElement>("dlg-over");
 const live = $("live");
 const field = $("field");
-const pad = $("pad");
 const cvMain = $<HTMLCanvasElement>("cv-main");
 
 const board = new BoardRenderer(cvMain, $<HTMLCanvasElement>("cv-bg"));
 const holdView = new PreviewRenderer($<HTMLCanvasElement>("cv-hold"), 1);
 const nextView = new PreviewRenderer($<HTMLCanvasElement>("cv-next"), NEXT_COUNT);
+nextView.horizontal = true;
+const queueRow = document.querySelector<HTMLElement>(".queue-row")!;
 
 const hud = {
   score: $("hud-score"),
@@ -60,7 +61,6 @@ const hud = {
   mode: $("hud-mode"),
 };
 
-const coarse = matchMedia("(pointer: coarse)");
 
 // ---------- pengumuman dan toast ----------
 
@@ -108,8 +108,7 @@ const press = (btn: BtnCode, down: boolean, ts: number) => {
 };
 
 const keyboard = new Keyboard({ press, pause: () => pauseGame() });
-const releaseTouch = bindTouchButtons(pad, press, playing);
-const releaseGesture = bindGestures(field, press, () => playing() && data.settings.touchMode === "gestures", () => cellCss);
+const releaseGesture = bindGestures(scrGame, press, playing, () => cellCss);
 const gamepad = new GamepadInput({
   press,
   pause: () => pauseGame(),
@@ -147,7 +146,6 @@ function applySettings(): void {
     board.colorSafe = s.colorSafe;
     board.rebuild();
   }
-  pad.hidden = !(coarse.matches && s.touchMode === "buttons");
   renderControlsList();
 }
 
@@ -156,7 +154,6 @@ function startGame(id: ModeId): void {
   const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
   game = createGame(id, seed, { softDropFactor: data.settings.softDropFactor });
   input.releaseAll();
-  releaseTouch();
   releaseGesture();
   shown.score = shown.level = shown.lines = shown.hold = shown.time = -1;
   shown.combo = -2;
@@ -191,7 +188,6 @@ function stopLoop(): void {
   gamepad.playing = false;
   gamepad.reset();
   input.releaseAll();
-  releaseTouch();
   releaseGesture();
 }
 
@@ -306,14 +302,34 @@ const holdBuf = new Uint8Array(1);
 
 // ---------- tata letak ----------
 
+/**
+ * Baris antrean: Simpan (4 sel mini) + Antrean 5 slot x 5 sel mini = 29 sel mini, ditambah
+ * padding sumur dan jarak (sekitar 40 px). Sel mini dibatasi 7 sampai 14 px.
+ */
+const QUEUE_CELLS = 29;
+const QUEUE_CHROME = 40;
+
 function layout(): void {
   if (scrGame.hidden) return;
   const dpr = window.devicePixelRatio || 1;
-  const rect = field.getBoundingClientRect();
-  cellCss = board.resize(rect.width - 2, rect.height - 2, dpr);
-  const mini = Math.max(8, Math.min(14, Math.floor(cellCss * 0.6)));
+  // Jendela lebar: Simpan dan Antrean di samping papan (antrean tegak). Selain itu di atas (mendatar).
+  const side = innerWidth >= 600 && innerWidth > innerHeight * 0.9;
+  if (side !== scrGame.classList.contains("side-layout")) {
+    scrGame.classList.toggle("side-layout", side);
+    nextView.horizontal = !side;
+    nextView.resize(0, dpr, data.settings.colorSafe); // paksa bangun ulang di ukuran baru
+  }
+  let mini: number;
+  if (side) {
+    mini = Math.max(10, Math.min(16, Math.floor((innerHeight - 200) / (3 * NEXT_COUNT))));
+  } else {
+    const rowW = queueRow.getBoundingClientRect().width;
+    mini = Math.max(7, Math.min(14, Math.floor((rowW - QUEUE_CHROME) / QUEUE_CELLS)));
+  }
   holdView.resize(mini, dpr, data.settings.colorSafe);
   nextView.resize(mini, dpr, data.settings.colorSafe);
+  const rect = field.getBoundingClientRect();
+  cellCss = board.resize(rect.width - 2, rect.height - 2, dpr);
   if (game) {
     updateHud(true);
     board.draw(game.state, NaN, 1, performance.now(), game.state.status === STATUS.PLAYING);
@@ -391,9 +407,14 @@ $("btn-pause").addEventListener("click", () => pauseGame());
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) pauseGame();
 });
+
+// HP diputar mendatar: layar diganti pesan putar HP (CSS), permainan dijeda supaya tidak berjalan tanpa terlihat.
+const landscapeTouch = matchMedia("(hover: none) and (pointer: coarse) and (orientation: landscape) and (max-height: 600px)");
+landscapeTouch.addEventListener("change", () => {
+  if (landscapeTouch.matches) pauseGame();
+});
 window.addEventListener("blur", () => {
   input.releaseAll();
-  releaseTouch();
   releaseGesture();
 });
 
@@ -673,7 +694,6 @@ function menuPoll(now: number): void {
 }
 requestAnimationFrame(menuPoll);
 
-coarse.addEventListener("change", applySettings);
 
 // ---------- mulai ----------
 
