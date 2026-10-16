@@ -275,13 +275,15 @@ Setiap mode adalah objek dengan fungsi `checkEnd(state)` dan `onTopOut(state)`, 
 | Geser kiri / kanan | Panah kiri / Panah kanan |
 | Soft drop | Panah bawah |
 | Hard drop | Space |
-| Putar kiri | Z, Ctrl |
-| Putar kanan | X, Panah atas |
-| Hold | C, Shift |
+| Putar kiri | Z |
+| Putar kanan | X |
+| Hold | Panah atas |
 | Pause | Esc, P |
 
+Bawaan satu tombol per aksi, dengan panah atas untuk Hold supaya sama dengan gestur seret ke atas (keputusan pemilik setelah uji Fase 3; sebelumnya Z/Ctrl, X/panah atas, C/Shift). Keymap yang sudah tersimpan tidak diubah; "Kembalikan bawaan" memberi susunan ini.
+
 - Pemetaan memakai `KeyboardEvent.code` supaya tidak bergantung pada tata letak keyboard.
-- Satu aksi bisa punya dua tombol. Satu tombol hanya untuk satu aksi.
+- Satu aksi bisa punya dua tombol (diatur di Pengaturan). Satu tombol hanya untuk satu aksi.
 - Esc selalu berfungsi sebagai pause dan kembali, dan tidak bisa dipetakan ke aksi lain.
 - Pengulangan dari sistem operasi (`event.repeat`) diabaikan. DAS dan ARR ditangani sendiri.
 
@@ -300,7 +302,11 @@ Gestur (satuan jarak memakai lebar satu sel di layar):
 
 Soft drop tidak punya gestur (keputusan pemilik). Soft drop tetap ada di keyboard dan gamepad.
 
-Gerak pertama di atas 0,5 sel mengunci arah, supaya seret ke bawah yang sedikit miring tidak ikut menggeser. Konstanta ada di `src/input/gesture.ts`.
+Arah dikunci pada gerak pertama di atas 0,6 sel. Arah dianggap tegak hanya jika gerak tegaknya lebih dari 1,3 kali gerak mendatar (sekitar 52 derajat); selain itu dianggap geser. Ini mencegah seret ke samping yang sedikit menurun terbaca sebagai jatuh cepat.
+
+Bantingan cepat: browser kadang hanya mengirim titik sentuh dan titik lepas, atau membatalkan sentuhan di tengah bantingan. Karena itu titik lepas dan posisi terakhir sebelum batal juga dihitung, dan seret tegak minimal 0,8 sel yang selesai dalam 250 ms tetap dianggap jatuh cepat (atau simpan jika ke atas).
+
+Konstanta ada di `src/input/gesture.ts`. Nilai di atas hasil revisi kedua setelah uji di Galaxy A13: seret ke bawah kadang tidak terbaca saat dibanting keras, dan seret ke samping kadang salah arah.
 
 Area sentuh adalah seluruh layar Game kecuali tombol jeda, jadi jari tidak perlu menutupi papan.
 

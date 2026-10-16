@@ -143,13 +143,56 @@ test("gestur: seret pelan ke bawah juga jatuh cepat, dipicu sebelum jari diangka
   assert.ok(!out.some((s) => s.startsWith("SOFT")));
 });
 
-test("gestur: seret ke bawah kurang dari 1,5 sel tidak berbuat apa-apa", () => {
+test("gestur: seret pelan ke bawah kurang dari 1,5 sel tidak berbuat apa-apa", () => {
   const { rec, out } = recorder();
   rec.down(1, 100, 100, 0);
   rec.move(1, 100, 115, 100);
   rec.move(1, 100, 128, 300);
   rec.up(1, 100, 128, 400);
   assert.deepEqual(out, []);
+});
+
+test("gestur: bantingan tanpa titik gerak sama sekali tetap jatuh cepat", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  rec.up(1, 102, 190, 60); // browser hanya mengirim titik turun dan titik lepas
+  assert.deepEqual(out, ["HARD+", "HARD-"]);
+});
+
+test("gestur: bantingan pendek dan cepat (0,8 sampai 1,5 sel dalam 250 ms) tetap jatuh cepat", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  rec.move(1, 100, 115, 30);
+  rec.up(1, 100, 120, 80); // 20 px = 1 sel
+  assert.deepEqual(out, ["HARD+", "HARD-"]);
+});
+
+test("gestur: sentuhan dibatalkan browser di tengah bantingan memakai posisi terakhir", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  rec.move(1, 100, 120, 16);
+  rec.cancel(1, 40);
+  assert.deepEqual(out, ["HARD+", "HARD-"]);
+});
+
+test("gestur: seret ke samping yang menurun 50 derajat di awal tetap geser, bukan jatuh cepat", () => {
+  // Jempol kanan menyeret ke kiri sering mulai dengan gerak miring ke bawah.
+  const { rec, out } = recorder();
+  rec.down(1, 200, 100, 0);
+  rec.move(1, 190, 112.5, 16); // sekitar 51 derajat dari mendatar, melewati LOCK_DIST
+  for (let i = 2; i <= 8; i++) rec.move(1, 200 - i * 9, 109 + i * 2, i * 16);
+  rec.up(1, 128, 125, 150);
+  assert.ok(out.filter((s) => s === "LEFT+").length >= 3, out.join(","));
+  assert.ok(!out.includes("HARD+"), out.join(","));
+});
+
+test("gestur: geser lalu bantingan dalam satu sentuhan tidak memicu jatuh cepat (arah sudah terkunci)", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  rec.move(1, 130, 102, 50);
+  rec.up(1, 132, 160, 120);
+  assert.ok(out.includes("RIGHT+"));
+  assert.ok(!out.includes("HARD+"));
 });
 
 test("gestur: arah dikunci, sapu ke bawah yang sedikit miring tidak menggeser", () => {
@@ -208,8 +251,16 @@ test("penyimpanan: keymap duplikat dibuang dan Escape ditolak", () => {
   assert.deepEqual(km.left, ["KeyA"]);
   assert.deepEqual(km.right, ["KeyD"]);
   assert.deepEqual(km.hard, ["Space"], "kosong kembali ke bawaan");
+  assert.deepEqual(km.cw, ["KeyX"]);
+  assert.deepEqual(km.hold, ["ArrowUp"], "P dan Tab dicadangkan, kembali ke bawaan");
+});
+
+test("penyimpanan: keymap lama (bawaan sebelumnya) dipertahankan apa adanya", () => {
+  // Pemain yang sudah menyimpan bawaan lama tidak dipaksa pindah; "Kembalikan bawaan" memberi susunan baru.
+  const old = { cw: ["KeyX", "ArrowUp"], ccw: ["KeyZ", "ControlLeft"], hold: ["KeyC", "ShiftLeft"] };
+  const km = parseSave(JSON.stringify({ schema: 1, settings: { keymap: old } })).data.settings.keymap;
   assert.deepEqual(km.cw, ["KeyX", "ArrowUp"]);
-  assert.deepEqual(km.hold, ["KeyC", "ShiftLeft"], "P dan Tab dicadangkan");
+  assert.deepEqual(km.hold, ["KeyC", "ShiftLeft"]);
 });
 
 test("penyimpanan: field lama touchMode diabaikan tanpa merusak pengaturan lain", () => {

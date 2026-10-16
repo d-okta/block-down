@@ -80,15 +80,20 @@ Area: seluruh layar Game kecuali tombol (jeda), supaya jari tidak menutupi papan
 |---|---|---|
 | `TAP_MAX_MS` | 220 | Durasi maksimum ketuk |
 | `TAP_MAX_MOVE` | 0.5u | Gerak maksimum ketuk |
-| `LOCK_DIST` | 0.5u | Gerak pertama di atas ini mengunci arah |
+| `LOCK_DIST` | 0.6u | Gerak pertama di atas ini mengunci arah |
+| `VERTICAL_BIAS` | 1.3 | Tegak hanya jika `|dy| > 1.3 * |dx|` (sekitar 52 derajat); selain itu mendatar |
 | `VERTICAL_DIST` | 1.5u | Seret tegak sejauh ini memicu jatuh cepat atau simpan |
+| `FLICK_MS` | 250 | Bantingan: sentuhan tegak yang selesai dalam waktu ini |
+| `FLICK_MIN` | 0.8u | Jarak tegak minimum bantingan |
 
 Aturan per `pointerId`:
 - Seret mendatar: setiap 1u yang ditempuh sejak titik acuan menghasilkan `press`+`release` geser, lalu titik acuan maju 1u. DAS dan ARR tidak dipakai.
-- Seret ke bawah sejauh 1,5u: `HARD`, langsung saat jarak tercapai (tidak menunggu jari diangkat dan tidak bergantung kecepatan), sekali per sentuhan. Ke atas: `HOLD`.
+- Seret ke bawah sejauh 1,5u: `HARD`, langsung saat jarak tercapai, sekali per sentuhan. Ke atas: `HOLD`.
+- Titik lepas (`pointerup`) ikut diproses sebagai titik gerak terakhir, dan `pointercancel` diselesaikan dengan posisi terakhir yang diketahui. Bantingan cepat sering hanya mengirim titik sentuh dan titik lepas, atau dibatalkan browser.
+- Bantingan pendek: belum mencapai 1,5u, arah belum terkunci mendatar, tegak menurut `VERTICAL_BIAS`, jarak minimal 0,8u, selesai dalam 250 ms: tetap `HARD` (atau `HOLD` ke atas).
 - Tidak ada jatuh pelan lewat gestur (keputusan pemilik).
 - Ketuk satu jari: `CW`. Ketuk saat ada dua pointer aktif: `CCW`, sekali saat jari terakhir diangkat.
-- Arah dikunci pada gerakan pertama yang melebihi 0.5u, supaya jatuh cepat tidak ikut menggeser.
+- Arah dikunci pada gerakan pertama yang melebihi 0.6u. Setelah terkunci mendatar, gerak tegak dalam sentuhan yang sama diabaikan.
 
 ### 2.6a Orientasi
 
@@ -491,3 +496,16 @@ Rekor: `submitResult(mode, result)` membandingkan dengan rekor tersimpan (skor d
 - Tata letak: statistik pindah ke satu baris di bawah skor; Simpan dan Antrean berjajar mendatar di atas papan. `PreviewRenderer.horizontal` menyusun 5 slot mendatar (5x3 sel mini per slot). Sel mini dihitung dari lebar baris antrean: `(lebar - 40) / 29`, dibatasi 7 sampai 14 px.
 - Jendela lebar (lebar 600 px ke atas dan lebih dari 0,9 kali tinggi): `main.ts` memberi kelas `side-layout`, Simpan di kiri dan Antrean tegak di kanan papan.
 - Ikon tombol sentuh dibuang dari `public/icons.svg`; ditambah `screen_rotation`.
+
+## 14. Revisi kedua setelah uji di Galaxy A13
+
+Masalah yang dilaporkan dan penyebab yang ditemukan:
+
+| Masalah | Penyebab | Perbaikan |
+|---|---|---|
+| Seret ke bawah kadang tidak terbaca saat dibanting keras | `up()` tidak memproses titik lepas, `cancel()` membuang sentuhan. Bantingan cepat bisa tiba hanya sebagai titik sentuh dan titik lepas, atau dibatalkan browser. | Titik lepas diproses; batal diselesaikan dengan posisi terakhir; bantingan 0,8u dalam 250 ms dihitung. |
+| Seret ke samping kadang salah arah | Arah dikunci dari gerak pertama dengan perbandingan `|dx| >= |dy|`. Jempol yang mulai menyeret dengan sedikit turun terkunci tegak, lalu memicu jatuh cepat. | Tegak hanya jika `|dy| > 1.3 * |dx|`; `LOCK_DIST` 0,5u menjadi 0,6u. |
+
+Tes: 6 tes gestur baru di `tests/client.test.ts`. Empat di antaranya gagal pada kode sebelum revisi (bantingan tanpa titik gerak, bantingan pendek, batal di tengah, seret 50 derajat) dan lulus sesudahnya.
+
+Keyboard bawaan menjadi satu tombol per aksi: Z, X, panah atas untuk simpan. Keymap yang sudah tersimpan tidak diubah.

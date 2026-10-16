@@ -48,20 +48,21 @@ export type LoadStatus = "ok" | "empty" | "corrupt" | "newer" | "unavailable";
 
 export function defaultKeymap(): Record<Btn, string[]> {
   return {
+    // Satu tombol per aksi (keputusan pemilik). Panah atas = simpan, sama seperti gestur seret ke atas.
     left: ["ArrowLeft"],
     right: ["ArrowRight"],
     soft: ["ArrowDown"],
     hard: ["Space"],
-    cw: ["KeyX", "ArrowUp"],
-    ccw: ["KeyZ", "ControlLeft"],
-    hold: ["KeyC", "ShiftLeft"],
+    cw: ["KeyX"],
+    ccw: ["KeyZ"],
+    hold: ["ArrowUp"],
   };
 }
 
 export function defaultSettings(): Settings {
   return {
     locale: null,
-   dasMs: 167,
+    dasMs: 167,
     arrMs: 33,
     softDropFactor: 20,
     keymap: defaultKeymap(),

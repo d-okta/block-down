@@ -24,7 +24,7 @@ export function bindGestures(area: HTMLElement, press: Press, isActive: () => bo
     rec.move(e.pointerId, e.clientX, e.clientY, e.timeStamp);
   });
   area.addEventListener("pointerup", (e) => rec.up(e.pointerId, e.clientX, e.clientY, e.timeStamp));
-  area.addEventListener("pointercancel", (e) => rec.cancel(e.pointerId));
+  area.addEventListener("pointercancel", (e) => rec.cancel(e.pointerId, e.timeStamp));
   area.addEventListener("contextmenu", (e) => e.preventDefault());
 
   return () => rec.reset();
