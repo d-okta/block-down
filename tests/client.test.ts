@@ -79,6 +79,79 @@ test("releaseAll menghentikan geser berulang", () => {
   assert.equal(shifts(rep, 101, 300).length, 0);
 });
 
+// ---------- gestur ----------
+
+import { GestureRecognizer } from "../src/input/gesture.ts";
+
+function recorder() {
+  const out: string[] = [];
+  const names = ["LEFT", "RIGHT", "SOFT", "HARD", "CW", "CCW", "HOLD"];
+  const rec = new GestureRecognizer((btn, down) => out.push(`${names[btn]}${down ? "+" : "-"}`));
+  rec.unit = 20;
+  return { rec, out };
+}
+
+test("gestur: ketuk satu jari = putar kanan", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  rec.up(1, 102, 101, 120);
+  assert.deepEqual(out, ["CW+", "CW-"]);
+});
+
+test("gestur: ketuk dua jari = putar kiri, sekali saja", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  rec.down(2, 160, 100, 10);
+  rec.up(1, 100, 100, 100);
+  rec.up(2, 160, 100, 110);
+  assert.deepEqual(out, ["CCW+", "CCW-"]);
+});
+
+test("gestur: seret ke kanan 3 sel = 3 geser kanan", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  for (let x = 105; x <= 165; x += 5) rec.move(1, x, 102, x);
+  rec.up(1, 165, 102, 300);
+  assert.equal(out.filter((s) => s === "RIGHT+").length, 3);
+  assert.equal(out.filter((s) => s.startsWith("CW")).length, 0, "bukan ketukan");
+});
+
+test("gestur: sapu cepat ke bawah = jatuh cepat, sapu ke atas = simpan", () => {
+  const a = recorder();
+  a.rec.down(1, 100, 100, 0);
+  a.rec.move(1, 101, 120, 16);
+  a.rec.move(1, 101, 160, 32);
+  a.rec.up(1, 101, 200, 48);
+  assert.ok(a.out.includes("HARD+"), a.out.join(","));
+
+  const b = recorder();
+  b.rec.down(1, 100, 200, 0);
+  b.rec.move(1, 100, 170, 16);
+  b.rec.move(1, 100, 130, 32);
+  b.rec.up(1, 100, 100, 48);
+  assert.deepEqual(b.out, ["HOLD+", "HOLD-"]);
+});
+
+test("gestur: seret pelan ke bawah = jatuh pelan, dilepas saat jari diangkat, tanpa jatuh cepat", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  for (let i = 1; i <= 10; i++) rec.move(1, 100, 100 + i * 6, i * 100);
+  rec.up(1, 100, 160, 1100);
+  assert.equal(out[0], "SOFT+");
+  assert.equal(out.at(-1), "SOFT-");
+  assert.ok(!out.includes("HARD+"));
+});
+
+test("gestur: arah dikunci, sapu ke bawah yang sedikit miring tidak menggeser", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  rec.move(1, 104, 120, 16);
+  rec.move(1, 112, 160, 32);
+  rec.up(1, 118, 200, 48);
+  assert.ok(!out.some((s) => s.startsWith("RIGHT")));
+  assert.ok(out.includes("HARD+"));
+});
+
 // ---------- penyimpanan ----------
 
 test("penyimpanan: kosong, rusak, dan bukan objek memakai bawaan", () => {
@@ -119,13 +192,14 @@ test("penyimpanan: field tidak valid diganti satu per satu", () => {
 test("penyimpanan: keymap duplikat dibuang dan Escape ditolak", () => {
   const raw = JSON.stringify({
     schema: 1,
-    settings: { keymap: { left: ["KeyA", "KeyA"], right: ["KeyA", "KeyD"], hard: ["Escape"], cw: ["<script>"] } },
+    settings: { keymap: { left: ["KeyA", "KeyA"], right: ["KeyA", "KeyD"], hard: ["Escape"], cw: ["<script>"], hold: ["KeyP", "Tab"] } },
   });
   const km = parseSave(raw).data.settings.keymap;
   assert.deepEqual(km.left, ["KeyA"]);
   assert.deepEqual(km.right, ["KeyD"]);
   assert.deepEqual(km.hard, ["Space"], "kosong kembali ke bawaan");
   assert.deepEqual(km.cw, ["KeyX", "ArrowUp"]);
+  assert.deepEqual(km.hold, ["KeyC", "ShiftLeft"], "P dan Tab dicadangkan");
 });
 
 test("penyimpanan: skema lebih baru dibaca tetapi ditandai", () => {
@@ -146,6 +220,11 @@ test("rekor: hanya ditulis jika lebih baik", () => {
   assert.equal(submitResult(rec, { mode: "sprint40", timeMs: 70000 }, now), true);
   assert.equal(submitResult(rec, { mode: "sprint40", timeMs: 71000 }, now), false, "lebih lambat");
   assert.equal(submitResult(rec, { mode: "sprint40", timeMs: 69000 }, now), true);
+  assert.equal(submitResult(rec, { mode: "ultra", score: 3000, lines: 20 }, now), true);
+  assert.equal(submitResult(rec, { mode: "ultra", score: 2000, lines: 30 }, now), false, "Ultra dinilai dari skor");
+  assert.equal(submitResult(rec, { mode: "zen", lines: 0 }, now), false, "Zen 0 baris bukan rekor");
+  assert.equal(submitResult(rec, { mode: "zen", lines: 25 }, now), true);
+  assert.equal(rec.zen?.lines, 25);
 });
 
 // ---------- i18n ----------

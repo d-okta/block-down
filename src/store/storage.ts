@@ -80,6 +80,9 @@ export function defaultSettings(): Settings {
 
 // ---------- validasi ----------
 
+/** Sama dengan RESERVED_CODES di input/keyboard.ts; disalin supaya modul ini tetap bebas DOM. */
+const RESERVED = new Set(["Escape", "KeyP", "Tab"]);
+
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
 const int = (v: unknown, min: number, max: number, def: number): number =>
@@ -101,7 +104,7 @@ function readKeymap(v: unknown): Record<Btn, string[]> {
   for (const b of BTNS) {
     const raw = v[b];
     const codes = Array.isArray(raw)
-      ? raw.filter((c): c is string => typeof c === "string" && /^[A-Za-z0-9]{1,24}$/.test(c) && c !== "Escape")
+      ? raw.filter((c): c is string => typeof c === "string" && /^[A-Za-z0-9]{1,24}$/.test(c) && !RESERVED.has(c))
       : [];
     const kept: string[] = [];
     for (const c of codes) {

@@ -6,36 +6,36 @@ Game puzzle blok jatuh untuk browser, dengan versi Android menyusul. Tenang saat
 
 ## Status versi uji
 
-Ini versi uji awal (Fase 2 dari 6). Yang sudah bisa dicoba:
+Ini versi uji (Fase 3 dari 6). Yang sudah bisa dicoba:
 
-- Mode Maraton: 150 baris, atau tanpa batas.
-- Kontrol keyboard dengan geser berulang (DAS 167 ms, ARR 33 ms) dan lock delay 400 ms.
-- Ghost piece, Simpan (sekali per piece), dan 5 piece berikutnya.
+- Empat mode: Maraton (150 baris atau tanpa batas), Sprint 40, Ultra (2 menit), dan Zen.
+- Keyboard, layar sentuh (tombol di layar atau gestur), dan gamepad.
+- Pengaturan: mode sentuh, DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, ghost, grid, mode aman buta warna, dan bahasa.
+- Ghost piece, Simpan (sekali per piece), dan 5 piece berikutnya. Lock delay 400 ms.
 - Skor lengkap: Single sampai 4 Baris, T-Spin dan Mini, Back-to-Back, Combo, Bersih Total.
-- Jeda, Game Over dengan statistik, dan rekor pribadi yang tersimpan di browser.
+- Jeda, Game Over dengan statistik, dan rekor pribadi per mode yang tersimpan di browser.
 - Bahasa Indonesia dan Inggris.
 
 Belum ada di versi ini:
 
-- Kontrol sentuh. Di HP, game belum bisa dimainkan.
-- Mode Sprint 40, Ultra, dan Zen.
-- Layar Pengaturan (DAS, ARR, tombol, tampilan).
-- Animasi saat menghapus baris, suara, dan getar.
-- Aplikasi Android.
+- Animasi saat menghapus baris, suara, musik, dan getar.
+- Aplikasi Android dan pemasangan sebagai aplikasi (PWA).
 
 Urutan pengerjaannya ada di [docs/prd/ROADMAP.md](docs/prd/ROADMAP.md).
 
 ## Kontrol
 
-| Aksi | Tombol |
-|---|---|
-| Geser | ← → |
-| Jatuh pelan | ↓ |
-| Jatuh cepat | Space |
-| Putar kanan | X atau ↑ |
-| Putar kiri | Z atau Ctrl |
-| Simpan | C atau Shift |
-| Jeda | Esc atau P |
+| Aksi | Keyboard (bisa diubah) | Gamepad | Gestur |
+|---|---|---|---|
+| Geser | ← → | D-pad kiri/kanan, stik | Seret ke samping |
+| Jatuh pelan | ↓ | D-pad bawah | Seret pelan ke bawah |
+| Jatuh cepat | Space | D-pad atas | Sapu cepat ke bawah |
+| Putar kanan | X atau ↑ | A | Ketuk |
+| Putar kiri | Z atau Ctrl | B | Ketuk dua jari |
+| Simpan | C atau Shift | LB atau RB | Sapu ke atas |
+| Jeda | Esc atau P | Start | Tombol jeda |
+
+Di HP, bawaannya tombol di layar. Gestur bisa dipilih di Pengaturan.
 
 ## Menjalankan di komputer sendiri
 
@@ -44,7 +44,7 @@ Butuh Node 22.18 atau lebih baru.
 ```
 npm install
 npm run dev       # buka http://localhost:5173
-npm run check     # TypeScript + 39 tes
+npm run check     # TypeScript + 46 tes
 npm run build     # hasil di dist/
 ```
 
@@ -63,8 +63,9 @@ block-down/
     stitch/   ekspor Google Stitch: zip asli dan ekstrak per layar
   src/
     core/     logika permainan murni (tanpa DOM)
-    input/    keyboard, DAS dan ARR
+    input/    keyboard, sentuh, gestur, gamepad, DAS dan ARR
     render/   canvas: blok, ghost, pratinjau
+    ui/       layar Pengaturan
     store/    penyimpanan dan rekor
     i18n/     kamus id dan en
     fonts/    Sora dan JetBrains Mono (OFL), self-host

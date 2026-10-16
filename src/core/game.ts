@@ -67,6 +67,8 @@ export interface Game {
   readonly mode: Mode;
   step(actions: ArrayLike<number>, count: number): void;
   peekNext(i: number): PieceType;
+  /** Pemain mengakhiri permainan sendiri (Zen tidak punya akhir lain). Status menjadi FINISHED. */
+  end(): void;
   setConfig(cfg: CoreConfig): void;
 }
 
@@ -373,6 +375,11 @@ export function createGame(modeId: ModeId, seed: number, cfg: CoreConfig): Game 
     mode,
     step,
     peekNext: (i) => peek(bag, i),
+    end() {
+      if (s.status !== STATUS.PLAYING) return;
+      s.status = STATUS.FINISHED;
+      events.push(EV.FINISH);
+    },
     setConfig(c) {
       softFactor = c.softDropFactor;
     },

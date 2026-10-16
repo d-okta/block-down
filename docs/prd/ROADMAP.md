@@ -71,18 +71,41 @@ Belum selesai: uji di Samsung Galaxy A13 (DPR fisik, 60 fps, alokasi). Uji ini d
 Lingkup: `input/touch.ts` (Tombol dan Gestur), `input/gamepad.ts`, mode Sprint 40, Ultra, dan Zen, layar Pengaturan lengkap, pemetaan ulang tombol, serta i18n ID/EN di semua layar.
 
 Kriteria selesai:
-- [ ] Keempat mode (dengan dua varian Maraton) bisa dimulai dari Menu dan berakhir sesuai SPEC.md bagian 10. Setiap mode di `modes.ts` punya baris di Menu.
-- [ ] Sprint mencatat waktu dalam ms, dan top out tidak dicatat sebagai rekor.
-- [ ] Ultra berhenti tepat di 120.000 ms waktu tick, dan Pause menghentikan timer.
-- [ ] Zen mengosongkan board saat top out, dan skor tetap.
-- [ ] Satu permainan Maraton bisa diselesaikan hanya dengan sentuhan, di mode Tombol dan di mode Gestur, pada HP Android dan iPhone (browser).
-- [ ] Semua target sentuh minimal 44px (tombol permainan 56px), diukur di DevTools pada lebar 320 dan 390.
-- [ ] Tidak ada overflow horizontal di 320, 390, 600, 768, dan 1024 px, portrait dan landscape.
-- [ ] Gamepad standar bisa memainkan permainan dan menavigasi menu.
-- [ ] Setiap pengaturan berlaku langsung dan bertahan setelah reload.
-- [ ] Mengganti bahasa di Menu dan di Pengaturan mengubah semua teks dan `<html lang>`. Bahasa awal mengikuti `navigator.language`, dengan cadangan `id`.
-- [ ] Grep tidak menemukan string untuk pemain di luar `src/i18n/`. Tes key identik lulus.
-- [ ] Semua layar dan dialog bisa dipakai dengan Tab, Enter, Space, dan Esc, dengan cincin fokus terlihat.
+- [x] Keempat mode (dengan dua varian Maraton) bisa dimulai dari Menu dan berakhir sesuai SPEC.md bagian 10. Setiap mode di `modes.ts` punya baris di Menu.
+- [x] Sprint mencatat waktu dalam ms, dan top out tidak dicatat sebagai rekor (pesan "Waktu tidak dicatat" tampil).
+- [x] Ultra berhenti tepat di tick 7200 (120.000 ms), dan Pause menghentikan timer (tes core 22b, loop berhenti saat Pause).
+- [x] Zen mengosongkan board saat top out, dan skor tetap (tes 22c). Zen diakhiri dari Pause lewat "Akhiri sesi" (tes 22e).
+- [ ] Satu permainan Maraton bisa diselesaikan hanya dengan sentuhan, di mode Tombol dan di mode Gestur, pada HP Android dan iPhone (browser). Sudah diuji di emulasi sentuh Chrome; uji di Galaxy A13 menunggu pemilik. iPhone: belum ada perangkat.
+- [x] Semua target sentuh minimal 44px, tombol permainan 56px tinggi (54 px lebar di 390, 44 px lebar di 320).
+- [x] Tidak ada overflow horizontal di 320, 390, 600, 768, dan 1024 px, portrait dan landscape.
+- [x] Gamepad standar bisa memainkan permainan dan menavigasi menu (emulasi Gamepad API; gamepad fisik belum dicoba).
+- [x] Setiap pengaturan berlaku langsung dan bertahan setelah reload.
+- [x] Mengganti bahasa di Menu dan di Pengaturan mengubah semua teks dan `<html lang>`. Bahasa awal mengikuti `navigator.language`, dengan cadangan `id`.
+- [x] Pencarian tidak menemukan string untuk pemain di luar `src/i18n/` (hanya logo merek dan angka awal HUD). Tes key identik lulus.
+- [x] Semua layar dan dialog bisa dipakai dengan Tab, Enter, Space, dan Esc, dengan cincin fokus terlihat.
+
+Click-through Fase 3 (Chrome, desktop 1280x800, HP emulasi 390x844 DPR 3 dengan sentuh, gamepad emulasi), kontrol lalu hasil:
+- Menu: empat mode tampil (Maraton, Sprint 40, Ultra, Zen), semua rekor "Belum ada". Tombol sentuh tidak tampil di desktop. Daftar kontrol keyboard mengikuti pemetaan. Urutan Tab: ID, EN, Pengaturan, Maraton, Sprint 40, Ultra, Zen.
+- Sprint: waktu naik di HUD. Pause tanpa "Akhiri sesi". Top out: "Permainan Selesai", catatan "Waktu tidak dicatat karena 40 baris belum tercapai", tanpa tag rekor.
+- Ultra: waktu mundur dari 1:59. Top out: rekor skor tersimpan dan tampil di Menu.
+- Zen: tanpa waktu, 40 hard drop tidak mengakhiri permainan. Pause menampilkan "Akhiri sesi". Akhiri sesi: "Selesai", hasil utama Baris, skor tampil di statistik.
+- Pengaturan dari Menu: fokus ke tombol kembali. DAS panah kiri x10: 157 ms dan `aria-valuetext` ikut. Jatuh pelan End: Instan, kiri: 40x. Ghost, buta warna, mode Gestur (bantuan gestur tampil) berpindah.
+- Atur tombol: Jatuh cepat jadi W, fokus kembali ke tombol yang sama. X untuk Simpan ditolak ("sudah dipakai untuk Putar kanan"). P ditolak ("dipakai untuk jeda"). Esc saat mendengarkan hanya membatalkan. Menghapus tombol terakhir ditolak.
+- Bahasa English di Pengaturan: `lang=en`, judul "Settings", nama aksi "Move left".
+- Esc di Pengaturan: kembali ke Menu, fokus ke tombol Pengaturan. Daftar kontrol Menu menampilkan W. W benar-benar menjatuhkan piece.
+- Pause, Pengaturan, kembali: Pause terbuka lagi dengan fokus di "Pengaturan".
+- Kembalikan bawaan: DAS 167 ms, jatuh cepat Space, toast tampil. Reload: pengaturan tampilan bertahan.
+- Gamepad: toast "Gamepad terhubung". D-pad memindahkan fokus Menu, A memilih mode, D-pad atas menjatuhkan piece, Start membuka Pause, B menutupnya, D-pad kanan mengubah slider di Pengaturan, B kembali ke Pause.
+- HP (sentuh): daftar kontrol keyboard tersembunyi, tombol sentuh tampil. Jatuh cepat, Simpan, tahan geser 500 ms, putar, tahan jatuh pelan bekerja. Ketuk berulang tidak memicu zoom.
+- HP landscape 844x390: tombol dipindah ke kiri dan kanan papan, tidak menutup papan, tidak saling tumpuk.
+- HP 320x568: sel 17 px, tombol 44 px, tanpa overflow.
+- Mode Gestur: tombol sentuh tersembunyi, sapu cepat ke bawah menjatuhkan piece, sapu ke atas menyimpan.
+- Click-through Fase 2 dijalankan ulang: semua lulus.
+- Error konsol, halaman, dan jaringan: tidak ada.
+
+Ditemukan dan diperbaiki saat uji: tombol Start gamepad membuka Pause lalu langsung terbaca sebagai "kembali" di frame berikutnya, sehingga Pause tertutup sendiri. Perbaikan: saat berpindah konteks, tombol yang masih ditekan dicatat sebagai sudah ditekan.
+
+Belum selesai: uji di Galaxy A13 (sentuh Tombol dan Gestur, nilai konstanta gestur, 60 fps, ketajaman, alokasi), dan uji dengan gamepad fisik jika ada.
 
 ## Fase 4: Motion, suara, haptics, aksesibilitas
 

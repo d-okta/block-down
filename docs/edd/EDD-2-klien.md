@@ -470,3 +470,17 @@ Rekor: `submitResult(mode, result)` membandingkan dengan rekor tersimpan (skor d
 - Ikon Fase 2: `pause`, `play_arrow`, `replay`, `home` di `public/icons.svg`.
 - Favicon: `data:,` sampai ikon aplikasi diputuskan.
 - Tes klien di `tests/client.test.ts`: DAS/ARR, validasi penyimpanan, rekor, dan i18n.
+
+## 12. Catatan implementasi Fase 3
+
+- Pengenal gestur dipisah ke `input/gesture.ts` tanpa DOM supaya bisa dites (6 tes di `tests/client.test.ts`). `input/touch.ts` hanya menyambungkan Pointer Events. Nilai konstanta gestur masih nilai awal: ketuk maks 220 ms dan 0,5 sel, sapuan 25 sel per detik dan minimal 1,5 sel.
+- Ketuk dua jari menghasilkan satu putar kiri saat jari terakhir diangkat, tidak dua putar kanan.
+- Gamepad: `reset()` mencatat tombol yang masih ditekan saat berpindah antara permainan dan menu, dan `poll()` berhenti di frame itu setelah konteks berubah. Tanpa ini, Start membuka Pause lalu langsung menutupnya.
+- Gamepad di menu dibaca oleh loop kecil yang hanya berjalan saat permainan tidak berjalan.
+- Stik kiri atas/bawah hanya untuk navigasi menu, tidak untuk jatuh cepat saat bermain, supaya tidak terpicu tanpa sengaja.
+- Pengaturan di `ui/settings.ts`. Kelompok Suara dan pengaturan Intensitas efek serta Kurangi animasi belum ditampilkan sampai fiturnya ada di Fase 4 (R-26).
+- Tombol yang dicadangkan: Esc, P (jeda), dan Tab (navigasi fokus). Pemetaan tidak bisa memakai ketiganya; validasi penyimpanan juga membuangnya.
+- Backspace saat mendengarkan tombol menghapus slot itu. Aksi tidak boleh tanpa tombol.
+- Zen diakhiri pemain lewat `Game.end()` dari Pause ("Akhiri sesi"). Hasil utamanya baris, dicatat sebagai rekor.
+- Landscape HP (tinggi di bawah 500 px): tombol sentuh dipindah ke kiri dan kanan papan dengan CSS grid, sesuai DESIGN 7 rentang 600 sampai 1023 px.
+- Toast kecil di bawah layar untuk pemberitahuan sesaat (gamepad, simpan gagal, kembalikan bawaan), selain `aria-live`.

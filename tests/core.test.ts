@@ -394,6 +394,18 @@ test("22c. Zen mengosongkan board saat top out", () => {
   assert.equal(filled, 0);
 });
 
+test("22e. Zen diakhiri pemain: status selesai, step berikutnya tidak berpengaruh", () => {
+  const g = newGame("zen");
+  S(g).lines = 12;
+  g.end();
+  assert.equal(S(g).status, STATUS.FINISHED);
+  assert.equal(events(g, EV.FINISH).length, 1);
+  const tickBefore = S(g).tick;
+  tick(g, ACT.HARD);
+  assert.equal(S(g).tick, tickBefore);
+  assert.equal(S(g).lines, 12);
+});
+
 test("22d. Maraton berakhir saat block out", () => {
   const g = newGame("marathon150");
   setRows(g, BLOCK_SPAWN);

@@ -11,6 +11,34 @@ const CODE: Record<Btn, BtnCode> = {
   hold: BTN.HOLD,
 };
 
+/** Tombol yang tidak boleh dipetakan: Esc dan P untuk jeda, Tab untuk navigasi fokus. */
+export const RESERVED_CODES: ReadonlySet<string> = new Set(["Escape", "KeyP", "Tab"]);
+
+const NAMED: Record<string, string> = {
+  ArrowLeft: "←",
+  ArrowRight: "→",
+  ArrowUp: "↑",
+  ArrowDown: "↓",
+  Space: "Space",
+  ShiftLeft: "Shift",
+  ShiftRight: "Shift",
+  ControlLeft: "Ctrl",
+  ControlRight: "Ctrl",
+  AltLeft: "Alt",
+  AltRight: "Alt",
+  Enter: "Enter",
+  Backspace: "Backspace",
+};
+
+/** Label pendek dari KeyboardEvent.code: "KeyX" jadi "X", "ArrowLeft" jadi "←". */
+export function keyLabel(code: string): string {
+  if (NAMED[code]) return NAMED[code];
+  if (code.startsWith("Key")) return code.slice(3);
+  if (code.startsWith("Digit")) return code.slice(5);
+  if (code.startsWith("Numpad")) return `Num ${code.slice(6)}`;
+  return code;
+}
+
 export interface KeyboardHandlers {
   press(btn: BtnCode, down: boolean, timeStamp: number): void;
   pause(): void;
