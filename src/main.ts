@@ -11,6 +11,7 @@ import { BoardRenderer, PreviewRenderer } from "./render/board.ts";
 import { applyI18n, fmt, formatClock, formatMs, pickLocale, setLocale, t, type Key } from "./i18n/index.ts";
 import { BTNS, load, save, submitResult, type Locale, type ResultInput, type SaveData } from "./store/storage.ts";
 import { SettingsScreen } from "./ui/settings.ts";
+import { perfFrame, perfPause } from "./debug/perf.ts";
 
 const STEP = 1000 / 60;
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -184,6 +185,7 @@ function resume(): void {
 
 function stopLoop(): void {
   running = false;
+  perfPause();
   keyboard.enabled = false;
   gamepad.playing = false;
   gamepad.reset();
@@ -210,6 +212,7 @@ function frame(now: number): void {
   }
   updateHud(false);
   board.draw(s, clk.fallFrom, clk.acc / STEP, now, s.status === STATUS.PLAYING);
+  perfFrame(now, performance.now());
   if (s.status !== STATUS.PLAYING && !overShown) {
     overShown = true;
     stopLoop();

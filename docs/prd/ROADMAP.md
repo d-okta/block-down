@@ -64,7 +64,15 @@ Ukuran 20 detik bermain (Chrome desktop, DPR 3, bukan perangkat acuan): frame me
 
 Alokasi saat permainan berjalan tanpa input (sampling heap V8, 10 detik, sekitar 1440 frame): sekitar 15 byte per frame, sama di DPR 1 dan DPR 3. Pelacakan dengan mematikan bagian kode satu per satu: tidak berasal dari core, input, atau HUD, melainkan dari jalur pemanggilan `drawImage` di renderer, padahal `drawImage` di halaman kosong mengalokasikan 0 byte. Penyebab pastinya belum ditemukan. Besarnya (sekitar 21 KB per 10 detik) jauh di bawah ambang yang memicu jeda GC yang terasa, jadi tidak menghalangi Fase 3. Diukur ulang di HP acuan.
 
-Belum selesai: uji di Samsung Galaxy A13 (DPR fisik, 60 fps, alokasi). Uji ini dijalankan bersama kriteria sentuh Fase 3, karena permainan baru bisa dikendalikan di HP setelah kontrol sentuh ada.
+Belum selesai: pengukuran di Samsung Galaxy A13 (60 fps, alokasi). Pemilik menilai permainan lancar dan tampilan tajam saat uji Fase 3, tapi belum diukur dengan alat.
+
+Cara mengukur: buka `https://block-down.vercel.app/?perf` di HP, mainkan sekitar 2 menit, lalu baca panel kecil di kiri bawah. Panel ini hanya muncul dengan `?perf` (kode di `src/debug/perf.ts`). Isinya:
+- `fps`: frame per detik dari jarak antar frame median. Target 60 (atau sesuai refresh layar).
+- `lambat`: jumlah dan persen frame yang jaraknya lebih dari 1,5 kali median (patah-patah yang terasa).
+- `kerja`: waktu yang dihabiskan kode game per frame (p50, p99, maks). Harus jauh di bawah 16,7 ms.
+- `heap`: memori JavaScript yang terpakai (hanya di Chrome). Harus stabil, tidak terus naik.
+
+Uji di Chrome desktop (HP emulasi 390x844, DPR 3): panel tidak tampil tanpa `?perf`; dengan `?perf`, kerja p99 0,6 ms, 0 frame lambat, dan jeda tidak dihitung sebagai frame lambat.
 
 ## Fase 3: Sentuh, semua mode, Pengaturan, i18n
 
@@ -75,7 +83,7 @@ Kriteria selesai:
 - [x] Sprint mencatat waktu dalam ms, dan top out tidak dicatat sebagai rekor (pesan "Waktu tidak dicatat" tampil).
 - [x] Ultra berhenti tepat di tick 7200 (120.000 ms), dan Pause menghentikan timer (tes core 22b, loop berhenti saat Pause).
 - [x] Zen mengosongkan board saat top out, dan skor tetap (tes 22c). Zen diakhiri dari Pause lewat "Akhiri sesi" (tes 22e).
-- [ ] Satu permainan Maraton bisa diselesaikan hanya dengan gestur, pada HP Android dan iPhone (browser). Uji pertama di Galaxy A13 oleh pemilik: lancar, gestur dipilih, lalu direvisi (lihat Revisi di bawah). Uji ulang revisi menunggu pemilik. iPhone: belum ada perangkat.
+- [x] Satu permainan bisa dimainkan hanya dengan gestur di HP Android (Galaxy A13, Chrome): dinyatakan pas oleh pemilik setelah tiga revisi gestur. iPhone: belum diuji (belum ada perangkat), dicoba begitu tersedia.
 - [x] Semua target sentuh minimal 44px. Setelah tombol sentuh dihapus, target sentuh saat bermain hanya tombol jeda (44 px); sisanya gestur di seluruh layar.
 - [x] Tidak ada overflow horizontal di 320, 360, 390, 412, 430 px (HP tegak), 600, 768, 1024, 1280, 1440 px (jendela lebar).
 - [x] Gamepad standar bisa memainkan permainan dan menavigasi menu (emulasi Gamepad API; gamepad fisik belum dicoba).
@@ -117,7 +125,15 @@ Revisi setelah uji (Chrome, HP emulasi DPR 3 dengan sentuh), kontrol lalu hasil:
 - Desktop 1280x800: Simpan di kiri, Antrean tegak di kanan, papan 340x680. Jendela 1024x600: pesan putar tidak tampil.
 - Click-through Fase 2 dan Fase 3 (tanpa bagian tombol sentuh) dijalankan ulang: lulus. Error: tidak ada.
 
-Belum selesai: uji ulang revisi di Galaxy A13 (gestur baru, tata letak baru), pengukuran 60 fps dan alokasi di perangkat, dan uji dengan gamepad fisik jika ada.
+Revisi gestur kedua dan ketiga (dari uji pemilik di Galaxy A13):
+- Bantingan keras kadang tidak terbaca: titik lepas dan sentuhan yang dibatalkan browser kini ikut dihitung.
+- Seret ke samping kadang salah jadi jatuh cepat: arah tegak hanya jika lebih curam dari sekitar 52 derajat.
+- Gerak kecil ke bawah langsung jatuh cepat: jatuh cepat kini butuh bantingan 1,5 sel (minimal 20 sel per detik) atau seret 2,5 sel.
+- Geser lalu banting tanpa mengangkat jari: kini didukung.
+- Keyboard bawaan menjadi satu tombol per aksi, dengan panah atas untuk simpan.
+Rincian dan hasil uji emulasi ada di EDD-2 bagian 14 dan 15.
+
+**Fase 3 ditutup** (keputusan pemilik setelah uji akhir di Galaxy A13: gestur sudah pas). Yang dicatat belum diuji: iPhone dan gamepad fisik (belum ada perangkat). Pengukuran 60 fps dan alokasi di Galaxy A13 dijalankan sebelum Fase 4, lewat mode ukur `?perf` (lihat Fase 2).
 
 ## Fase 4: Motion, suara, haptics, aksesibilitas
 
