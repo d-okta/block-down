@@ -85,7 +85,7 @@ export const en: Record<Key, string> = {
   "settings.group.sound": "Sound",
   "settings.group.language": "Language",
   "settings.gestures": "Touch gestures",
-  "settings.gestures.desc": "Drag sideways to move. Tap to rotate right, tap with two fingers to rotate left. Drag down to hard drop, drag up to hold.",
+  "settings.gestures.desc": "Drag sideways to move. Tap to rotate right, tap with two fingers to rotate left. Flick down to hard drop, flick up to hold. You can move and then flick down without lifting your finger.",
   "rotate.title": "Turn your phone upright",
   "rotate.body": "BlockDown is played in portrait.",
   "settings.das": "DAS",

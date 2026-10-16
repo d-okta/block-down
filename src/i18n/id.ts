@@ -84,7 +84,7 @@ export const id = {
   "settings.group.sound": "Suara",
   "settings.group.language": "Bahasa",
   "settings.gestures": "Gestur layar sentuh",
-  "settings.gestures.desc": "Seret ke samping untuk geser. Ketuk untuk putar kanan, ketuk dengan dua jari untuk putar kiri. Seret ke bawah untuk jatuh cepat, seret ke atas untuk simpan.",
+  "settings.gestures.desc": "Seret ke samping untuk geser. Ketuk untuk putar kanan, ketuk dengan dua jari untuk putar kiri. Banting ke bawah untuk jatuh cepat, banting ke atas untuk simpan. Bisa geser lalu banting tanpa mengangkat jari.",
   "rotate.title": "Putar HP ke posisi tegak",
   "rotate.body": "BlockDown dimainkan dalam posisi tegak.",
   "settings.das": "DAS",

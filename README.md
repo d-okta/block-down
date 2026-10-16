@@ -29,13 +29,13 @@ Urutan pengerjaannya ada di [docs/prd/ROADMAP.md](docs/prd/ROADMAP.md).
 |---|---|---|---|
 | Geser | ← → | D-pad kiri/kanan, stik | Seret ke samping |
 | Jatuh pelan | ↓ | D-pad bawah | (tidak ada) |
-| Jatuh cepat | Space | D-pad atas | Seret ke bawah |
+| Jatuh cepat | Space | D-pad atas | Banting ke bawah |
 | Putar kanan | X | A | Ketuk |
 | Putar kiri | Z | B | Ketuk dua jari |
-| Simpan | ↑ | LB atau RB | Seret ke atas |
+| Simpan | ↑ | LB atau RB | Banting ke atas |
 | Jeda | Esc atau P | Start | Tombol jeda |
 
-Di HP, gestur bisa dilakukan di mana saja di layar permainan, tidak harus di atas papan.
+Di HP, gestur bisa dilakukan di mana saja di layar permainan, tidak harus di atas papan. Geser lalu banting ke bawah bisa dilakukan tanpa mengangkat jari.
 
 ## Menjalankan di komputer sendiri
 
@@ -44,7 +44,7 @@ Butuh Node 22.18 atau lebih baru.
 ```
 npm install
 npm run dev       # buka http://localhost:5173
-npm run check     # TypeScript + 54 tes
+npm run check     # TypeScript + 55 tes
 npm run build     # hasil di dist/
 ```
 

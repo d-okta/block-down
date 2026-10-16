@@ -80,20 +80,21 @@ Area: seluruh layar Game kecuali tombol (jeda), supaya jari tidak menutupi papan
 |---|---|---|
 | `TAP_MAX_MS` | 220 | Durasi maksimum ketuk |
 | `TAP_MAX_MOVE` | 0.5u | Gerak maksimum ketuk |
-| `LOCK_DIST` | 0.6u | Gerak pertama di atas ini mengunci arah |
+| `LOCK_DIST` | 0.6u | Gerak di atas ini menentukan arah segmen |
 | `VERTICAL_BIAS` | 1.3 | Tegak hanya jika `|dy| > 1.3 * |dx|` (sekitar 52 derajat); selain itu mendatar |
-| `VERTICAL_DIST` | 1.5u | Seret tegak sejauh ini memicu jatuh cepat atau simpan |
-| `FLICK_MS` | 250 | Bantingan: sentuhan tegak yang selesai dalam waktu ini |
-| `FLICK_MIN` | 0.8u | Jarak tegak minimum bantingan |
+| `VERTICAL_DIST` | 2.5u | Seret tegak pelan sejauh ini memicu jatuh cepat atau simpan |
+| `FLICK_MIN` | 1.5u | Jarak minimum bantingan |
+| `FLICK_SPEED` | 20u per detik | Kecepatan puncak tegak segmen untuk dianggap bantingan |
 
-Aturan per `pointerId`:
-- Seret mendatar: setiap 1u yang ditempuh sejak titik acuan menghasilkan `press`+`release` geser, lalu titik acuan maju 1u. DAS dan ARR tidak dipakai.
-- Seret ke bawah sejauh 1,5u: `HARD`, langsung saat jarak tercapai, sekali per sentuhan. Ke atas: `HOLD`.
-- Titik lepas (`pointerup`) ikut diproses sebagai titik gerak terakhir, dan `pointercancel` diselesaikan dengan posisi terakhir yang diketahui. Bantingan cepat sering hanya mengirim titik sentuh dan titik lepas, atau dibatalkan browser.
-- Bantingan pendek: belum mencapai 1,5u, arah belum terkunci mendatar, tegak menurut `VERTICAL_BIAS`, jarak minimal 0,8u, selesai dalam 250 ms: tetap `HARD` (atau `HOLD` ke atas).
+Aturan per `pointerId` (satu sentuhan bisa terdiri dari beberapa segmen):
+- Segmen pertama ditentukan oleh gerak pertama yang melebihi 0,6u: tegak atau mendatar menurut `VERTICAL_BIAS`.
+- Segmen mendatar: setiap 1u yang ditempuh sejak titik acuan menghasilkan `press`+`release` geser. DAS dan ARR tidak dipakai. Posisi saat geser terakhir dicatat.
+- Dari segmen mendatar, gerak tegak minimal 0,6u sejak geser terakhir (dan tegak menurut `VERTICAL_BIAS`) memulai segmen tegak baru dari titik itu. Ini yang memungkinkan geser lalu banting tanpa mengangkat jari.
+- Segmen tegak: `HARD` jika turun minimal 2,5u, atau turun minimal 1,5u dengan kecepatan puncak minimal 20u per detik. Ke atas dengan syarat yang sama: `HOLD`. Sekali per sentuhan; sisa gerak diabaikan.
+- Kecepatan sesaat dihitung dengan selang waktu minimal 8 ms, supaya dua titik yang tiba berdempetan tidak menghasilkan kecepatan palsu.
+- Titik lepas (`pointerup`) ikut diproses sebagai gerak. `pointercancel` memakai gerak yang sudah diterima.
 - Tidak ada jatuh pelan lewat gestur (keputusan pemilik).
 - Ketuk satu jari: `CW`. Ketuk saat ada dua pointer aktif: `CCW`, sekali saat jari terakhir diangkat.
-- Arah dikunci pada gerakan pertama yang melebihi 0.6u. Setelah terkunci mendatar, gerak tegak dalam sentuhan yang sama diabaikan.
 
 ### 2.6a Orientasi
 
@@ -509,3 +510,12 @@ Masalah yang dilaporkan dan penyebab yang ditemukan:
 Tes: 6 tes gestur baru di `tests/client.test.ts`. Empat di antaranya gagal pada kode sebelum revisi (bantingan tanpa titik gerak, bantingan pendek, batal di tengah, seret 50 derajat) dan lulus sesudahnya.
 
 Keyboard bawaan menjadi satu tombol per aksi: Z, X, panah atas untuk simpan. Keymap yang sudah tersimpan tidak diubah.
+
+## 15. Revisi ketiga setelah uji di Galaxy A13
+
+| Masalah | Penyebab | Perbaikan |
+|---|---|---|
+| Geser sedikit ke bawah langsung jatuh cepat | Aturan bantingan pendek di revisi kedua: 0,8 sel dalam 250 ms sudah cukup, jadi gerak kecil yang tidak disengaja ikut memicu. | Aturan itu dihapus. Jatuh cepat butuh 2,5 sel, atau 1,5 sel dengan kecepatan puncak minimal 20 sel per detik. |
+| Tidak bisa geser lalu banting tanpa mengangkat jari | Arah dikunci untuk seluruh sentuhan; setelah mendatar, gerak tegak diabaikan. | Sentuhan dibagi menjadi segmen; gerak tegak sesudah geser memulai segmen tegak baru. |
+
+Tes gestur di `tests/client.test.ts` ditulis ulang menjadi 13 kasus. Tiga di antaranya gagal pada versi yang sedang tayang (gerak kecil, seret pelan 2,5 sel, geser lalu banting) dan lulus sesudahnya. Di browser HP emulasi, 10 percobaan per kasus: gerak kecil cepat 0,9 sel dan seret pelan 1,6 sel tidak memicu (versi tayang: 10 dari 10 memicu); geser lalu banting memicu 10 dari 10 (versi tayang: 0).

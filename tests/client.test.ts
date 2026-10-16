@@ -116,7 +116,9 @@ test("gestur: seret ke kanan 3 sel = 3 geser kanan", () => {
   assert.equal(out.filter((s) => s.startsWith("CW")).length, 0, "bukan ketukan");
 });
 
-test("gestur: seret ke bawah = jatuh cepat, sapu ke atas = simpan", () => {
+// Satuan di tes ini: 1 sel = 20 px. Kecepatan bantingan 20 sel/detik = 400 px/detik = 6,4 px per 16 ms.
+
+test("gestur: bantingan cepat ke bawah = jatuh cepat, ke atas = simpan", () => {
   const a = recorder();
   a.rec.down(1, 100, 100, 0);
   a.rec.move(1, 101, 120, 16);
@@ -132,24 +134,27 @@ test("gestur: seret ke bawah = jatuh cepat, sapu ke atas = simpan", () => {
   assert.deepEqual(b.out, ["HOLD+", "HOLD-"]);
 });
 
-test("gestur: seret pelan ke bawah juga jatuh cepat, dipicu sebelum jari diangkat, sekali saja", () => {
+test("gestur: seret pelan ke bawah jatuh cepat setelah 2,5 sel, sebelum jari diangkat, sekali saja", () => {
   const { rec, out } = recorder();
   rec.down(1, 100, 100, 0);
-  for (let i = 1; i <= 5; i++) rec.move(1, 100, 100 + i * 6, i * 100); // 30 px = 1,5 sel
-  assert.deepEqual(out, ["HARD+", "HARD-"], "langsung saat 1,5 sel tercapai");
-  for (let i = 6; i <= 20; i++) rec.move(1, 100, 100 + i * 6, i * 100);
+  for (let i = 1; i <= 8; i++) rec.move(1, 100, 100 + i * 6, i * 100); // 48 px = 2,4 sel, pelan
+  assert.deepEqual(out, [], "belum di 2,4 sel");
+  rec.move(1, 100, 154, 900); // 2,7 sel
+  assert.deepEqual(out, ["HARD+", "HARD-"]);
+  for (let i = 10; i <= 20; i++) rec.move(1, 100, 100 + i * 6, i * 100);
   rec.up(1, 100, 220, 2100);
   assert.deepEqual(out, ["HARD+", "HARD-"], "tidak dipicu ulang");
-  assert.ok(!out.some((s) => s.startsWith("SOFT")));
 });
 
-test("gestur: seret pelan ke bawah kurang dari 1,5 sel tidak berbuat apa-apa", () => {
-  const { rec, out } = recorder();
-  rec.down(1, 100, 100, 0);
-  rec.move(1, 100, 115, 100);
-  rec.move(1, 100, 128, 300);
-  rec.up(1, 100, 128, 400);
-  assert.deepEqual(out, []);
+test("gestur: gerak kecil ke bawah, cepat atau pelan, tidak memicu apa pun", () => {
+  // Masalah dari uji HP: geser sedikit ke bawah langsung jatuh cepat.
+  for (const [dy, ms] of [[16, 60], [20, 40], [26, 120], [28, 300], [45, 400]] as const) {
+    const { rec, out } = recorder();
+    rec.down(1, 100, 100, 0);
+    rec.move(1, 100, 100 + dy / 2, ms / 2);
+    rec.up(1, 100, 100 + dy, ms);
+    assert.deepEqual(out, [], `${dy} px dalam ${ms} ms`);
+  }
 });
 
 test("gestur: bantingan tanpa titik gerak sama sekali tetap jatuh cepat", () => {
@@ -159,18 +164,11 @@ test("gestur: bantingan tanpa titik gerak sama sekali tetap jatuh cepat", () => 
   assert.deepEqual(out, ["HARD+", "HARD-"]);
 });
 
-test("gestur: bantingan pendek dan cepat (0,8 sampai 1,5 sel dalam 250 ms) tetap jatuh cepat", () => {
-  const { rec, out } = recorder();
-  rec.down(1, 100, 100, 0);
-  rec.move(1, 100, 115, 30);
-  rec.up(1, 100, 120, 80); // 20 px = 1 sel
-  assert.deepEqual(out, ["HARD+", "HARD-"]);
-});
-
-test("gestur: sentuhan dibatalkan browser di tengah bantingan memakai posisi terakhir", () => {
+test("gestur: sentuhan dibatalkan browser di tengah bantingan memakai gerak yang sudah diterima", () => {
   const { rec, out } = recorder();
   rec.down(1, 100, 100, 0);
   rec.move(1, 100, 120, 16);
+  rec.move(1, 100, 135, 24);
   rec.cancel(1, 40);
   assert.deepEqual(out, ["HARD+", "HARD-"]);
 });
@@ -186,13 +184,36 @@ test("gestur: seret ke samping yang menurun 50 derajat di awal tetap geser, buka
   assert.ok(!out.includes("HARD+"), out.join(","));
 });
 
-test("gestur: geser lalu bantingan dalam satu sentuhan tidak memicu jatuh cepat (arah sudah terkunci)", () => {
+test("gestur: geser lalu banting ke bawah tanpa mengangkat jari = geser, lalu jatuh cepat", () => {
+  // Permintaan dari uji HP.
   const { rec, out } = recorder();
   rec.down(1, 100, 100, 0);
-  rec.move(1, 130, 102, 50);
-  rec.up(1, 132, 160, 120);
-  assert.ok(out.includes("RIGHT+"));
-  assert.ok(!out.includes("HARD+"));
+  for (let i = 1; i <= 6; i++) rec.move(1, 100 + i * 10, 101, i * 30); // 3 sel ke kanan
+  rec.move(1, 161, 115, 200);
+  rec.move(1, 162, 140, 216);
+  rec.up(1, 162, 170, 232);
+  assert.equal(out.filter((s) => s === "RIGHT+").length, 3, out.join(","));
+  assert.equal(out.filter((s) => s === "HARD+").length, 1, out.join(","));
+  assert.ok(out.indexOf("HARD+") > out.lastIndexOf("RIGHT+"), "jatuh cepat sesudah geser");
+});
+
+test("gestur: geser lalu turun sedikit tanpa mengangkat jari tidak jatuh cepat", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  for (let i = 1; i <= 4; i++) rec.move(1, 100 + i * 10, 101, i * 30);
+  rec.move(1, 141, 115, 200); // turun 0,7 sel, pelan
+  rec.up(1, 141, 118, 400);
+  assert.equal(out.filter((s) => s === "RIGHT+").length, 2);
+  assert.ok(!out.includes("HARD+"), out.join(","));
+});
+
+test("gestur: geser dengan jari sedikit bergelombang tidak dianggap turun", () => {
+  const { rec, out } = recorder();
+  rec.down(1, 100, 100, 0);
+  for (let i = 1; i <= 12; i++) rec.move(1, 100 + i * 8, 100 + (i % 2 ? 7 : 0), i * 20);
+  rec.up(1, 196, 100, 260);
+  assert.ok(out.filter((s) => s === "RIGHT+").length >= 4);
+  assert.ok(!out.includes("HARD+"), out.join(","));
 });
 
 test("gestur: arah dikunci, sapu ke bawah yang sedikit miring tidak menggeser", () => {

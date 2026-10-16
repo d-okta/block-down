@@ -297,16 +297,23 @@ Gestur (satuan jarak memakai lebar satu sel di layar):
 | Ketuk | Putar kanan |
 | Ketuk dua jari | Putar kiri |
 | Seret mendatar | Geser satu kolom setiap jarak satu sel yang ditempuh |
-| Seret ke bawah sejauh 1,5 sel | Hard drop, langsung saat jarak tercapai, sekali per sentuhan |
-| Seret ke atas sejauh 1,5 sel | Hold |
+| Banting ke bawah (cepat, minimal 1,5 sel) atau seret ke bawah (minimal 2,5 sel) | Hard drop, langsung saat syarat tercapai, sekali per sentuhan |
+| Banting atau seret ke atas, syarat yang sama | Hold |
+| Geser lalu banting ke bawah tanpa mengangkat jari | Geser, lalu hard drop |
 
 Soft drop tidak punya gestur (keputusan pemilik). Soft drop tetap ada di keyboard dan gamepad.
 
-Arah dikunci pada gerak pertama di atas 0,6 sel. Arah dianggap tegak hanya jika gerak tegaknya lebih dari 1,3 kali gerak mendatar (sekitar 52 derajat); selain itu dianggap geser. Ini mencegah seret ke samping yang sedikit menurun terbaca sebagai jatuh cepat.
+Arah ditentukan pada gerak pertama di atas 0,6 sel. Arah dianggap tegak hanya jika gerak tegaknya lebih dari 1,3 kali gerak mendatar (sekitar 52 derajat); selain itu dianggap geser. Ini mencegah seret ke samping yang sedikit menurun terbaca sebagai jatuh cepat.
 
-Bantingan cepat: browser kadang hanya mengirim titik sentuh dan titik lepas, atau membatalkan sentuhan di tengah bantingan. Karena itu titik lepas dan posisi terakhir sebelum batal juga dihitung, dan seret tegak minimal 0,8 sel yang selesai dalam 250 ms tetap dianggap jatuh cepat (atau simpan jika ke atas).
+Bantingan: kecepatan puncak ke bawah minimal 20 sel per detik. Gerak kecil ke bawah (di bawah 1,5 sel) tidak pernah memicu apa pun, secepat apa pun.
 
-Konstanta ada di `src/input/gesture.ts`. Nilai di atas hasil revisi kedua setelah uji di Galaxy A13: seret ke bawah kadang tidak terbaca saat dibanting keras, dan seret ke samping kadang salah arah.
+Satu sentuhan bisa terdiri dari geser lalu banting: setelah geser, gerak tegak minimal 0,6 sel sejak geser terakhir memulai bagian tegak baru, yang dinilai dengan syarat yang sama.
+
+Browser kadang hanya mengirim titik sentuh dan titik lepas, atau membatalkan sentuhan di tengah bantingan. Karena itu titik lepas juga dihitung sebagai gerak, dan sentuhan yang dibatalkan tetap memakai gerak yang sudah diterima.
+
+Konstanta ada di `src/input/gesture.ts`. Nilai di atas hasil revisi ketiga setelah uji di Galaxy A13:
+1. Revisi kedua: seret ke bawah kadang tidak terbaca saat dibanting keras; seret ke samping kadang salah arah.
+2. Revisi ketiga: gerak kecil ke bawah langsung jatuh cepat (terlalu sensitif); pemain ingin bisa geser lalu banting tanpa mengangkat jari.
 
 Area sentuh adalah seluruh layar Game kecuali tombol jeda, jadi jari tidak perlu menutupi papan.
 
