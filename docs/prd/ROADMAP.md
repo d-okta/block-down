@@ -37,7 +37,7 @@ Kriteria selesai:
 - [x] Ghost, Hold (1 kali per piece, redup saat terkunci), dan Next 5 tampil benar. Bukti: screenshot dan label aria Hold "Simpan: S, Terkunci" setelah C kedua.
 - [x] DAS 167 ms dan ARR 33 ms: tes otomatis `tests/client.test.ts` (pengulangan pertama di 167 ms, lalu tiap 33 ms; ARR 0 menghasilkan 10 geser dalam satu tick). Rasa di tangan tetap perlu dicoba pemilik.
 - [x] Lock delay: tes core 18 sampai 20.
-- [ ] Gambar tajam di DPR 1, 2, dan 3. Emulasi Chrome: DPR 1 (sel 22 px, canvas di posisi piksel bulat), DPR 2 (44 px), dan DPR 3 (66 px), screenshot tajam. Uji di layar fisik dijalankan di Samsung Galaxy A13 setelah kontrol sentuh Fase 3 ada.
+- [x] Gambar tajam di DPR 1, 2, dan 3. Emulasi Chrome: DPR 1 (sel 22 px, canvas di posisi piksel bulat), DPR 2 (44 px), dan DPR 3 (66 px), screenshot tajam. Layar fisik Galaxy A13: tajam (screenshot pemilik).
 - [x] Tanpa `createLinearGradient`, `createPattern`, `Path2D`, atau `ctx.font` selama bermain. Bukti: penghitung API selama 20 detik bermain = 0. Heap setelah GC naik 180 KB dalam 20 detik (lihat catatan alokasi).
 - [x] Rekor tersimpan setelah reload. JSON rusak di localStorage tidak membuat aplikasi crash dan data lama tidak ditimpa.
 - [x] Pause otomatis saat tab disembunyikan.
@@ -64,7 +64,7 @@ Ukuran 20 detik bermain (Chrome desktop, DPR 3, bukan perangkat acuan): frame me
 
 Alokasi saat permainan berjalan tanpa input (sampling heap V8, 10 detik, sekitar 1440 frame): sekitar 15 byte per frame, sama di DPR 1 dan DPR 3. Pelacakan dengan mematikan bagian kode satu per satu: tidak berasal dari core, input, atau HUD, melainkan dari jalur pemanggilan `drawImage` di renderer, padahal `drawImage` di halaman kosong mengalokasikan 0 byte. Penyebab pastinya belum ditemukan. Besarnya (sekitar 21 KB per 10 detik) jauh di bawah ambang yang memicu jeda GC yang terasa, jadi tidak menghalangi Fase 3. Diukur ulang di HP acuan.
 
-Belum selesai: pengukuran di Samsung Galaxy A13 (60 fps, alokasi). Pemilik menilai permainan lancar dan tampilan tajam saat uji Fase 3, tapi belum diukur dengan alat.
+**Fase 2 ditutup** setelah pengukuran ulang di Galaxy A13 (hasil di bawah).
 
 Cara mengukur: buka `https://block-down.vercel.app/?perf` di HP, mainkan sekitar 2 menit, lalu baca panel kecil di kiri bawah. Panel ini hanya muncul dengan `?perf` (kode di `src/debug/perf.ts`). Isinya:
 - `fps`: frame per detik dari jarak antar frame median. Target 60 (atau sesuai refresh layar).
@@ -84,7 +84,18 @@ Temuan dan perbaikan dari pengukuran itu:
 1. Renderer menggambar ulang seluruh tumpukan setiap frame. Dengan tumpukan tinggi itu sekitar 64 `drawImage` per frame. Tumpukan dipindah ke canvas sendiri (`cv-stack`) yang hanya digambar ulang saat isi board berubah. Hasil: 64,5 menjadi 7,7 `drawImage` per frame dengan tumpukan yang sama. Diuji: tumpukan tetap cocok dengan board setelah lock, mode buta warna, resize, mulai ulang, dan Main Lagi.
 2. Panel ukur sendiri mengurutkan sekitar 8.000 angka empat kali per detik, yang bisa ikut membuat frame tersendat di HP. Diganti histogram tanpa pengurutan, diperbarui tiap 2 detik. "Lambat" diganti "tersendat" dengan batas tetap 25 ms (1,5 kali satu frame 60 Hz), heap kini menampilkan nilai awal untuk melihat apakah memori naik terus, dan frame pertama setelah lanjut dari jeda tidak dihitung.
 
-Di Chrome desktop dengan CPU diperlambat 6 kali (perkiraan kasar HP kelas bawah), frame tersendat tidak terkait pembaruan panel maupun penghapusan baris; sisa tersendat kemungkinan dari browser (pengumpulan sampah atau komposit), bukan dari kode game. Perlu diukur ulang di Galaxy A13 setelah perbaikan ini.
+Di Chrome desktop dengan CPU diperlambat 6 kali (perkiraan kasar HP kelas bawah), frame tersendat tidak terkait pembaruan panel maupun penghapusan baris; sisa tersendat kemungkinan dari browser (pengumpulan sampah atau komposit), bukan dari kode game. Pengukuran ulang di Galaxy A13 setelah perbaikan (pemilik, Maraton, 122 detik, 7.277 frame, tumpukan tinggi):
+
+| Angka | Sebelum | Sesudah | Target |
+|---|---|---|---|
+| fps | 60 | 60 | 60 |
+| Tersendat | 1,2% (batas lama) | 0,4% (27 frame di atas 25 ms) | di bawah 1% |
+| Kerja p50 | 3,2 ms | 2,5 ms | |
+| Kerja p99 | 14,3 ms | 9,3 ms | jauh di bawah 16,7 ms |
+| Kerja maks | 36,5 ms | 25,7 ms | |
+| Heap | 9,5 MB | 9,5 MB (awal 9,5) | stabil |
+
+Semua target tercapai. Heap tidak naik selama 2 menit, jadi alokasi kecil per frame yang tercatat di desktop (sekitar 15 byte) tidak menumpuk di perangkat. Jeda maks 167 ms terjadi sekali-sekali dan tidak terkait kerja kode game (kerja maks 25,7 ms); kemungkinan dari browser atau sistem. Sisa anggaran di p99 sekitar 7 ms untuk efek Fase 4.
 
 ## Fase 3: Sentuh, semua mode, Pengaturan, i18n
 
