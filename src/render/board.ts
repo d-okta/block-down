@@ -2,16 +2,24 @@ import { COLS, VISIBLE_ROWS, type PieceType, type Rot } from "../core/constants.
 import { SHAPES, shapeOffset } from "../core/piece.ts";
 import type { GameState } from "../core/game.ts";
 import { buildAtlas, ROW_BLOCK, ROW_FLASH, ROW_GHOST, type Atlas } from "./sprites.ts";
+import { Effects } from "./effects.ts";
+import { easeIn, easeOut, easeSpring } from "./fx.ts";
 
 const GRID_COLOR = "rgba(230, 233, 239, 0.04)";
 const LOCK_FLASH_MS = 90;
+/** Tumpukan turun ke posisi akhir (DESIGN 8.3: Quad mulai 450 ms, lainnya lebih cepat). */
+const DROP_MS = 160;
+/** Runtuh saat Game Over (DESIGN 7.4). */
+const COLLAPSE_MS = 700;
+const COLLAPSE_STAGGER = 25;
 
 /**
- * Menggambar board, ghost, dan piece aktif. Hanya membaca state core.
+ * Menggambar board, ghost, piece aktif, dan efek. Hanya membaca state core.
  * Tiga lapisan canvas:
  * - latar (grid): digambar ulang hanya saat ukuran atau pengaturan berubah;
- * - tumpukan (blok yang sudah terkunci): digambar ulang hanya saat isi board berubah;
- * - utama: piece aktif, ghost, dan kilat lock, setiap frame.
+ * - tumpukan (blok yang sudah terkunci): digambar ulang hanya saat isi board berubah,
+ *   atau setiap frame selama animasi tumpukan turun dan runtuh;
+ * - utama: piece aktif, ghost, kilat lock, dan efek, setiap frame.
  * Tumpukan dipisah setelah uji di Galaxy A13: menggambar ulang sekitar 200 blok setiap frame
  * membuat waktu kerja p99 sekitar 14 ms dari anggaran 16,7 ms.
  */
@@ -25,7 +33,8 @@ export class BoardRenderer {
   ghost = true;
   grid = true;
   colorSafe = false;
-  // Kilat lock (feedback lapis 2, Fase 2 hanya versi sederhana).
+  readonly fx: Effects;
+  // Kilat lock.
   private flashCells = new Int8Array(8);
   private flashType = 0;
   private flashStart = -1;
@@ -35,11 +44,23 @@ export class BoardRenderer {
   /** Salinan isi board terakhir yang digambar di lapisan tumpukan. */
   private drawn = new Uint8Array(COLS * VISIBLE_ROWS);
   private stackValid = false;
+  // Tumpukan turun setelah baris dihapus: shift[j] = berapa baris baris hasil j turun.
+  private shift = new Uint8Array(VISIBLE_ROWS);
+  private dropT = -1;
+  private dropDelay = 0;
+  /** Board baru setelah clear belum digambar. Perubahan board lain selama animasi membatalkan animasi. */
+  private dropFresh = false;
+  private dropProgress = -1;
+  // Runtuh saat Game Over.
+  private collapseT = -1;
+  private readonly shakeOut = new Float32Array(2);
+  private lastNow = 0;
 
-  constructor(main: HTMLCanvasElement, stack: HTMLCanvasElement, bg: HTMLCanvasElement) {
+  constructor(main: HTMLCanvasElement, stack: HTMLCanvasElement, bg: HTMLCanvasElement, fx: Effects) {
     this.main = main;
     this.stack = stack;
     this.bg = bg;
+    this.fx = fx;
     this.ctx = main.getContext("2d", { alpha: true })!;
     this.stackCtx = stack.getContext("2d", { alpha: true })!;
     this.bgCtx = bg.getContext("2d")!;
@@ -51,6 +72,8 @@ export class BoardRenderer {
     const cell = Math.max(1, Math.floor(Math.min(availH / VISIBLE_ROWS, availW / COLS) * dpr));
     if (cell === this.cell && this.atlas) return cell / dpr;
     this.cell = cell;
+    this.fx.cell = cell;
+    this.fx.dpr = dpr;
     for (const c of [this.main, this.stack, this.bg]) {
       c.width = cell * COLS;
       c.height = cell * VISIBLE_ROWS;
@@ -75,10 +98,43 @@ export class BoardRenderer {
     for (let y = 1; y < VISIBLE_ROWS; y++) g.fillRect(0, y * this.cell, this.bg.width, lw);
   }
 
+  /** Permainan baru: hentikan semua animasi. */
+  reset(): void {
+    this.dropT = -1;
+    this.collapseT = -1;
+    this.flashStart = -1;
+    this.stackValid = false;
+    this.fx.reset();
+  }
+
   lockFlash(cells: Int8Array, type: number, now: number): void {
     this.flashCells.set(cells);
     this.flashType = type;
     this.flashStart = now;
+  }
+
+  /**
+   * Baris dihapus: tumpukan di atasnya turun dengan animasi. Logika core sudah selesai;
+   * ini hanya offset visual yang meluruh (DESIGN 8.3, catatan penting).
+   */
+  stackDrop(shift: Uint8Array, now: number, quad: boolean): void {
+    if (this.fx.fx.level === "minimal") return;
+    this.shift.set(shift.subarray(0, VISIBLE_ROWS));
+    this.dropT = now;
+    this.dropDelay = quad ? 450 : 120;
+    this.dropFresh = true;
+    this.dropProgress = -1;
+  }
+
+  collapse(now: number): void {
+    this.collapseT = now;
+    this.dropT = -1;
+  }
+
+  /** true selama animasi runtuh Game Over berjalan. */
+  collapsing(now: number): boolean {
+    const total = this.fx.fx.level === "minimal" ? COLLAPSE_MS : COLLAPSE_MS + COLLAPSE_STAGGER * VISIBLE_ROWS;
+    return this.collapseT >= 0 && now - this.collapseT < total;
   }
 
   /**
@@ -88,10 +144,28 @@ export class BoardRenderer {
   draw(s: Readonly<GameState>, fallFrom: number, alpha: number, now: number, showPiece: boolean): void {
     const atlas = this.atlas;
     if (!atlas) return;
+    const dt = this.lastNow > 0 ? Math.min(0.05, (now - this.lastNow) / 1000) : 0;
+    this.lastNow = now;
     const ctx = this.ctx;
     const c = this.cell;
-    ctx.clearRect(0, 0, this.main.width, this.main.height);
-    this.drawStack(s.board);
+    const w = this.main.width;
+    const h = this.main.height;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    // Shake: seluruh papan (tumpukan dan utama) bergeser bersama lewat transform CSS.
+    this.fx.shakeOffset(now, this.shakeOut);
+    const sx = this.shakeOut[0]!;
+    const sy = this.shakeOut[1]!;
+    const shaking = sx !== 0 || sy !== 0;
+    if (shaking || this.wasShaking) {
+      const tf = shaking ? `translate(${sx.toFixed(2)}px, ${sy.toFixed(2)}px)` : "";
+      this.main.style.transform = tf;
+      this.stack.style.transform = tf;
+      this.wasShaking = shaking;
+    }
+
+    this.drawStack(s.board, now);
 
     if (this.flashStart >= 0) {
       const p = (now - this.flashStart) / LOCK_FLASH_MS;
@@ -108,35 +182,115 @@ export class BoardRenderer {
       }
     }
 
-    if (!showPiece) return;
+    if (showPiece) {
+      if (this.ghost && s.ghostY !== s.y) this.drawPiece(s.type, s.rot, s.x, s.ghostY, ROW_GHOST, 0);
+      const smooth = fallFrom - s.y === 1 ? (1 - alpha) * c : 0;
+      const tilt = this.fx.tilt(now);
+      const squash = this.fx.squash(now);
+      if (tilt !== 0 || squash !== 1) {
+        // Putar atau pipihkan di sekitar pusat kotak piece, lalu kembali.
+        const o = shapeOffset(s.type, s.rot);
+        let minX = 9, maxX = -9, minY = 99, maxY = -99;
+        for (let i = 0; i < 8; i += 2) {
+          const x = s.x + SHAPES[o + i]!;
+          const y = s.y + SHAPES[o + i + 1]!;
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+        const px = ((minX + maxX + 1) / 2) * c;
+        const bottom = (VISIBLE_ROWS - minY) * c - smooth;
+        const py = squash !== 1 ? bottom : ((VISIBLE_ROWS - 1 - (minY + maxY) / 2) + 0.5) * c - smooth;
+        ctx.translate(px, py);
+        if (tilt !== 0) ctx.rotate(tilt);
+        if (squash !== 1) ctx.scale(1 + (1 - squash) * 0.5, squash);
+        ctx.translate(-px, -py);
+        this.drawPiece(s.type, s.rot, s.x, s.y, ROW_BLOCK, -smooth);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+      } else {
+        this.drawPiece(s.type, s.rot, s.x, s.y, ROW_BLOCK, -smooth);
+      }
+    }
 
-    if (this.ghost && s.ghostY !== s.y) this.drawPiece(s.type, s.rot, s.x, s.ghostY, ROW_GHOST, 0);
-
-    const smooth = fallFrom - s.y === 1 ? (1 - alpha) * c : 0;
-    this.drawPiece(s.type, s.rot, s.x, s.y, ROW_BLOCK, -smooth);
+    this.fx.draw(ctx, now, dt, w, h);
   }
 
-  /** Gambar ulang lapisan tumpukan hanya jika isi board yang terlihat berubah (lock, clear, mulai ulang, Zen). */
-  private drawStack(b: Uint8Array): void {
+  private wasShaking = false;
+
+  /**
+   * Lapisan tumpukan: dari cache jika tidak berubah; digambar ulang saat isi board berubah,
+   * dan setiap frame selama animasi turun atau runtuh.
+   */
+  private drawStack(b: Uint8Array, now: number): void {
     const n = COLS * VISIBLE_ROWS;
-    if (this.stackValid) {
-      let same = true;
+    const c = this.cell;
+    const g = this.stackCtx;
+    const atlas = this.atlas!;
+
+    if (this.collapseT >= 0) {
+      // Runtuh: setiap baris jatuh keluar papan dan memudar, baris bawah lebih dulu.
+      g.clearRect(0, 0, this.stack.width, this.stack.height);
+      const t = now - this.collapseT;
+      const minimal = this.fx.fx.level === "minimal";
+      for (let y = 0; y < VISIBLE_ROWS; y++) {
+        const p = minimal ? Math.min(1, t / COLLAPSE_MS) : Math.max(0, Math.min(1, (t - y * COLLAPSE_STAGGER) / COLLAPSE_MS));
+        if (p >= 1) continue;
+        g.globalAlpha = minimal ? 1 - p : 1 - easeIn(p) * 0.85;
+        const off = minimal ? 0 : easeIn(p) * this.stack.height * 0.9;
+        const dy = (VISIBLE_ROWS - 1 - y) * c + off;
+        for (let x = 0; x < COLS; x++) {
+          const v = b[y * COLS + x]!;
+          if (v !== 0) g.drawImage(atlas.canvas, v * c, ROW_BLOCK * c, c, c, x * c, dy, c, c);
+        }
+      }
+      g.globalAlpha = 1;
+      this.stackValid = false;
+      return;
+    }
+
+    let same = this.stackValid || this.dropT >= 0;
+    if (same) {
       for (let i = 0; i < n; i++) {
         if (b[i] !== this.drawn[i]) {
           same = false;
           break;
         }
       }
-      if (same) return;
+    }
+
+    let progress = 1;
+    if (this.dropT >= 0) {
+      if (!same && !this.dropFresh) {
+        // Piece lain terkunci di tengah animasi: offset lama tidak berlaku lagi, langsung ke posisi akhir.
+        this.dropT = -1;
+      } else {
+        this.dropFresh = false;
+        const t = now - this.dropT - this.dropDelay;
+        progress = t <= 0 ? 0 : Math.min(1, t / DROP_MS);
+        if (progress >= 1) {
+          this.dropT = -1;
+          same = false; // gambar sekali lagi di posisi akhir tanpa offset
+        }
+      }
+    }
+    const animating = this.dropT >= 0;
+
+    if (animating) {
+      // Selama jeda sebelum turun, gambarnya tetap: cukup digambar sekali.
+      if (same && progress === this.dropProgress) return;
+      this.dropProgress = progress;
+    } else if (same && this.stackValid) {
+      return;
     }
     this.drawn.set(b.subarray(0, n));
-    this.stackValid = true;
-    const atlas = this.atlas!;
-    const c = this.cell;
-    const g = this.stackCtx;
+    this.stackValid = !animating;
     g.clearRect(0, 0, this.stack.width, this.stack.height);
+    const ease = this.fx.fx.bounce ? easeSpring(progress) : easeOut(progress);
     for (let y = 0; y < VISIBLE_ROWS; y++) {
-      const dy = (VISIBLE_ROWS - 1 - y) * c;
+      // Selama animasi, baris hasil j masih tampil `shift[j]` baris lebih tinggi, lalu turun.
+      const lift = animating ? this.shift[y]! * c * (1 - ease) : 0;
+      const dy = (VISIBLE_ROWS - 1 - y) * c - lift;
       for (let x = 0; x < COLS; x++) {
         const v = b[y * COLS + x]!;
         if (v !== 0) g.drawImage(atlas.canvas, v * c, ROW_BLOCK * c, c, c, x * c, dy, c, c);

@@ -163,20 +163,43 @@ Rincian dan hasil uji emulasi ada di EDD-2 bagian 14 dan 15.
 Lingkup: tiga lapis motion (DESIGN.md bagian 8), `audio/` (sintesis efek dan musik), `platform/haptics.ts`, mode aman buta warna, intensitas efek, kurangi animasi, dan audit aksesibilitas.
 
 Kriteria selesai:
-- [ ] Storyboard 4 Baris berjalan sesuai urutan waktu di DESIGN.md (direkam dan dicek per frame).
-- [ ] Selama efek reward berjalan, piece berikutnya bisa langsung digeser dan diputar (diuji dengan hard drop berturut-turut saat 4 Baris).
-- [ ] Partikel tidak pernah melebihi 300, dan heap tidak tumbuh selama satu menit dengan efek Penuh.
-- [ ] Shake hanya muncul di 4 Baris, T-Spin dengan baris, dan Bersih Total, dengan simpangan maksimal 4px.
-- [ ] Dengan `prefers-reduced-motion: reduce` di sistem: tanpa shake, tanpa partikel, hanya fade, dan pita ambient diam.
+- [x] Storyboard 4 Baris berjalan sesuai urutan waktu di DESIGN.md. Direkam di Chrome (catatan tahap 1 di bawah).
+- [x] Selama efek reward berjalan, piece berikutnya bisa langsung dimainkan: hard drop 30 ms setelah Quad langsung menambah skor.
+- [x] Partikel tidak pernah melebihi 300 (tes pool di `tests/client.test.ts`). Heap selama satu menit dengan efek Penuh: diukur di Galaxy A13 lewat `?perf` (menunggu pemilik).
+- [x] Shake hanya dipicu oleh 4 Baris, T-Spin dengan baris, dan Bersih Total (`effects.ts`), simpangan maksimal 4 px (tes `effectiveFx`). Terukur 2,3 px di puncak dorongan Quad.
+- [x] Dengan `prefers-reduced-motion: reduce` di sistem: tanpa shake, tanpa partikel, callout hanya pudar, dan pita ambient diam.
 - [ ] Setiap kejadian di tabel suara SPEC.md bagian 14 berbunyi. Tidak ada file mp3 untuk efek. Tidak ada suara sebelum gestur pertama, dan tidak ada error di konsol.
 - [ ] Combo panjang menghasilkan melodi pentatonik yang naik.
-- [ ] Getar bekerja di Android, dan kontrol Getar nonaktif dengan alasan di perangkat yang tidak mendukung.
+- [ ] Getar bekerja di Android, dan kontrol Getar nonaktif dengan alasan di perangkat yang tidak mendukung. Kode: `navigator.vibrate` di web, kontrol nonaktif dengan alasan jika tidak ada. Rasa getar di Galaxy A13 menunggu pemilik.
 - [ ] Mode aman buta warna: ketujuh jenis blok bisa dibedakan dalam screenshot grayscale.
 - [ ] Callout dan hasil Game Over diumumkan oleh TalkBack dan NVDA.
 - [ ] Teks bisa diperbesar ke 200% tanpa terpotong di Menu dan Pengaturan.
 - [ ] Delivery Gate antislop (DESIGN.md bagian 11) dijalankan ulang dengan bukti nyata dan click-through per kontrol. Semua item lolos.
 - [ ] Pre-Flight taste-skill (DESIGN.md bagian 12) dijalankan ulang.
 - [ ] Target performa ARCHITECTURE.md bagian 12 terpenuhi di perangkat acuan.
+
+### Tahap 1: animasi dan getar (selesai, menunggu uji pemilik)
+
+Isi: kilat tepi baris, partikel (pool 300), shockwave, dorongan papan, callout dengan sapuan cahaya, angka skor, skor bergulir, tumpukan turun dengan pantulan, riak T-Spin, gelombang emas Bersih Total, bingkai naik level, pita ambient yang warnanya mengikuti level dan menghangat saat combo, squash dan garis jejak jatuh cepat, kemiringan saat kick, runtuh saat Game Over, getar, serta pengaturan Intensitas efek, Kurangi animasi, dan Getar.
+
+Storyboard Quad di Chrome (HP emulasi 390x844, efek Penuh), diukur dari keadaan halaman:
+- 40 ms: kilat baris dan partikel berjalan, skor mulai bergulir, callout belum tampil.
+- 120 ms: papan terdorong 2,3 px ke bawah (dorongan dimulai di 80 ms), pita ambient menerang.
+- 260 ms: callout "4 BARIS" +800 muncul (dimulai 200 ms), skor hampir mencapai nilai akhir.
+- 520 ms: callout penuh, skor final, tumpukan sudah turun ke posisi akhir (turun dimulai 450 ms).
+- 900 ms: pita ambient kembali ke 5%.
+
+Uji lain:
+- Hard drop 30 ms setelah Quad: langsung masuk, skor bertambah.
+- Kurangi animasi dari sistem: tanpa shake, pita diam, callout pudar; Pengaturan menunjukkan Minimal terkunci dengan pesan; mematikan Kurangi animasi mengembalikan Penuh dan tersimpan.
+- Intensitas Minimal: tanpa shake, skor tidak bergulir, callout pudar.
+- Game Over: tumpukan runtuh (berubah selama animasi), dialog muncul sekitar 1,2 detik setelah permainan berakhir, fokus di "Main Lagi"; dengan Kurangi animasi tumpukan memudar tanpa jatuh.
+- Lapisan tumpukan tetap cocok dengan board setelah lock, buta warna, resize, mulai ulang, dan Main Lagi.
+- Click-through Fase 2 dan 3 serta uji gestur dijalankan ulang: lulus. Error: tidak ada.
+
+Performa, CPU diperlambat 6 kali, 1 detik setelah Quad (3 putaran): kerja per frame p99 2,6 sampai 3,1 ms (sebelum efek: 1,9 sampai 2,8 ms). Satu frame di 17 sampai 24 ms pada 2 dari 6 putaran; profil menunjukkan sebagian besar waktu di luar kode game. Perlu diukur di Galaxy A13 dengan `?perf`.
+
+Ditemukan dan diperbaiki saat uji: sapuan cahaya di callout awalnya memotong huruf terakhir (posisi gradien di luar teks); piece yang terkunci di tengah animasi tumpukan turun membuat tumpukan sesaat tampil di posisi lama.
 
 ## Fase 5: Android, PWA, Vercel, listing toko
 

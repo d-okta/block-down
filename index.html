@@ -126,9 +126,21 @@
 
         <!-- Seluruh area ini menerima gestur; jari boleh di luar papan supaya papan tidak tertutup. -->
         <div class="field" id="field">
-          <canvas id="cv-bg" aria-hidden="true"></canvas>
-          <canvas id="cv-stack" aria-hidden="true"></canvas>
-          <canvas id="cv-main" role="img"></canvas>
+          <!-- Pita ambient (DESIGN 8.1): cahaya 5% di belakang papan, warnanya mengikuti level. -->
+          <div class="ambient" id="ambient" aria-hidden="true"></div>
+          <div class="board" id="board">
+            <canvas id="cv-bg" aria-hidden="true"></canvas>
+            <canvas id="cv-stack" aria-hidden="true"></canvas>
+            <canvas id="cv-main" role="img"></canvas>
+            <!-- Bingkai naik level, digambar ulang dengan warna aksen. -->
+            <div class="board-frame" id="board-frame" aria-hidden="true"></div>
+            <!-- Callout reward di sepertiga atas papan (DESIGN 8.3). Diumumkan lewat #live, jadi disembunyikan dari pembaca layar. -->
+            <div class="callout" id="callout" aria-hidden="true">
+              <span class="callout-points num" id="callout-points"></span>
+              <span class="callout-title" id="callout-title"></span>
+              <span class="callout-sub" id="callout-sub"></span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -223,6 +235,32 @@
               <span class="set-desc" data-i18n="settings.colorSafe.desc"></span>
             </div>
             <button type="button" class="switch" role="switch" data-set="colorSafe" aria-labelledby="lbl-colorsafe"></button>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <span class="set-label" id="lbl-effects" data-i18n="settings.effects"></span>
+              <span class="set-desc" data-i18n="settings.effects.desc"></span>
+            </div>
+            <div class="seg" role="group" aria-labelledby="lbl-effects">
+              <button type="button" class="seg-btn" data-set="effects" data-value="full" data-i18n="settings.effects.full"></button>
+              <button type="button" class="seg-btn" data-set="effects" data-value="medium" data-i18n="settings.effects.medium"></button>
+              <button type="button" class="seg-btn" data-set="effects" data-value="minimal" data-i18n="settings.effects.minimal"></button>
+            </div>
+            <p class="set-help" id="effects-locked" data-i18n="settings.effects.locked" hidden></p>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <span class="set-label" id="lbl-reduce" data-i18n="settings.reduceMotion"></span>
+              <span class="set-desc" data-i18n="settings.reduceMotion.desc"></span>
+            </div>
+            <button type="button" class="switch" role="switch" data-set="reduceMotion" aria-labelledby="lbl-reduce"></button>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <span class="set-label" id="lbl-haptics" data-i18n="settings.haptics"></span>
+              <span class="set-desc" id="haptics-desc" data-i18n="settings.haptics.desc"></span>
+            </div>
+            <button type="button" class="switch" role="switch" data-set="haptics" aria-labelledby="lbl-haptics" aria-describedby="haptics-desc"></button>
           </div>
         </section>
 

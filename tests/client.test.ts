@@ -226,6 +226,32 @@ test("gestur: arah dikunci, sapu ke bawah yang sedikit miring tidak menggeser", 
   assert.ok(out.includes("HARD+"));
 });
 
+// ---------- efek ----------
+
+import { effectiveFx } from "../src/render/fx.ts";
+import { Particles, POOL } from "../src/render/particles.ts";
+
+test("efek: Kurangi animasi mengunci ke Minimal; null mengikuti sistem", () => {
+  assert.equal(effectiveFx("full", null, false).level, "full");
+  assert.equal(effectiveFx("full", null, true).level, "minimal", "sistem minta kurangi animasi");
+  assert.equal(effectiveFx("full", false, true).level, "full", "pilihan pemain menang atas sistem");
+  assert.equal(effectiveFx("medium", true, false).level, "minimal");
+  const min = effectiveFx("minimal", false, false);
+  assert.equal(min.particles, 0);
+  assert.equal(min.shake, 0, "tanpa shake di Minimal (DESIGN 8.5)");
+  assert.ok(effectiveFx("full", false, false).shake <= 4, "shake maksimal 4 px (DESIGN 8.4)");
+});
+
+test("efek: pool partikel tetap 300, partikel tertua ditimpa, mati setelah umurnya habis", () => {
+  const p = new Particles();
+  for (let i = 0; i < POOL + 50; i++) p.emit(0, 0, 10, 0, 0.5, 4, 1 + (i % 7));
+  p.update(0.016, 0);
+  assert.equal(p.alive, POOL, "tidak lebih dari kapasitas");
+  assert.equal(p.x.length, POOL, "array tidak tumbuh");
+  for (let i = 0; i < 40; i++) p.update(0.016, 0);
+  assert.equal(p.alive, 0, "semua mati setelah 0,5 detik");
+});
+
 // ---------- penyimpanan ----------
 
 test("penyimpanan: kosong, rusak, dan bukan objek memakai bawaan", () => {

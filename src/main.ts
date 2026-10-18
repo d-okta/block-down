@@ -12,6 +12,11 @@ import { applyI18n, fmt, formatClock, formatMs, pickLocale, setLocale, t, type K
 import { BTNS, load, save, submitResult, type Locale, type ResultInput, type SaveData } from "./store/storage.ts";
 import { SettingsScreen } from "./ui/settings.ts";
 import { perfFrame, perfPause } from "./debug/perf.ts";
+import { Effects } from "./render/effects.ts";
+import { effectiveFx } from "./render/fx.ts";
+import { BLOCK_COLORS } from "./render/sprites.ts";
+import { Callout, type CalloutTone } from "./ui/callout.ts";
+import { hapticsAvailable, vibrate } from "./platform/haptics.ts";
 
 const STEP = 1000 / 60;
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -45,7 +50,15 @@ const live = $("live");
 const field = $("field");
 const cvMain = $<HTMLCanvasElement>("cv-main");
 
-const board = new BoardRenderer(cvMain, $<HTMLCanvasElement>("cv-stack"), $<HTMLCanvasElement>("cv-bg"));
+// Kurangi animasi dari sistem (DESIGN 8.5): dipakai selama pemain belum memilih sendiri.
+const systemReduceMq = matchMedia("(prefers-reduced-motion: reduce)");
+const currentFx = () => effectiveFx(data.settings.effects, data.settings.reduceMotion, systemReduceMq.matches);
+const effects = new Effects(currentFx());
+const board = new BoardRenderer(cvMain, $<HTMLCanvasElement>("cv-stack"), $<HTMLCanvasElement>("cv-bg"), effects);
+const boardEl = $("board");
+const ambient = $("ambient");
+const frameEl = $("board-frame");
+const callout = new Callout($("callout"));
 const holdView = new PreviewRenderer($<HTMLCanvasElement>("cv-hold"), 1);
 const nextView = new PreviewRenderer($<HTMLCanvasElement>("cv-next"), NEXT_COUNT);
 nextView.horizontal = true;
@@ -147,12 +160,53 @@ function applySettings(): void {
     board.colorSafe = s.colorSafe;
     board.rebuild();
   }
+  effects.fx = currentFx();
+  ambient.classList.toggle("moving", effects.fx.ambientMotion);
+  document.documentElement.classList.toggle("reduce", effects.fx.level === "minimal");
   renderControlsList();
+}
+
+systemReduceMq.addEventListener("change", applySettings);
+
+// ---------- pita ambient ----------
+
+/** Warna pita per level (DESIGN 8.1): urutan warna blok I, T, S, L, Z, O, J, berulang. */
+const AMBIENT_ORDER = [1, 3, 4, 7, 5, 2, 6] as const;
+let comboWarm = 0;
+
+function ambientFor(level: number): void {
+  const color = BLOCK_COLORS[AMBIENT_ORDER[(level - 1) % AMBIENT_ORDER.length]!]!;
+  // Combo panjang menggeser warna ke hangat (warna L), DESIGN 8.3.
+  ambient.style.setProperty("--ambient-color", comboWarm > 0 ? `color-mix(in srgb, ${color}, #E39A55 ${Math.round(comboWarm * 100)}%)` : color);
+}
+
+let ambientBoostTimer = 0;
+function ambientBoost(): void {
+  ambient.style.setProperty("--ambient-opacity", "0.09");
+  clearTimeout(ambientBoostTimer);
+  ambientBoostTimer = window.setTimeout(() => ambient.style.setProperty("--ambient-opacity", "0.05"), 600);
+}
+
+// ---------- skor bergulir ----------
+
+/** Skor tampil mengejar skor asli selama 300 ms (DESIGN 8.3); langsung di Minimal. */
+const roll = { from: 0, to: 0, t: -1 };
+function scoreText(now: number, actual: number): string | null {
+  if (roll.t < 0) return null;
+  const p = (now - roll.t) / 300;
+  if (p >= 1) {
+    roll.t = -1;
+    hud.score.classList.remove("bump");
+    return fmt(actual);
+  }
+  return fmt(Math.round(roll.from + (roll.to - roll.from) * (1 - (1 - p) * (1 - p))));
 }
 
 function startGame(id: ModeId): void {
   modeId = id;
-  const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
+  // ?seed=N di URL: urutan piece tetap, untuk uji dan reproduksi laporan. Tanpa itu, acak.
+  const seedParam = Number(new URLSearchParams(location.search).get("seed"));
+  const seed = Number.isSafeInteger(seedParam) && seedParam > 0 ? seedParam : crypto.getRandomValues(new Uint32Array(1))[0]!;
   game = createGame(id, seed, { softDropFactor: data.settings.softDropFactor });
   input.releaseAll();
   releaseGesture();
@@ -161,6 +215,12 @@ function startGame(id: ModeId): void {
   overShown = false;
   clk.fallFrom = NaN;
   clk.sim = 0;
+  board.reset();
+  callout.hide();
+  roll.t = -1;
+  hud.score.classList.remove("bump");
+  comboWarm = 0;
+  ambientFor(1);
   hud.mode.textContent = modeLabel(id);
   hud.timeBox.hidden = !(id === "sprint40" || id === "ultra");
   $("btn-end").hidden = id !== "zen";
@@ -212,25 +272,87 @@ function frame(now: number): void {
     handleEvents(now);
   }
   updateHud(false);
+  const rolled = scoreText(now, s.score);
+  if (rolled !== null) hud.score.textContent = rolled;
   board.draw(s, clk.fallFrom, clk.acc / STEP, now, s.status === STATUS.PLAYING);
+  drawFrame(now);
   perfFrame(now, performance.now());
   if (s.status !== STATUS.PLAYING && !overShown) {
     overShown = true;
-    stopLoop();
-    showGameOver();
+    endGame(now);
     return;
   }
   requestAnimationFrame(frame);
 }
 
+/** Bingkai naik level: tergambar dengan aksen lalu memudar (DESIGN 8.3). */
+let frameShown = false;
+function drawFrame(now: number): void {
+  const p = effects.frameProgress(now);
+  if (p < 0) {
+    if (frameShown) {
+      frameEl.style.opacity = "0";
+      frameShown = false;
+    }
+    return;
+  }
+  frameShown = true;
+  frameEl.style.opacity = String(p < 0.3 ? p / 0.3 : 1 - (p - 0.3) / 0.7);
+}
+
+/**
+ * Permainan berakhir: input berhenti sekarang, tumpukan runtuh (DESIGN 7.4), lalu dialog Game Over.
+ * Top out saja yang runtuh; target tercapai atau waktu habis langsung ke dialog.
+ */
+function endGame(now: number): void {
+  stopLoop();
+  const s = game!.state;
+  if (s.status === STATUS.GAME_OVER) {
+    vibrate("over", data.settings.haptics);
+    board.collapse(now);
+    const tick = (t: number) => {
+      if (!game || scrGame.hidden) return;
+      board.draw(game.state, NaN, 1, t, false);
+      if (board.collapsing(t)) requestAnimationFrame(tick);
+      else showGameOver();
+    };
+    requestAnimationFrame(tick);
+  } else {
+    showGameOver();
+  }
+}
+
 function handleEvents(now: number): void {
   const q = game!.events;
+  const s = game!.state;
   for (let i = 0; i < q.count; i++) {
     const e = q.at(i);
-    if (e.type === EV.LOCK) board.lockFlash(e.cells, e.a, now);
-    else if (e.type === EV.LEVEL_UP) announce(t("callout.levelUp"));
-    else if (e.type === EV.CLEAR) announceClear(e.a, e.b, e.score[1]! > 0, e.score[3]! > 0, e.score[4]!);
-    else if (e.type === EV.ZEN_RESET) announce(t("callout.zenReset"));
+    switch (e.type) {
+      case EV.LOCK:
+        board.lockFlash(e.cells, e.a, now);
+        break;
+      case EV.HARD:
+        effects.hardDrop(now, e.cells, e.a);
+        vibrate("hard", data.settings.haptics);
+        break;
+      case EV.ROTATE:
+        if (e.b > 0) effects.kick(now, e.a);
+        break;
+      case EV.LEVEL_UP:
+        effects.levelUp(now);
+        ambientFor(e.a);
+        callout.show(t("callout.levelUp"), "", "", "normal", effects.fx);
+        announce(t("callout.levelUp"));
+        break;
+      case EV.CLEAR:
+        onClear(now, e.a, e.b, e.c, e.score[1]! > 0, e.score[3]! > 0, e.score[4]!, e.rows, e.colors, e.shift, s.level, s.score);
+        break;
+      case EV.ZEN_RESET:
+        board.reset();
+        callout.show(t("callout.zenReset"), "", "", "normal", effects.fx);
+        announce(t("callout.zenReset"));
+        break;
+    }
   }
 }
 
@@ -238,15 +360,55 @@ const SPIN_KEYS: Record<number, Key> = { 0: "callout.tspin", 1: "callout.tspin1"
 const MINI_KEYS: Record<number, Key> = { 0: "callout.tspinMini", 1: "callout.tspinMini1", 2: "callout.tspinMini2" };
 const LINE_KEYS: Record<number, Key> = { 2: "callout.double", 3: "callout.triple", 4: "callout.quad" };
 
-/** Callout visual dibuat di Fase 4. Untuk sekarang momen penting diumumkan untuk pembaca layar. */
-function announceClear(n: number, spin: number, b2b: boolean, perfect: boolean, total: number): void {
-  const key = spin === 2 ? SPIN_KEYS[n] : spin === 1 ? MINI_KEYS[n] : LINE_KEYS[n];
-  if (!key) return;
-  const parts = [t(key)];
-  if (b2b) parts.push(t("callout.b2b"));
-  if (perfect) parts.push(t("callout.perfect"));
-  parts.push(t("callout.points", { n: total }));
-  announce(parts.join(", "));
+/**
+ * Baris dihapus atau T-Spin (DESIGN 8.3). Logika sudah selesai di core; semua di sini hanya tampilan,
+ * dan piece berikutnya sudah bisa digerakkan sejak tick ini.
+ */
+function onClear(
+  now: number, n: number, spin: number, combo: number, b2b: boolean, perfect: boolean, total: number,
+  rows: Int8Array, colors: Uint8Array, shift: Uint8Array, level: number, score: number,
+): void {
+  const quad = n === 4;
+  if (n > 0) {
+    effects.lineClear(now, n, rows, colors, quad);
+    board.stackDrop(shift, now, quad);
+  }
+  if (spin > 0) {
+    // Pusat riak: kolom tengah papan di baris terbawah yang dihapus, atau tengah papan jika tanpa baris.
+    const row = rows[0]! >= 0 ? rows[0]! : 4;
+    effects.tspin(now, 4.5, row, n > 0);
+  }
+  if (perfect) effects.perfectClear(now);
+  if (quad || perfect || (spin > 0 && n > 0)) vibrate("big", data.settings.haptics);
+  if (quad || perfect) ambientBoost();
+
+  comboWarm = Math.min(1, Math.max(0, combo) / 8);
+  ambientFor(level);
+
+  // Skor bergulir dari nilai sebelum aksi ini.
+  if (effects.fx.level !== "minimal" && total > 0) {
+    roll.from = score - total;
+    roll.to = score;
+    roll.t = now;
+    hud.score.classList.add("bump");
+  }
+
+  const key = perfect ? undefined : spin === 2 ? SPIN_KEYS[n] : spin === 1 ? MINI_KEYS[n] : LINE_KEYS[n];
+  const title = perfect ? t("callout.perfect") : key ? t(key) : "";
+  const subs: string[] = [];
+  if (perfect && LINE_KEYS[n]) subs.push(t(LINE_KEYS[n]!));
+  if (b2b) subs.push(t("callout.b2b"));
+  if (combo >= 1) subs.push(`${t("callout.combo", { n: combo })} \u2713`);
+  const points = t("callout.points", { n: total });
+  // Single tanpa combo tidak diberi callout (DESIGN 8.3); dengan combo, callout kecil berisi combo.
+  if (title || subs.length) {
+    const tone: CalloutTone = perfect ? "gold" : spin > 0 ? "spin" : "normal";
+    callout.show(title || subs.shift()!, points, subs.join("  "), tone, effects.fx, quad ? 200 : 60);
+  }
+  if (title) {
+    const parts = [title, ...subs, points];
+    announce(parts.join(", "));
+  }
 }
 
 /** Waktu HUD: Sprint naik (m:ss.cc), Ultra turun (m:ss). Diperbarui tiap 6 tick (100 ms). */
@@ -263,7 +425,7 @@ function updateHud(force: boolean): void {
   const s = game!.state;
   if (force || s.score !== shown.score) {
     shown.score = s.score;
-    hud.score.textContent = fmt(s.score);
+    if (roll.t < 0 || force) hud.score.textContent = fmt(s.score); // saat bergulir, frame() yang menulis
   }
   if (force || s.level !== shown.level) {
     shown.level = s.level;
@@ -334,6 +496,9 @@ function layout(): void {
   nextView.resize(mini, dpr, data.settings.colorSafe);
   const rect = field.getBoundingClientRect();
   cellCss = board.resize(rect.width - 2, rect.height - 2, dpr);
+  // Bungkus papan mengikuti ukuran canvas, supaya callout dan bingkai menempel tepat di papan.
+  boardEl.style.width = cvMain.style.width;
+  boardEl.style.height = cvMain.style.height;
   if (game) {
     updateHud(true);
     board.draw(game.state, NaN, 1, performance.now(), game.state.status === STATUS.PLAYING);
@@ -671,6 +836,8 @@ const settings = new SettingsScreen(scrSettings, data.settings, {
     toast(text);
   },
   back: () => closeSettings(),
+  systemReduce: () => systemReduceMq.matches,
+  hapticsAvailable: () => hapticsAvailable,
 });
 
 function openSettings(from: "menu" | "pause"): void {

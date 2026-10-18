@@ -1,5 +1,5 @@
 // Layar Pengaturan (DESIGN 7.5, EDD-2 bagian 6.3). Setiap perubahan langsung disimpan dan berlaku.
-// Kelompok Suara dan pengaturan efek baru ditampilkan di Fase 4, bersama fiturnya.
+// Musik dan Efek suara baru ditampilkan di Fase 4 tahap 2, bersama fiturnya.
 import { t, type Key } from "../i18n/index.ts";
 import { keyLabel, RESERVED_CODES } from "../input/keyboard.ts";
 import { BTNS, defaultSettings, type Btn, type Locale, type Settings } from "../store/storage.ts";
@@ -9,6 +9,10 @@ const SOFT_STEPS = [5, 10, 15, 20, 25, 30, 35, 40] as const;
 export interface SettingsHooks {
   /** Dipanggil setelah nilai berubah; `what` memberi tahu bagian mana yang perlu diterapkan ulang. */
   changed(what: "input" | "keymap" | "display" | "locale"): void;
+  /** Kurangi animasi dari sistem (`prefers-reduced-motion`), dipakai saat pemain belum memilih. */
+  systemReduce(): boolean;
+  /** Getar tersedia di perangkat ini. */
+  hapticsAvailable(): boolean;
   setLocale(l: Locale): void;
   announce(text: string): void;
   back(): void;
@@ -46,8 +50,16 @@ export class SettingsScreen {
       const el = (e.target as HTMLElement).closest<HTMLElement>("button");
       if (!el) return;
       const set = el.dataset["set"];
-      if (set === "ghost" || set === "grid" || set === "colorSafe") {
+      if (set === "ghost" || set === "grid" || set === "colorSafe" || set === "haptics") {
         this.s[set] = !this.s[set];
+        this.h.changed("display");
+      } else if (set === "reduceMotion") {
+        // Nilai efektif dibalik; setelah dipilih pemain, tidak lagi mengikuti sistem.
+        this.s.reduceMotion = !(this.s.reduceMotion ?? this.h.systemReduce());
+        this.h.changed("display");
+      } else if (set === "effects") {
+        if (el.getAttribute("aria-disabled") === "true") return;
+        this.s.effects = el.dataset["value"] as Settings["effects"];
         this.h.changed("display");
       } else if (el.dataset["locale"]) {
         this.h.setLocale(el.dataset["locale"] as Locale);
@@ -114,9 +126,26 @@ export class SettingsScreen {
       s.softDropFactor === "instant" ? t("settings.softDrop.instant") : t("settings.unit.x", { n: s.softDropFactor }),
     );
 
-   for (const k of ["ghost", "grid", "colorSafe"] as const) {
+    for (const k of ["ghost", "grid", "colorSafe"] as const) {
       $<HTMLElement>(this.root, `[data-set="${k}"]`).setAttribute("aria-checked", String(s[k]));
     }
+
+    // Kurangi animasi mengunci intensitas ke Minimal (DESIGN 10 butir 5).
+    const reduce = s.reduceMotion ?? this.h.systemReduce();
+    $<HTMLElement>(this.root, '[data-set="reduceMotion"]').setAttribute("aria-checked", String(reduce));
+    for (const b of this.root.querySelectorAll<HTMLElement>('[data-set="effects"]')) {
+      const shown = reduce ? "minimal" : s.effects;
+      b.setAttribute("aria-pressed", String(b.dataset["value"] === shown));
+      b.setAttribute("aria-disabled", String(reduce));
+    }
+    $<HTMLElement>(this.root, "#effects-locked").hidden = !reduce;
+
+    // Getar: nonaktif dengan alasan jika perangkat tidak mendukung (DESIGN 7.5).
+    const hap = $<HTMLElement>(this.root, '[data-set="haptics"]');
+    const available = this.h.hapticsAvailable();
+    hap.setAttribute("aria-checked", String(available && s.haptics));
+    hap.toggleAttribute("disabled", !available);
+    $<HTMLElement>(this.root, "#haptics-desc").textContent = t(available ? "settings.haptics.desc" : "notice.hapticsUnavailable");
   }
 
   private bindRange(inputId: string, apply: (v: number) => void): void {

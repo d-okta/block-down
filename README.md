@@ -6,11 +6,12 @@ Game puzzle blok jatuh untuk browser, dengan versi Android menyusul. Tenang saat
 
 ## Status versi uji
 
-Ini versi uji (Fase 3 dari 6). Yang sudah bisa dicoba:
+Ini versi uji (Fase 4 dari 6, tahap 1). Yang sudah bisa dicoba:
 
 - Empat mode: Maraton (150 baris atau tanpa batas), Sprint 40, Ultra (2 menit), dan Zen.
 - Keyboard, gestur sentuh di HP (hanya posisi tegak), dan gamepad.
-- Pengaturan: DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, ghost, grid, mode aman buta warna, dan bahasa.
+- Animasi saat menghapus baris (partikel, callout, tumpukan turun), momen khusus untuk 4 Baris, T-Spin, dan Bersih Total, serta getar.
+- Pengaturan: DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, ghost, grid, mode aman buta warna, intensitas efek, kurangi animasi, getar, dan bahasa.
 - Ghost piece, Simpan (sekali per piece), dan 5 piece berikutnya. Lock delay 400 ms.
 - Skor lengkap: Single sampai 4 Baris, T-Spin dan Mini, Back-to-Back, Combo, Bersih Total.
 - Jeda, Game Over dengan statistik, dan rekor pribadi per mode yang tersimpan di browser.
@@ -18,7 +19,7 @@ Ini versi uji (Fase 3 dari 6). Yang sudah bisa dicoba:
 
 Belum ada di versi ini:
 
-- Animasi saat menghapus baris, suara, musik, dan getar.
+- Suara dan musik.
 - Aplikasi Android dan pemasangan sebagai aplikasi (PWA).
 
 Urutan pengerjaannya ada di [docs/prd/ROADMAP.md](docs/prd/ROADMAP.md).
@@ -44,7 +45,7 @@ Butuh Node 22.18 atau lebih baru.
 ```
 npm install
 npm run dev       # buka http://localhost:5173
-npm run check     # TypeScript + 55 tes
+npm run check     # TypeScript + 57 tes
 npm run build     # hasil di dist/
 ```
 

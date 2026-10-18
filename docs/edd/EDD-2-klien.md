@@ -526,3 +526,20 @@ Tes gestur di `tests/client.test.ts` ditulis ulang menjadi 13 kasus. Tiga di ant
 - `cv-stack` digambar ulang hanya jika 200 sel terlihat berbeda dari salinan terakhir (perbandingan `Uint8Array`, tanpa alokasi), atau setelah `rebuild()` (ukuran, buta warna, grid).
 - Dampak: dengan tumpukan tinggi, `drawImage` per frame turun dari sekitar 64 menjadi sekitar 8 (4 piece + 4 ghost).
 - Fase 4 perlu memperhatikan ini: animasi baris terhapus dan stack turun menggambar di `cv-main` atau lapisan efek, sementara `cv-stack` diperbarui sekali saat animasi selesai atau dibuat transparan selama animasi.
+
+## 17. Fase 4 tahap 1: efek dan getar
+
+Berkas baru:
+- `render/fx.ts`: tabel intensitas (Penuh, Sedang, Minimal), `effectiveFx()` (Kurangi animasi menang), kurva `easeOut`, `easeIn`, `easeSpring`. Murni, dites.
+- `render/particles.ts`: pool 300 slot dengan `Float32Array`, partikel tertua ditimpa, digambar per warna. Dites.
+- `render/effects.ts`: semua efek papan sebagai angka di satu objek (kilat baris, shockwave, riak, gelombang, shake, squash, jejak, kemiringan, bingkai).
+- `ui/callout.ts`: callout DOM dengan Web Animations API, satu callout aktif.
+- `platform/haptics.ts`: `navigator.vibrate` dengan pola `hard`, `big`, `over`.
+
+Perubahan:
+- `BoardRenderer` menerima `Effects`. Lapisan tumpukan digambar setiap frame hanya selama animasi turun atau runtuh. Jika board berubah lagi di tengah animasi turun (piece lain terkunci), animasi dihentikan dan tumpukan langsung ke posisi akhir.
+- Shake memakai `transform` CSS pada `cv-stack` dan `cv-main`, bukan menggambar ulang.
+- Papan dibungkus `.board` yang ukurannya mengikuti canvas, tempat callout dan bingkai level.
+- Pita ambient: elemen `.ambient` di belakang papan; warna dari `--ambient-color`, terang dari `--ambient-opacity`, gerak lewat kelas `moving` (hanya jika intensitas mengizinkan).
+- `?seed=N` di URL membuat urutan piece tetap. Dipakai `tests/tools/plan-quad.ts` untuk menyusun urutan tombol yang menghasilkan Quad, supaya momen reward bisa direkam ulang di browser.
+- Game Over (top out) menunggu animasi runtuh selesai sebelum dialog. Target tercapai, waktu habis, dan Akhiri sesi langsung ke dialog.

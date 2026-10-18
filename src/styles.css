@@ -488,9 +488,16 @@ kbd {
   justify-content: center;
 }
 
-.field canvas {
+/* Bungkus papan: ukurannya mengikuti canvas (diatur main.ts), jadi callout dan bingkai menempel tepat di papan. */
+.board {
+  position: relative;
+  align-self: flex-start;
+  isolation: isolate;
+}
+
+.board canvas {
   position: absolute;
-  top: 0;
+  inset: 0;
   border: 1px solid var(--line-deco);
   border-radius: var(--r-block);
   background: var(--surface-1);
@@ -500,6 +507,106 @@ kbd {
 #cv-stack {
   background: transparent;
   border-color: transparent;
+}
+
+/* Bingkai naik level (DESIGN 8.3): garis aksen tergambar mengelilingi papan, lalu memudar. */
+.board-frame {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-block);
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* Pita ambient (DESIGN 8.1): cahaya 5% di belakang papan; warna diatur main.ts, gerak hanya jika diizinkan. */
+.ambient {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  top: 30%;
+  height: 40%;
+  pointer-events: none;
+  opacity: var(--ambient-opacity, 0.05);
+  background: linear-gradient(180deg, transparent, var(--ambient-color, var(--accent)) 50%, transparent);
+  transition:
+    opacity 600ms ease-out,
+    background-color 1200ms linear;
+  z-index: -1;
+}
+
+.ambient.moving {
+  animation: ambient-drift 12s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-drift {
+  from {
+    transform: translateY(-8px);
+  }
+  to {
+    transform: translateY(8px);
+  }
+}
+
+/* Callout reward: sepertiga atas papan, tidak menutup area spawn (DESIGN 8.3). */
+.callout {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 18%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  opacity: 0;
+  text-align: center;
+  z-index: 2;
+}
+
+.callout-points {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.callout-title {
+  font-size: clamp(1.5rem, 8vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  /* Sapuan cahaya aksen: gradien teks yang digeser sekali oleh callout.ts. */
+  color: var(--text);
+  /* Posisi 100% sampai 0% selalu menutupi seluruh teks (gambar 250%), pita aksen bergerak dari kiri ke kanan. */
+  background: linear-gradient(100deg, var(--text) 40%, var(--accent) 50%, var(--text) 60%) 100% 0 / 250% 100% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+.callout[data-tone="spin"] .callout-title {
+  background-image: linear-gradient(100deg, #a57bd8 40%, var(--text) 50%, #a57bd8 60%);
+}
+
+.callout[data-tone="gold"] .callout-title {
+  background-image: linear-gradient(100deg, #e3c35a 40%, var(--text) 50%, #e3c35a 60%);
+}
+
+.callout-sub {
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Skor bergulir: angka naik singkat setelah reward (DESIGN 8.3). Aksen di atas latar 5,10:1, lolos AA. */
+.score {
+  transition: color 300ms ease-out;
+}
+
+.score.bump {
+  color: var(--accent);
+  transition: none;
 }
 
 /*
