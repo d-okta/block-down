@@ -122,8 +122,10 @@ export class BoardRenderer {
     const out = this.shakeOut;
     const ctx = this.ctx;
     // Beberapa titik waktu, supaya semua cabang (awal, tengah, akhir) dijalankan.
+    const lights = new Float32Array(6);
     for (const dt of [0, 90, 200, 400]) {
       fx.boardTransform(now + dt, out);
+      fx.lightLayers(now + dt, lights);
       fx.squash(now + dt);
       fx.tilt(now + dt);
       fx.draw(ctx, now + dt, 0.016, this.main.width, this.main.height);

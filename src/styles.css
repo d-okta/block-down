@@ -414,9 +414,20 @@ kbd {
   line-height: 1.1;
 }
 
+/*
+ * Skor bergulir mengubah teks setiap frame. Lebar tetap (9 digit tabular) dan `contain` membuat
+ * perubahan itu tidak memicu tata letak dan cat ulang seluruh halaman; tanpa ini, satu momen
+ * 4 Baris memicu sekitar 150 cat ulang dokumen (diukur dengan tracing Chrome).
+ */
 .score {
+  display: block;
+  min-width: 9ch;
+  text-align: center;
   font-size: 1.75rem;
   font-weight: 700;
+  contain: layout paint style;
+  /* Lapisan sendiri: teks yang berganti hanya mengecat ulang skor, bukan seluruh dokumen. */
+  will-change: transform;
 }
 
 #btn-pause {
@@ -512,6 +523,47 @@ kbd {
   border-color: transparent;
 }
 
+/*
+ * Cahaya momen besar (revisi Fase 4): dua lapisan CSS di atas canvas, digerakkan main.ts hanya lewat
+ * opacity dan transform. Warna lapisan berubah sekali saat dipicu, bukan setiap frame.
+ * mix-blend-mode: screen memberi kesan cahaya tanpa mengisi ulang piksel canvas.
+ */
+.fx-flash,
+.fx-pillar {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+.fx-flash {
+  inset: 0;
+  border-radius: var(--r-block);
+  background: var(--fx-flash, #fff);
+}
+
+/* Pilar: tiga pita dari tengah, makin ke tepi makin pudar; tinggi diatur dengan scaleY dari dasar. */
+.fx-pillar {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100%;
+  transform-origin: 50% 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 2%,
+    color-mix(in srgb, var(--fx-pillar, #fff) 25%, transparent) 18%,
+    color-mix(in srgb, var(--fx-pillar, #fff) 55%, transparent) 34%,
+    var(--fx-pillar, #fff) 50%,
+    color-mix(in srgb, var(--fx-pillar, #fff) 55%, transparent) 66%,
+    color-mix(in srgb, var(--fx-pillar, #fff) 25%, transparent) 82%,
+    transparent 98%
+  );
+  mask-image: linear-gradient(0deg, #000 70%, transparent);
+  -webkit-mask-image: linear-gradient(0deg, #000 70%, transparent);
+}
+
 /* Bingkai naik level (DESIGN 8.3): garis aksen tergambar mengelilingi papan, lalu memudar. */
 .board-frame {
   position: absolute;
@@ -551,7 +603,11 @@ kbd {
   }
 }
 
-/* Callout reward: sepertiga atas papan, tidak menutup area spawn (DESIGN 8.3). */
+/*
+ * Callout reward: sepertiga atas papan, tidak menutup area spawn (DESIGN 8.3).
+ * Semua animasinya hanya transform dan opacity (callout.ts), dan setiap bagian yang bergerak punya
+ * lapisan sendiri (will-change), supaya browser tidak mengecat ulang teks setiap frame.
+ */
 .callout {
   position: absolute;
   left: 0;
@@ -565,35 +621,50 @@ kbd {
   opacity: 0;
   text-align: center;
   z-index: 2;
+  will-change: transform, opacity;
 }
 
 .callout-points {
   color: var(--text);
   font-size: 1rem;
   font-weight: 700;
+  will-change: transform;
+}
+
+.callout-title-wrap {
+  position: relative;
+  overflow: hidden;
+  padding: 0 4px;
 }
 
 .callout-title {
+  display: block;
   font-size: clamp(1.5rem, 8vw, 2.75rem);
   font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 1.1;
-  /* Sapuan cahaya aksen: gradien teks yang digeser sekali oleh callout.ts. */
   color: var(--text);
-  /* Posisi 100% sampai 0% selalu menutupi seluruh teks (gambar 250%), pita aksen bergerak dari kiri ke kanan. */
-  background: linear-gradient(100deg, var(--text) 40%, var(--accent) 50%, var(--text) 60%) 100% 0 / 250% 100% no-repeat;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
 }
 
 .callout[data-tone="spin"] .callout-title {
-  background-image: linear-gradient(100deg, #a57bd8 40%, var(--text) 50%, #a57bd8 60%);
+  color: #a57bd8;
 }
 
 .callout[data-tone="gold"] .callout-title {
-  background-image: linear-gradient(100deg, #e3c35a 40%, var(--text) 50%, #e3c35a 60%);
+  color: #e3c35a;
+}
+
+/* Sapuan cahaya: pita terang miring yang digeser sekali melintasi judul (transform saja). */
+.callout-shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
+  mix-blend-mode: overlay;
+  transform: translateX(-120%) skewX(-20deg);
+  will-change: transform;
 }
 
 .callout-sub {
@@ -619,26 +690,21 @@ kbd {
 }
 
 /*
- * Cahaya di belakang tulisan untuk momen besar (kekuatan 3 ke atas), dikendalikan --glow oleh callout.ts.
+ * Cahaya di belakang tulisan untuk momen besar (kekuatan 3 ke atas): elemen sendiri yang hanya
+ * diubah opacity dan skalanya. Gradien digambar sekali, lalu lapisannya dipakai ulang.
  * Hanya satu elemen bercahaya di layar, dan hanya sesaat (antislop R-13: glow sebagai aksen fokus).
  */
-@property --glow {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
-.callout::before {
-  content: "";
+.callout-glow {
   position: absolute;
   left: 50%;
   top: 50%;
   width: 120%;
   height: 220%;
-  transform: translate(-50%, -50%);
   background: radial-gradient(closest-side, var(--callout-glow, var(--accent)), transparent);
-  opacity: calc(var(--glow) * 0.45);
+  opacity: 0;
+  transform: translate(-50%, -50%);
   z-index: -1;
-  pointer-events: none;
+  will-change: transform, opacity;
 }
 .callout[data-tone="spin"] {
   --callout-glow: #a57bd8;
@@ -647,11 +713,10 @@ kbd {
   --callout-glow: #e3c35a;
 }
 
-/* Skor bergulir: angka naik singkat setelah reward (DESIGN 8.3). Aksen di atas latar 5,10:1, lolos AA. */
-.score {
-  transition: color 300ms ease-out;
-}
-
+/*
+ * Skor bergulir: angka berwarna aksen selama bergulir (DESIGN 8.3). Aksen di atas latar 5,10:1, lolos AA.
+ * Tanpa transisi warna: transisi warna dicat ulang setiap frame dan ikut membuat animasi patah-patah.
+ */
 .score.bump {
   color: var(--accent);
   transition: none;

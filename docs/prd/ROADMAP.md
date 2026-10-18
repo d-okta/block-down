@@ -216,6 +216,27 @@ Uji setelah revisi (Chrome, HP emulasi):
 - CPU 6 kali, 1 detik setelah Quad: kerja p99 1,9 sampai 3,0 ms, maks 5,7 sampai 10,4 ms, tidak ada frame di atas 16,7 ms.
 - Kurangi animasi, Minimal, Game Over, gestur, click-through Fase 2 dan 3, lapisan tumpukan: lulus. Error: tidak ada.
 
+### Perbaikan patah-patah setelah efek bertingkat
+
+Masukan pemilik: efek sudah cukup wah, getar sudah lumayan, tapi animasi patah-patah. Pengukuran `?perf` di Galaxy A13 (156 detik): fps 60, tersendat 0,9%, maks 200 ms, kerja p50 0,5 ms, p99 2,0 ms, maks 10,0 ms (clear2), heap stabil 9,5 MB. Kode game ringan; frame 272 ms sudah tidak muncul. Patah-patah berasal dari kerja browser di luar kode game.
+
+Tracing Chrome selama 1 detik setelah Quad menemukan tiga sumber:
+1. Callout menganimasikan variabel CSS `--glow` dan `background-position` teks bergradien. Keduanya memaksa cat ulang setiap frame. Diganti elemen cahaya dan pita sapuan terpisah yang hanya digerakkan dengan `transform` dan `opacity`; judul memakai warna solid.
+2. Skor bergulir mengganti teks setiap frame, dan karena lebarnya berubah, seluruh dokumen ikut dicat ulang. Ditambah transisi warna. Diperbaiki: lebar skor tetap, `contain`, lapisan sendiri, teks diganti paling sering setiap 33 ms, transisi warna dihapus.
+3. Kilat papan dan pilar cahaya mengisi hampir seluruh canvas setiap frame dengan mode penjumlahan. Dipindah ke dua lapisan CSS (`.fx-flash`, `.fx-pillar`) yang hanya dipudarkan dan diregangkan.
+
+Hasil, 1 detik setelah Quad (Chrome, HP emulasi 412x915, DPR 2,625):
+
+| | Sebelum | Sesudah |
+|---|---|---|
+| Cat ulang (Paint) | 262 kali, 22,7 ms | 23 kali, 1,5 ms |
+| Raster | 1.008 kali, 16,8 ms | 53 kali, 2,2 ms |
+| Tata letak (Layout) | 42 kali | 9 kali |
+| Style | 144 kali, 32,5 ms | 112 kali, 15,8 ms |
+| Luas canvas yang diisi cahaya per frame | 0,97 kali luas papan | 0,11 kali |
+
+Tampilan efek tetap sama (screenshot storyboard Quad dicek). CPU 6 kali: kerja p99 2,6 sampai 3,6 ms, tidak ada frame di atas 16,7 ms. Gestur, click-through Fase 2 dan 3, Kurangi animasi, Game Over, lapisan tumpukan: lulus. Perlu dikonfirmasi pemilik di Galaxy A13.
+
 ## Fase 5: Android, PWA, Vercel, listing toko
 
 Lingkup: proyek Capacitor Android, manifest dan service worker PWA, deploy Vercel, ikon aplikasi, dan teks listing Play Store.

@@ -59,6 +59,8 @@ const boardEl = $("board");
 board.wrap = boardEl;
 const ambient = $("ambient");
 const frameEl = $("board-frame");
+const fxFlash = $("fx-flash");
+const fxPillar = $("fx-pillar");
 const callout = new Callout($("callout"));
 const holdView = new PreviewRenderer($<HTMLCanvasElement>("cv-hold"), 1);
 const nextView = new PreviewRenderer($<HTMLCanvasElement>("cv-next"), NEXT_COUNT);
@@ -191,7 +193,7 @@ function ambientBoost(): void {
 // ---------- skor bergulir ----------
 
 /** Skor tampil mengejar skor asli selama 300 ms (DESIGN 8.3); langsung di Minimal. */
-const roll = { from: 0, to: 0, t: -1 };
+const roll = { from: 0, to: 0, t: -1, last: -1 };
 function scoreText(now: number, actual: number): string | null {
   if (roll.t < 0) return null;
   const p = (now - roll.t) / 300;
@@ -200,6 +202,9 @@ function scoreText(now: number, actual: number): string | null {
     hud.score.classList.remove("bump");
     return fmt(actual);
   }
+  // Teks diganti paling sering setiap 33 ms (sekitar 30 kali per detik): cukup untuk terlihat bergulir.
+  if (now - roll.last < 33) return null;
+  roll.last = now;
   return fmt(Math.round(roll.from + (roll.to - roll.from) * (1 - (1 - p) * (1 - p))));
 }
 
@@ -218,6 +223,9 @@ function startGame(id: ModeId): void {
   clk.sim = 0;
   board.reset();
   callout.hide();
+  fxFlash.style.opacity = "0";
+  fxPillar.style.opacity = "0";
+  light.flash = light.pillar = -1;
   roll.t = -1;
   hud.score.classList.remove("bump");
   comboWarm = 0;
@@ -285,6 +293,7 @@ function frame(now: number): void {
   if (rolled !== null) hud.score.textContent = rolled;
   board.draw(s, clk.fallFrom, clk.acc / STEP, now, s.status === STATUS.PLAYING);
   drawFrame(now);
+  drawLight(now);
   perfFrame(now, begin, performance.now());
   if (s.status !== STATUS.PLAYING && !overShown) {
     overShown = true;
@@ -307,6 +316,39 @@ function drawFrame(now: number): void {
   }
   frameShown = true;
   frameEl.style.opacity = String(p < 0.3 ? p / 0.3 : 1 - (p - 0.3) / 0.7);
+}
+
+/**
+ * Kilat papan dan pilar cahaya sebagai lapisan CSS (opacity dan transform saja).
+ * Nilai ditulis hanya jika berubah, dan dihentikan begitu kedua efek selesai.
+ */
+const lightOut = new Float32Array(6);
+const light = { flash: -1, pillar: -1, flashColor: "", pillarColor: "" };
+function drawLight(now: number): void {
+  effects.lightLayers(now, lightOut);
+  const f = lightOut[0]!;
+  const pl = lightOut[1]!;
+  if (f > 0 || light.flash > 0) {
+    if (f > 0 && effects.flashColor !== light.flashColor) {
+      light.flashColor = effects.flashColor;
+      fxFlash.style.setProperty("--fx-flash", light.flashColor);
+    }
+    fxFlash.style.opacity = f > 0 ? f.toFixed(3) : "0";
+    light.flash = f;
+  }
+  if (pl > 0 || light.pillar > 0) {
+    if (pl > 0) {
+      if (effects.pillarTint !== light.pillarColor) {
+        light.pillarColor = effects.pillarTint;
+        fxPillar.style.setProperty("--fx-pillar", light.pillarColor);
+      }
+      // Dasar pilar di baris yang dihapus; tinggi tumbuh ke atas, lebar menyempit.
+      const base = lightOut[4]!;
+      fxPillar.style.transform = `translateY(${((base - 1) * 100).toFixed(2)}%) scale(${lightOut[3]!.toFixed(3)}, ${(lightOut[2]! / Math.max(0.01, base)).toFixed(3)})`;
+    }
+    fxPillar.style.opacity = pl > 0 ? pl.toFixed(3) : "0";
+    light.pillar = pl;
+  }
 }
 
 /**
@@ -403,6 +445,7 @@ function onClear(
     roll.from = score - total;
     roll.to = score;
     roll.t = now;
+    roll.last = -1;
     hud.score.classList.add("bump");
   }
 

@@ -553,3 +553,10 @@ Perubahan:
 - `haptics.ts`: pola per kekuatan, jatuh cepat 35 ms.
 - `warmUp()`: `BoardRenderer` dan `Callout` menjalankan semua jalur sekali tanpa terlihat di permainan pertama, supaya clear pertama tidak membayar biaya kompilasi.
 - `perf.ts`: `perfFrame(vsync, begin, end)` dan `perfTag()`.
+
+## 19. Aturan render supaya tidak patah-patah (dari uji Galaxy A13)
+
+1. Elemen DOM yang dianimasikan hanya boleh diubah `transform` dan `opacity`, dan diberi `will-change` supaya punya lapisan sendiri. Jangan menganimasikan variabel CSS, `background-position`, warna, atau ukuran.
+2. Teks yang berganti saat bermain (skor) harus berlebar tetap dan memakai `contain`, supaya tidak memicu tata letak dan cat ulang dokumen. Penggantian teks dibatasi sekitar 30 kali per detik.
+3. Cahaya yang menutupi area besar (kilat papan, pilar) dibuat sebagai lapisan CSS dengan `mix-blend-mode: screen`, bukan digambar di canvas setiap frame. Canvas hanya untuk elemen kecil (partikel, baris, garis, cincin).
+4. Cara mengukur: `rendertrace`, tracing Chrome 1 detik setelah Quad, menghitung `Paint`, `RasterTask`, `Layout`, dan elemen yang dicat ulang. Target: cat ulang dokumen tidak setiap frame.

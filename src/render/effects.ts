@@ -325,35 +325,10 @@ export class Effects {
       }
     }
 
+    // Kilat papan dan pilar cahaya tidak digambar di canvas: keduanya elemen CSS yang hanya
+    // dipudarkan dan diregangkan (lightLayers()). Menggambarnya di canvas berarti mengisi hampir
+    // seluruh papan setiap frame, yang membuat animasi patah-patah di Galaxy A13.
     ctx.globalCompositeOperation = "lighter";
-
-    // Kilat seluruh papan.
-    if (this.boardFlashT >= 0 && waves > 0) {
-      const p = (now - this.boardFlashT) / 260;
-      if (p >= 1) this.boardFlashT = -1;
-      else if (p >= 0) {
-        ctx.globalAlpha = this.boardFlashAlpha * waves * (1 - easeOut(p));
-        ctx.fillStyle = this.boardFlashColor;
-        ctx.fillRect(0, 0, w, h);
-      }
-    }
-
-    // Pilar cahaya naik dari baris yang dihapus: tiga lapis makin lebar dan makin pudar.
-    if (this.pillarT >= 0 && waves > 0) {
-      const p = (now - this.pillarT) / 520;
-      if (p >= 1) this.pillarT = -1;
-      else {
-        const e = easeOut(p);
-        const height = this.pillarY * (0.2 + 0.8 * e) + c;
-        const top = this.pillarY + c / 2 - height;
-        ctx.fillStyle = this.pillarColor;
-        for (let k = 0; k < 3; k++) {
-          ctx.globalAlpha = waves * (0.22 - k * 0.06) * (1 - p);
-          const half = w * (0.18 + k * 0.16) * (1 - p * 0.4);
-          ctx.fillRect(w / 2 - half, top, half * 2, height);
-        }
-      }
-    }
 
     // Kilat baris yang dihapus: pita putih tebal yang melebar lalu memudar.
     if (this.rowFlashT >= 0) {
@@ -421,16 +396,56 @@ export class Effects {
         if (p >= 1) this.waveT = -1;
         else {
           const y = h * (1 - easeOut(p));
+          // Hanya pita tepinya; cahaya di bawahnya ikut lapisan kilat papan (CSS).
           ctx.fillStyle = GOLD;
-          ctx.globalAlpha = waves * 0.5 * (1 - p);
+          ctx.globalAlpha = waves * 0.6 * (1 - p);
           ctx.fillRect(0, y, w, c * 1.5);
-          ctx.globalAlpha = waves * 0.18 * (1 - p);
-          ctx.fillRect(0, y, w, h - y);
         }
       }
       ctx.globalCompositeOperation = "source-over";
     }
     ctx.globalAlpha = 1;
+  }
+
+  /**
+   * Lapisan cahaya CSS (kilat papan dan pilar). Ditulis ke `out` (panjang 6) tanpa alokasi:
+   * [0] opasitas kilat, [1] opasitas pilar, [2] tinggi pilar (0..1 dari baris ke atas papan),
+   * [3] lebar pilar (0..1), [4] posisi dasar pilar (0..1 dari atas papan).
+   * Warna dibaca lewat flashColor dan pillarColor (berubah hanya saat dipicu).
+   */
+  lightLayers(now: number, out: Float32Array): void {
+    const waves = this.fx.waves;
+    out[0] = 0;
+    out[1] = 0;
+    if (waves <= 0) {
+      this.boardFlashT = this.pillarT = -1;
+      return;
+    }
+    if (this.boardFlashT >= 0) {
+      const p = (now - this.boardFlashT) / 260;
+      if (p >= 1) this.boardFlashT = -1;
+      else if (p >= 0) out[0] = this.boardFlashAlpha * waves * (1 - easeOut(p));
+    }
+    if (this.pillarT >= 0) {
+      const p = (now - this.pillarT) / 520;
+      if (p >= 1) this.pillarT = -1;
+      else {
+        const h = VISIBLE_ROWS * this.cell;
+        const base = (this.pillarY + this.cell / 2) / h;
+        out[1] = waves * 0.5 * (1 - p);
+        out[2] = (0.2 + 0.8 * easeOut(p)) * base;
+        out[3] = 1 - p * 0.4;
+        out[4] = base;
+      }
+    }
+  }
+
+  get flashColor(): string {
+    return this.boardFlashColor;
+  }
+
+  get pillarTint(): string {
+    return this.pillarColor;
   }
 
   /** Progres bingkai naik level (0..1) atau -1. Digambar oleh CSS, bukan canvas. */

@@ -1,5 +1,8 @@
 // Callout reward di sepertiga atas papan (DESIGN 8.3, EDD-2 bagian 4.4).
-// Animasi memakai Web Animations API (transform dan opacity saja). Callout baru menggantikan yang lama.
+// Animasi memakai Web Animations API dan HANYA transform serta opacity, supaya browser cukup
+// menggeser lapisan yang sudah dicat. Versi sebelumnya menganimasikan variabel CSS (--glow) dan
+// background-position teks bergradien; keduanya memaksa cat ulang setiap frame dan membuat
+// animasi patah-patah di Galaxy A13. Callout baru menggantikan yang lama.
 import type { FxScale } from "../render/fx.ts";
 
 export type CalloutTone = "normal" | "spin" | "gold";
@@ -9,6 +12,8 @@ export class Callout {
   private points: HTMLElement;
   private title: HTMLElement;
   private sub: HTMLElement;
+  private glow: HTMLElement;
+  private shine: HTMLElement;
   private anims: Animation[] = [];
 
   constructor(root: HTMLElement) {
@@ -16,6 +21,8 @@ export class Callout {
     this.points = root.querySelector("#callout-points")!;
     this.title = root.querySelector("#callout-title")!;
     this.sub = root.querySelector("#callout-sub")!;
+    this.glow = root.querySelector("#callout-glow")!;
+    this.shine = root.querySelector("#callout-shine")!;
   }
 
   /**
@@ -62,28 +69,30 @@ export class Callout {
       ),
     );
     if (!minimal && power >= 3) {
-      // Cahaya di belakang tulisan: menyala saat masuk lalu meredup.
+      // Cahaya di belakang tulisan: elemen sendiri yang hanya diubah opacity dan skalanya.
       this.anims.push(
-        this.root.animate(
+        this.glow.animate(
           [
-            { "--glow": "0" },
-            { "--glow": "1", offset: 0.25 },
-            { "--glow": "0.35" },
-          ] as Keyframe[],
-          { duration: 900, delay, easing: "ease-out", fill: "forwards" },
+            { opacity: 0, transform: "translate(-50%, -50%) scale(0.6)" },
+            { opacity: 0.55, transform: "translate(-50%, -50%) scale(1.05)", offset: 0.25 },
+            { opacity: 0, transform: "translate(-50%, -50%) scale(1.2)" },
+          ],
+          { duration: 900, delay, easing: "ease-out", fill: "both" },
         ),
       );
     }
-    if (!minimal) {
-      // Sapuan cahaya aksen sekali melintasi judul (bukan denyut berulang).
+    if (!minimal && power >= 2) {
+      // Sapuan cahaya sekali melintasi judul: pita terang yang digeser dengan transform.
       this.anims.push(
-        this.title.animate([{ backgroundPosition: "100% 0" }, { backgroundPosition: "0% 0" }], {
-          duration: 420,
+        this.shine.animate([{ transform: "translateX(-120%) skewX(-20deg)" }, { transform: "translateX(320%) skewX(-20deg)" }], {
+          duration: 480,
           delay: delay + 80,
           easing: "ease-out",
           fill: "both",
         }),
       );
+    }
+    if (!minimal) {
       // Angka skor melayang naik sedikit lebih jauh dari judul.
       if (points) {
         this.anims.push(
