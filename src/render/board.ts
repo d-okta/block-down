@@ -53,7 +53,9 @@ export class BoardRenderer {
   private dropProgress = -1;
   // Runtuh saat Game Over.
   private collapseT = -1;
-  private readonly shakeOut = new Float32Array(2);
+  private readonly shakeOut = new Float32Array(3);
+  /** Elemen pembungkus papan yang digeser saat shake. */
+  wrap: HTMLElement | null = null;
   private lastNow = 0;
 
   constructor(main: HTMLCanvasElement, stack: HTMLCanvasElement, bg: HTMLCanvasElement, fx: Effects) {
@@ -98,6 +100,41 @@ export class BoardRenderer {
     for (let y = 1; y < VISIBLE_ROWS; y++) g.fillRect(0, y * this.cell, this.bg.width, lw);
   }
 
+  /**
+   * Jalankan semua jalur efek sekali di luar layar sebelum permainan, supaya mesin JavaScript sudah
+   * mengompilasinya. Tanpa ini, clear pertama sejak halaman dimuat sekitar 3 kali lebih berat
+   * (diukur di Chrome dengan CPU diperlambat), dan di Galaxy A13 tercatat satu frame 272 ms.
+   */
+  warmUp(now: number): void {
+    if (this.cell === 0 || !this.atlas) return;
+    const fx = this.fx;
+    const rows = Int8Array.of(0, 1, 2, 3);
+    const colors = new Uint8Array(40).fill(3);
+    const cells = Int8Array.of(4, 0, 5, 0, 4, 1, 5, 1);
+    const shift = new Uint8Array(VISIBLE_ROWS);
+    fx.lineClear(now, 4, rows, colors, 4);
+    fx.tspin(now, 4, 2, true);
+    fx.perfectClear(now);
+    fx.levelUp(now);
+    fx.hardDrop(now, cells, 8, 3);
+    fx.kick(now, 1);
+    this.stackDrop(shift, now, 4);
+    const out = this.shakeOut;
+    const ctx = this.ctx;
+    // Beberapa titik waktu, supaya semua cabang (awal, tengah, akhir) dijalankan.
+    for (const dt of [0, 90, 200, 400]) {
+      fx.boardTransform(now + dt, out);
+      fx.squash(now + dt);
+      fx.tilt(now + dt);
+      fx.draw(ctx, now + dt, 0.016, this.main.width, this.main.height);
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.clearRect(0, 0, this.main.width, this.main.height);
+    this.reset();
+  }
+
   /** Permainan baru: hentikan semua animasi. */
   reset(): void {
     this.dropT = -1;
@@ -117,11 +154,12 @@ export class BoardRenderer {
    * Baris dihapus: tumpukan di atasnya turun dengan animasi. Logika core sudah selesai;
    * ini hanya offset visual yang meluruh (DESIGN 8.3, catatan penting).
    */
-  stackDrop(shift: Uint8Array, now: number, quad: boolean): void {
+  stackDrop(shift: Uint8Array, now: number, power: number): void {
     if (this.fx.fx.level === "minimal") return;
     this.shift.set(shift.subarray(0, VISIBLE_ROWS));
     this.dropT = now;
-    this.dropDelay = quad ? 450 : 120;
+    // Momen besar menahan tumpukan lebih lama supaya ledakan terlihat dulu (storyboard 4 Baris: 450 ms).
+    this.dropDelay = power >= 4 ? 450 : power === 3 ? 260 : 140;
     this.dropFresh = true;
     this.dropProgress = -1;
   }
@@ -153,15 +191,11 @@ export class BoardRenderer {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    // Shake: seluruh papan (tumpukan dan utama) bergeser bersama lewat transform CSS.
-    this.fx.shakeOffset(now, this.shakeOut);
-    const sx = this.shakeOut[0]!;
-    const sy = this.shakeOut[1]!;
-    const shaking = sx !== 0 || sy !== 0;
-    if (shaking || this.wasShaking) {
-      const tf = shaking ? `translate(${sx.toFixed(2)}px, ${sy.toFixed(2)}px)` : "";
-      this.main.style.transform = tf;
-      this.stack.style.transform = tf;
+    // Shake dan hentak: seluruh papan (grid, tumpukan, piece, bingkai, callout) bergerak bersama lewat transform CSS.
+    const shaking = this.fx.boardTransform(now, this.shakeOut);
+    if (this.wrap && (shaking || this.wasShaking)) {
+      const o = this.shakeOut;
+      this.wrap.style.transform = shaking ? `translate(${o[0]!.toFixed(2)}px, ${o[1]!.toFixed(2)}px) scale(${o[2]!.toFixed(4)})` : "";
       this.wasShaking = shaking;
     }
 

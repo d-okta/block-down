@@ -543,3 +543,13 @@ Perubahan:
 - Pita ambient: elemen `.ambient` di belakang papan; warna dari `--ambient-color`, terang dari `--ambient-opacity`, gerak lewat kelas `moving` (hanya jika intensitas mengizinkan).
 - `?seed=N` di URL membuat urutan piece tetap. Dipakai `tests/tools/plan-quad.ts` untuk menyusun urutan tombol yang menghasilkan Quad, supaya momen reward bisa direkam ulang di browser.
 - Game Over (top out) menunggu animasi runtuh selesai sebelum dialog. Target tercapai, waktu habis, dan Akhiri sesi langsung ke dialog.
+
+## 18. Revisi efek bertingkat (setelah uji tahap 1 di Galaxy A13)
+
+- `fx.ts`: `clearPower(n, spin, perfect, combo)` memberi kekuatan 1 sampai 5; `SHAKE_SHARE` membagi guncangan maksimum per kekuatan. Guncangan penuh 10 px, Sedang 3 px.
+- `effects.ts`: efek baru (kilat papan, pilar cahaya tiga lapis, cincin melebar, hentak papan, debu saat jatuh cepat, hujan partikel emas Bersih Total). Cahaya digambar dengan `globalCompositeOperation = "lighter"` dan `fillRect` biasa, tanpa gradien per frame. `boardTransform()` menggantikan `shakeOffset()` dan memberi geser x, y serta skala.
+- Guncangan dan hentak diterapkan ke `.board` (pembungkus papan), bukan ke canvas, sehingga grid, tumpukan, piece, bingkai, dan callout bergerak bersama. `.board` memakai `will-change: transform` supaya hanya dikomposit ulang.
+- `callout.ts`: parameter `power`. Durasi tampil 450, 650, atau 950 ms. Masuk dengan hentakan skala (1,9 ke 0,9 ke 1 untuk kekuatan 4 ke atas). Cahaya di belakang tulisan lewat properti CSS `--glow` (`@property`) yang dianimasikan, hanya untuk kekuatan 3 ke atas.
+- `haptics.ts`: pola per kekuatan, jatuh cepat 35 ms.
+- `warmUp()`: `BoardRenderer` dan `Callout` menjalankan semua jalur sekali tanpa terlihat di permainan pertama, supaya clear pertama tidak membayar biaya kompilasi.
+- `perf.ts`: `perfFrame(vsync, begin, end)` dan `perfTag()`.

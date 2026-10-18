@@ -30,6 +30,7 @@ export const id = {
   "hud.pause": "Jeda",
   "hud.holdLocked": "Terkunci",
 
+  "callout.single": "1 BARIS",
   "callout.double": "2 BARIS",
   "callout.triple": "3 BARIS",
   "callout.quad": "4 BARIS",

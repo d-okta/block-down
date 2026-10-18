@@ -18,8 +18,11 @@ export class Callout {
     this.sub = root.querySelector("#callout-sub")!;
   }
 
-  /** delay: ms sebelum muncul (Quad muncul di 200 ms storyboard). */
-  show(title: string, points: string, sub: string, tone: CalloutTone, fx: FxScale, delay = 0): void {
+  /**
+   * delay: ms sebelum muncul (4 Baris muncul di 200 ms storyboard).
+   * power: 1 kecil dan singkat, sampai 4 dan 5 yang masuk dengan hentakan besar (revisi Fase 4).
+   */
+  show(title: string, points: string, sub: string, tone: CalloutTone, fx: FxScale, delay = 0, power = 4): void {
     for (const a of this.anims) a.cancel();
     this.anims.length = 0;
     this.title.textContent = title;
@@ -28,12 +31,15 @@ export class Callout {
     this.points.hidden = points === "";
     this.sub.hidden = sub === "";
     this.root.dataset["tone"] = tone;
+    this.root.dataset["power"] = String(power);
 
     const minimal = fx.level === "minimal";
-    const hold = 900;
+    const hold = power <= 1 ? 450 : power === 2 ? 650 : 950;
     const total = delay + 180 + hold + 260;
     const at = (ms: number) => ms / total;
-    // Muncul dengan sedikit membesar, diam, lalu memudar naik. Minimal: hanya pudar.
+    // Masuk dengan hentakan: membesar melewati ukuran akhir, lalu kembali. Makin kuat, makin besar.
+    const from = power >= 4 ? 1.9 : power === 3 ? 1.45 : 0.85;
+    const peak = power >= 4 ? 0.9 : power === 3 ? 0.95 : 1.06;
     this.anims.push(
       this.root.animate(
         minimal
@@ -45,15 +51,29 @@ export class Callout {
               { opacity: 0, offset: 1 },
             ]
           : [
-              { opacity: 0, transform: "translateY(6px) scale(0.92)", offset: 0 },
-              { opacity: 0, transform: "translateY(6px) scale(0.92)", offset: at(delay) },
-              { opacity: 1, transform: "translateY(0) scale(1)", offset: at(delay + 180), easing: "ease-out" },
+              { opacity: 0, transform: `scale(${from})`, offset: 0 },
+              { opacity: 0, transform: `scale(${from})`, offset: at(delay) },
+              { opacity: 1, transform: `scale(${peak})`, offset: at(delay + 120), easing: "ease-out" },
+              { opacity: 1, transform: "scale(1)", offset: at(delay + 200), easing: "ease-out" },
               { opacity: 1, transform: "translateY(0) scale(1)", offset: at(delay + 180 + hold), easing: "ease-in" },
-              { opacity: 0, transform: "translateY(-10px) scale(1)", offset: 1 },
+              { opacity: 0, transform: "translateY(-14px) scale(1.04)", offset: 1 },
             ],
         { duration: total, fill: "forwards" },
       ),
     );
+    if (!minimal && power >= 3) {
+      // Cahaya di belakang tulisan: menyala saat masuk lalu meredup.
+      this.anims.push(
+        this.root.animate(
+          [
+            { "--glow": "0" },
+            { "--glow": "1", offset: 0.25 },
+            { "--glow": "0.35" },
+          ] as Keyframe[],
+          { duration: 900, delay, easing: "ease-out", fill: "forwards" },
+        ),
+      );
+    }
     if (!minimal) {
       // Sapuan cahaya aksen sekali melintasi judul (bukan denyut berulang).
       this.anims.push(
@@ -81,6 +101,14 @@ export class Callout {
   hide(): void {
     for (const a of this.anims) a.cancel();
     this.anims.length = 0;
-    this.root.style.opacity = "0";
+  }
+
+  /** Siapkan animasi dan gaya teks callout sekali tanpa terlihat (lihat BoardRenderer.warmUp). */
+  warmUp(fx: FxScale): void {
+    this.root.style.visibility = "hidden";
+    this.show("4", "+0", "0", "normal", fx, 0, 4);
+    for (const a of this.anims) a.finish();
+    this.hide();
+    this.root.style.visibility = "";
   }
 }

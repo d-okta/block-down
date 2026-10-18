@@ -493,6 +493,9 @@ kbd {
   position: relative;
   align-self: flex-start;
   isolation: isolate;
+  /* Shake dan hentak memakai transform; lapisan sendiri supaya hanya dikomposit ulang, tidak digambar ulang. */
+  will-change: transform;
+  transform-origin: 50% 70%;
 }
 
 .board canvas {
@@ -597,6 +600,51 @@ kbd {
   color: var(--text-dim);
   font-size: 0.875rem;
   font-weight: 600;
+}
+
+/* Ukuran bertingkat (revisi Fase 4): Single kecil, 4 Baris dan Bersih Total besar. */
+.callout[data-power="1"] .callout-title {
+  font-size: clamp(1.125rem, 5.5vw, 1.75rem);
+}
+.callout[data-power="2"] .callout-title {
+  font-size: clamp(1.375rem, 7vw, 2.25rem);
+}
+.callout[data-power="4"] .callout-title,
+.callout[data-power="5"] .callout-title {
+  font-size: clamp(2.25rem, 12vw, 3.75rem);
+}
+.callout[data-power="4"] .callout-points,
+.callout[data-power="5"] .callout-points {
+  font-size: 1.375rem;
+}
+
+/*
+ * Cahaya di belakang tulisan untuk momen besar (kekuatan 3 ke atas), dikendalikan --glow oleh callout.ts.
+ * Hanya satu elemen bercahaya di layar, dan hanya sesaat (antislop R-13: glow sebagai aksen fokus).
+ */
+@property --glow {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+.callout::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 120%;
+  height: 220%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, var(--callout-glow, var(--accent)), transparent);
+  opacity: calc(var(--glow) * 0.45);
+  z-index: -1;
+  pointer-events: none;
+}
+.callout[data-tone="spin"] {
+  --callout-glow: #a57bd8;
+}
+.callout[data-tone="gold"] {
+  --callout-glow: #e3c35a;
 }
 
 /* Skor bergulir: angka naik singkat setelah reward (DESIGN 8.3). Aksen di atas latar 5,10:1, lolos AA. */

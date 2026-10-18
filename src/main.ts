@@ -11,9 +11,9 @@ import { BoardRenderer, PreviewRenderer } from "./render/board.ts";
 import { applyI18n, fmt, formatClock, formatMs, pickLocale, setLocale, t, type Key } from "./i18n/index.ts";
 import { BTNS, load, save, submitResult, type Locale, type ResultInput, type SaveData } from "./store/storage.ts";
 import { SettingsScreen } from "./ui/settings.ts";
-import { perfFrame, perfPause } from "./debug/perf.ts";
+import { perfFrame, perfPause, perfTag } from "./debug/perf.ts";
 import { Effects } from "./render/effects.ts";
-import { effectiveFx } from "./render/fx.ts";
+import { clearPower, effectiveFx } from "./render/fx.ts";
 import { BLOCK_COLORS } from "./render/sprites.ts";
 import { Callout, type CalloutTone } from "./ui/callout.ts";
 import { hapticsAvailable, vibrate } from "./platform/haptics.ts";
@@ -56,6 +56,7 @@ const currentFx = () => effectiveFx(data.settings.effects, data.settings.reduceM
 const effects = new Effects(currentFx());
 const board = new BoardRenderer(cvMain, $<HTMLCanvasElement>("cv-stack"), $<HTMLCanvasElement>("cv-bg"), effects);
 const boardEl = $("board");
+board.wrap = boardEl;
 const ambient = $("ambient");
 const frameEl = $("board-frame");
 const callout = new Callout($("callout"));
@@ -226,9 +227,16 @@ function startGame(id: ModeId): void {
   $("btn-end").hidden = id !== "zen";
   showScreen("game");
   layout();
+  if (!warmedUp) {
+    // Sekali per halaman: jalankan jalur efek dan callout tanpa terlihat (BoardRenderer.warmUp).
+    warmedUp = true;
+    board.warmUp(performance.now());
+    callout.warmUp(effects.fx);
+  }
   updateHud(true);
   resume();
 }
+let warmedUp = false;
 
 function resume(): void {
   perfPause(); // frame pertama setelah lanjut tidak dihitung sebagai tersendat
@@ -256,6 +264,7 @@ function stopLoop(): void {
 
 function frame(now: number): void {
   if (!running || !game) return;
+  const begin = performance.now();
   gamepad.poll(now);
   clk.acc += Math.min(now - clk.last, 250);
   clk.last = now;
@@ -276,7 +285,7 @@ function frame(now: number): void {
   if (rolled !== null) hud.score.textContent = rolled;
   board.draw(s, clk.fallFrom, clk.acc / STEP, now, s.status === STATUS.PLAYING);
   drawFrame(now);
-  perfFrame(now, performance.now());
+  perfFrame(now, begin, performance.now());
   if (s.status !== STATUS.PLAYING && !overShown) {
     overShown = true;
     endGame(now);
@@ -332,13 +341,15 @@ function handleEvents(now: number): void {
         board.lockFlash(e.cells, e.a, now);
         break;
       case EV.HARD:
-        effects.hardDrop(now, e.cells, e.a);
+        perfTag("hard");
+        effects.hardDrop(now, e.cells, e.a, e.b);
         vibrate("hard", data.settings.haptics);
         break;
       case EV.ROTATE:
         if (e.b > 0) effects.kick(now, e.a);
         break;
       case EV.LEVEL_UP:
+        perfTag("level");
         effects.levelUp(now);
         ambientFor(e.a);
         callout.show(t("callout.levelUp"), "", "", "normal", effects.fx);
@@ -358,20 +369,22 @@ function handleEvents(now: number): void {
 
 const SPIN_KEYS: Record<number, Key> = { 0: "callout.tspin", 1: "callout.tspin1", 2: "callout.tspin2", 3: "callout.tspin3" };
 const MINI_KEYS: Record<number, Key> = { 0: "callout.tspinMini", 1: "callout.tspinMini1", 2: "callout.tspinMini2" };
-const LINE_KEYS: Record<number, Key> = { 2: "callout.double", 3: "callout.triple", 4: "callout.quad" };
+const LINE_KEYS: Record<number, Key> = { 1: "callout.single", 2: "callout.double", 3: "callout.triple", 4: "callout.quad" };
 
 /**
- * Baris dihapus atau T-Spin (DESIGN 8.3). Logika sudah selesai di core; semua di sini hanya tampilan,
- * dan piece berikutnya sudah bisa digerakkan sejak tick ini.
+ * Baris dihapus atau T-Spin (DESIGN 8.3, revisi Fase 4). Logika sudah selesai di core; semua di sini
+ * hanya tampilan, dan piece berikutnya sudah bisa digerakkan sejak tick ini.
+ * Setiap clear punya efek yang jelas, bertingkat menurut kekuatan (keputusan pemilik setelah uji tahap 1).
  */
 function onClear(
   now: number, n: number, spin: number, combo: number, b2b: boolean, perfect: boolean, total: number,
   rows: Int8Array, colors: Uint8Array, shift: Uint8Array, level: number, score: number,
 ): void {
-  const quad = n === 4;
+  const power = clearPower(n, spin, perfect, combo);
+  perfTag(`clear${n}${spin ? "t" : ""}`);
   if (n > 0) {
-    effects.lineClear(now, n, rows, colors, quad);
-    board.stackDrop(shift, now, quad);
+    effects.lineClear(now, n, rows, colors, power);
+    board.stackDrop(shift, now, power);
   }
   if (spin > 0) {
     // Pusat riak: kolom tengah papan di baris terbawah yang dihapus, atau tengah papan jika tanpa baris.
@@ -379,8 +392,8 @@ function onClear(
     effects.tspin(now, 4.5, row, n > 0);
   }
   if (perfect) effects.perfectClear(now);
-  if (quad || perfect || (spin > 0 && n > 0)) vibrate("big", data.settings.haptics);
-  if (quad || perfect) ambientBoost();
+  vibrate(perfect ? 5 : power, data.settings.haptics);
+  if (power >= 3) ambientBoost();
 
   comboWarm = Math.min(1, Math.max(0, combo) / 8);
   ambientFor(level);
@@ -400,10 +413,9 @@ function onClear(
   if (b2b) subs.push(t("callout.b2b"));
   if (combo >= 1) subs.push(`${t("callout.combo", { n: combo })} \u2713`);
   const points = t("callout.points", { n: total });
-  // Single tanpa combo tidak diberi callout (DESIGN 8.3); dengan combo, callout kecil berisi combo.
   if (title || subs.length) {
     const tone: CalloutTone = perfect ? "gold" : spin > 0 ? "spin" : "normal";
-    callout.show(title || subs.shift()!, points, subs.join("  "), tone, effects.fx, quad ? 200 : 60);
+    callout.show(title || subs.shift()!, points, subs.join("  "), tone, effects.fx, power >= 4 ? 200 : 50, power);
   }
   if (title) {
     const parts = [title, ...subs, points];

@@ -45,7 +45,7 @@ Butuh Node 22.18 atau lebih baru.
 ```
 npm install
 npm run dev       # buka http://localhost:5173
-npm run check     # TypeScript + 57 tes
+npm run check     # TypeScript + 58 tes
 npm run build     # hasil di dist/
 ```
 

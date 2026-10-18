@@ -201,6 +201,21 @@ Performa, CPU diperlambat 6 kali, 1 detik setelah Quad (3 putaran): kerja per fr
 
 Ditemukan dan diperbaiki saat uji: sapuan cahaya di callout awalnya memotong huruf terakhir (posisi gradien di luar teks); piece yang terkunci di tengah animasi tumpukan turun membuat tumpukan sesaat tampil di posisi lama.
 
+### Revisi tahap 1 setelah uji di Galaxy A13
+
+Masukan pemilik: efek kurang, tidak ada yang wah; getar kurang terasa. Pengukuran `?perf` di Galaxy A13 (131 detik, Maraton sampai 16 baris): fps 60, tersendat 1,1%, kerja p50 3,0 ms, p99 11,8 ms, maks 272 ms, heap 9,5 MB (awal 9,5).
+
+Keputusan pemilik: efek bertingkat untuk setiap clear; guncangan maksimal 10 px. Rincian di DESIGN 8.3 dan 9.3.
+
+Satu frame 272 ms: dugaan utama adalah kompilasi pertama jalur efek (clear pertama sejak halaman dimuat). Di Chrome dengan CPU diperlambat 6 kali, frame terberat setelah Quad pertama sekitar 14 ms, sedangkan Quad berikutnya 5 sampai 7 ms. Perbaikan: semua jalur efek dan callout dijalankan sekali tanpa terlihat saat permainan pertama dimulai (`BoardRenderer.warmUp`, `Callout.warmUp`). Hasil di Chrome tidak konsisten (10 sampai 15 ms di Quad pertama), jadi dampaknya harus dilihat di HP.
+
+Panel `?perf` diperbaiki: waktu kerja kini diukur dari awal kode frame, bukan dari waktu vsync (versi lama ikut menghitung keterlambatan browser memanggil frame sebagai kerja game), dan frame terberat diberi label kejadiannya, misalnya `(clear4)` atau `(hard)`.
+
+Uji setelah revisi (Chrome, HP emulasi):
+- Storyboard Quad: 120 ms papan terdorong 4,2 px dan membesar 2%, pilar cahaya, tiga cincin, shockwave tebal; 260 ms callout masuk dengan hentakan; 520 ms selesai.
+- CPU 6 kali, 1 detik setelah Quad: kerja p99 1,9 sampai 3,0 ms, maks 5,7 sampai 10,4 ms, tidak ada frame di atas 16,7 ms.
+- Kurangi animasi, Minimal, Game Over, gestur, click-through Fase 2 dan 3, lapisan tumpukan: lulus. Error: tidak ada.
+
 ## Fase 5: Android, PWA, Vercel, listing toko
 
 Lingkup: proyek Capacitor Android, manifest dan service worker PWA, deploy Vercel, ikon aplikasi, dan teks listing Play Store.

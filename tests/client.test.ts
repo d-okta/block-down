@@ -228,7 +228,7 @@ test("gestur: arah dikunci, sapu ke bawah yang sedikit miring tidak menggeser", 
 
 // ---------- efek ----------
 
-import { effectiveFx } from "../src/render/fx.ts";
+import { clearPower, effectiveFx, SHAKE_SHARE } from "../src/render/fx.ts";
 import { Particles, POOL } from "../src/render/particles.ts";
 
 test("efek: Kurangi animasi mengunci ke Minimal; null mengikuti sistem", () => {
@@ -239,7 +239,23 @@ test("efek: Kurangi animasi mengunci ke Minimal; null mengikuti sistem", () => {
   const min = effectiveFx("minimal", false, false);
   assert.equal(min.particles, 0);
   assert.equal(min.shake, 0, "tanpa shake di Minimal (DESIGN 8.5)");
-  assert.ok(effectiveFx("full", false, false).shake <= 4, "shake maksimal 4 px (DESIGN 8.4)");
+  assert.ok(effectiveFx("full", false, false).shake <= 10, "shake maksimal 10 px (DESIGN 8.4, revisi Fase 4)");
+  assert.ok(effectiveFx("medium", false, false).shake < effectiveFx("full", false, false).shake);
+});
+
+test("efek: kekuatan bertingkat, Single tanpa shake, 4 Baris dan Bersih Total paling kuat", () => {
+  assert.equal(clearPower(1, 0, false, 0), 1);
+  assert.equal(clearPower(2, 0, false, 0), 2);
+  assert.equal(clearPower(3, 0, false, 0), 3);
+  assert.equal(clearPower(4, 0, false, 0), 4);
+  assert.equal(clearPower(1, 0, true, 0), 5, "Bersih Total");
+  assert.equal(clearPower(2, 2, false, 0), 4, "T-Spin Double setara 4 Baris");
+  assert.equal(clearPower(0, 2, false, 0), 2, "T-Spin tanpa baris");
+  assert.equal(clearPower(1, 1, false, 0), 1, "Mini Single");
+  assert.equal(clearPower(1, 0, false, 3), 2, "combo panjang menaikkan satu tingkat");
+  assert.equal(clearPower(4, 0, false, 5), 4, "tidak melebihi 4 tanpa Bersih Total");
+  assert.equal(SHAKE_SHARE[1], 0, "Single tanpa shake penuh");
+  assert.equal(SHAKE_SHARE[4], 1);
 });
 
 test("efek: pool partikel tetap 300, partikel tertua ditimpa, mati setelah umurnya habis", () => {

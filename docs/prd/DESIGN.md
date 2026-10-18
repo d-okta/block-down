@@ -345,20 +345,30 @@ Momen signature lain:
 | Momen | Efek | Callout ID / EN |
 |---|---|---|
 | Double, Triple | Tepi baris menyala, partikel lebih sedikit, tanpa shake | "2 BARIS" / "DOUBLE", "3 BARIS" / "TRIPLE" |
-| Single | Hanya kilat tepi baris, tanpa callout | |
+| Single | Kilat baris, partikel, callout kecil dan singkat, getar ringan (revisi Fase 4) | "1 BARIS" / "SINGLE" |
 | T-Spin | Riak cincin ungu (warna T) dari pusat piece | "T-SPIN", "T-SPIN MINI", "T-SPIN 1 BARIS" / "T-SPIN SINGLE", dan seterusnya |
 | B2B | Label kecil di bawah callout | "BERUNTUN" / "BACK-TO-BACK" |
 | Combo | Penghitung bertanda centang di bawah callout. Makin panjang combo, pita latar makin hangat. | "COMBO {n}" |
 | Bersih Total | Gelombang cahaya dari bawah ke atas, callout warna emas (warna O) | "BERSIH TOTAL" / "ALL CLEAR" |
 | Naik level | Bingkai playfield tergambar ulang dengan aksen mengelilingi playfield, lalu kembali ke `line-deco`. Warna ambient berganti. | "NAIK LEVEL" / "LEVEL UP" |
 
-Single tidak diberi callout karena paling sering terjadi, dan callout di setiap clear akan merusak ketenangan saat bermain.
+Revisi setelah uji Fase 4 tahap 1 (keputusan pemilik): efek terasa kurang, jadi setiap clear diberi efek yang jelas dan bertingkat. Ini mengubah arah awal "tenang saat bermain biasa": permainan kini lebih hidup di setiap clear, sementara jeda antar clear tetap tenang.
+
+| Kekuatan | Momen | Efek |
+|---|---|---|
+| 1 | Single, Mini Single | Kilat baris, partikel sedikit, callout kecil 450 ms, getar 45 ms |
+| 2 | Double, T-Spin tanpa baris, Single dengan combo 3+ | Ditambah shockwave, callout sedang, getar 60 ms |
+| 3 | Triple, Double dengan combo 3+ | Ditambah pilar cahaya putih, kilat papan, guncangan 4 px, callout besar dengan cahaya di belakang, getar bertingkat |
+| 4 | 4 Baris, T-Spin dengan baris | Pilar cahaya aksen, tiga cincin melebar, papan menghentak (skala 1,035), guncangan 10 px, partikel paling banyak, callout terbesar, getar panjang |
+| 5 | Bersih Total | Seperti 4, ditambah gelombang dan hujan partikel emas |
+
+Fungsi tingkat ada di `src/render/fx.ts` (`clearPower`), dan dites.
 
 ### 8.4 Aturan wajib
 
 1. Animasi tidak pernah memblokir input atau logika.
 2. Partikel memakai pool tetap berisi 300. Tidak ada alokasi per frame. Jika pool penuh, partikel tertua dipakai ulang.
-3. Shake maksimal 4px dan hanya untuk Quad, T-Spin dengan baris, dan Bersih Total.
+3. Shake maksimal 10 px (revisi Fase 4, keputusan pemilik; sebelumnya 4 px), penuh hanya untuk 4 Baris, T-Spin dengan baris, dan Bersih Total. Triple 4 px, Double 2 px, Single tanpa shake.
 4. Callout baru menggantikan callout lama. Tidak ada tumpukan callout.
 5. Easing: `ease-out` untuk masuk, `ease-in` untuk keluar, dan pegas dengan overshoot kecil hanya untuk penurunan stack.
 
@@ -367,7 +377,7 @@ Single tidak diberi callout karena paling sering terjadi, dan callout di setiap 
 | | Penuh | Sedang | Minimal |
 |---|---|---|---|
 | Partikel | Hingga 300 | Hingga 150 | Tidak ada |
-| Shake | Hingga 4px | Hingga 2px | Tidak ada |
+| Shake | Hingga 10 px | Hingga 3 px | Tidak ada |
 | Shockwave, riak, gelombang | Ya | Ya, opasitas setengah | Tidak ada |
 | Callout | Sapuan cahaya | Sapuan cahaya | Fade saja |
 | Penurunan stack | Pantulan elastis | Tanpa pantulan | Langsung |
@@ -424,6 +434,15 @@ Font Stitch sama dengan brief (Sora dan JetBrains Mono), jadi tidak ada perubaha
 | Orientasi HP | Landscape dengan tombol di samping | Hanya tegak; landscape menampilkan pesan dan menjeda | Pemilik. |
 | Tata letak HP | Kolom Simpan/statistik di kiri, Antrean di kanan | Statistik satu baris, Simpan + Antrean mendatar di atas papan | Ruang bekas tombol dipakai papan: sel 22 px jadi 32 px di lebar 390 (pemilik). Menyimpang dari tata letak Stitch. |
 | Aksen saat bermain | Tombol jatuh cepat | Tidak ada | Aksen hanya di tombol utama dialog, fokus, logo, dan (Fase 4) momen reward. |
+
+### 9.3 Dari uji di Galaxy A13 (Fase 4 tahap 1)
+
+| Elemen | Sebelumnya | Sekarang | Alasan |
+|---|---|---|---|
+| Efek per clear | Single tanpa callout; efek besar hanya 4 Baris, T-Spin, Bersih Total | Bertingkat untuk setiap clear (bagian 8.3) | Pemilik: efek kurang terasa, "tidak ada yang wah". |
+| Guncangan | Maksimal 4 px | Maksimal 10 px, bertingkat | Keputusan pemilik. |
+| Efek baru | | Pilar cahaya, kilat papan, cincin melebar, papan menghentak, debu jatuh cepat, cahaya di belakang callout | Kesan wah dari cahaya dan gerak, tanpa glow permanen. Cahaya hanya muncul sesaat di momen clear (R-13: glow sebagai aksen fokus). |
+| Getar | 12 ms jatuh cepat, satu pola untuk momen besar | 35 ms jatuh cepat, pola bertingkat 45 ms sampai pola panjang untuk Bersih Total | Pemilik: getar kurang terasa. Motor getar HP kelas bawah butuh sekitar 30 ms. |
 
 ---
 

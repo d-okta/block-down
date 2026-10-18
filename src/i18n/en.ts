@@ -31,6 +31,7 @@ export const en: Record<Key, string> = {
   "hud.pause": "Pause",
   "hud.holdLocked": "Locked",
 
+  "callout.single": "SINGLE",
   "callout.double": "DOUBLE",
   "callout.triple": "TRIPLE",
   "callout.quad": "QUAD",

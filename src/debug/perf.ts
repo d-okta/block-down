@@ -51,22 +51,38 @@ export function perfPause(): void {
   lastFrame = -1;
 }
 
-/** start: timestamp rAF; end: performance.now() setelah frame selesai digambar. */
-export function perfFrame(start: number, end: number): void {
+let workTag = "";
+let frameTag = "";
+
+/** Catat kejadian di frame ini (misalnya "clear4"), supaya frame terberat bisa dikenali. */
+export function perfTag(tag: string): void {
+  if (el) frameTag = tag;
+}
+
+/**
+ * vsync: timestamp rAF (untuk jarak antar frame); begin dan end: performance.now() di awal dan
+ * akhir kode frame (untuk waktu kerja). Versi pertama memakai vsync sebagai awal kerja, sehingga
+ * keterlambatan browser memanggil frame ikut terhitung sebagai kerja game.
+ */
+export function perfFrame(vsync: number, begin: number, end: number): void {
   if (!el) return;
   if (lastFrame >= 0) {
-    const gap = start - lastFrame;
-    const w = end - start;
+    const gap = vsync - lastFrame;
+    const w = end - begin;
     gapHist[bin(gap)]!++;
     workHist[bin(w)]!++;
     count++;
     total += gap;
     if (gap > gapMax) gapMax = gap;
-    if (w > workMax) workMax = w;
+    if (w > workMax) {
+      workMax = w;
+      workTag = frameTag;
+    }
     // Tersendat: jarak frame lebih dari 1,5 kali satu frame 60 Hz (25 ms).
     if (gap > 25) slow++;
   }
-  lastFrame = start;
+  frameTag = "";
+  lastFrame = vsync;
   if (end - lastShow > 2000) {
     lastShow = end;
     show();
@@ -85,6 +101,6 @@ function show(): void {
   el!.textContent =
     `waktu ${(total / 1000).toFixed(0)} s, frame ${count}\n` +
     `fps ${(1000 / pct(gapHist, 0.5)).toFixed(0)}  tersendat ${slow} (${((slow / count) * 100).toFixed(1)}%)  maks ${gapMax.toFixed(0)} ms\n` +
-    `kerja p50 ${pct(workHist, 0.5).toFixed(1)}  p99 ${pct(workHist, 0.99).toFixed(1)}  maks ${workMax.toFixed(1)} ms\n` +
+    `kerja p50 ${pct(workHist, 0.5).toFixed(1)}  p99 ${pct(workHist, 0.99).toFixed(1)}  maks ${workMax.toFixed(1)} ms${workTag ? ` (${workTag})` : ""}\n` +
     `heap ${heap}`;
 }
