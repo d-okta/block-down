@@ -1,8 +1,7 @@
 // Callout reward di sepertiga atas papan (DESIGN 8.3, EDD-2 bagian 4.4).
 // Animasi memakai Web Animations API dan HANYA transform serta opacity, supaya browser cukup
-// menggeser lapisan yang sudah dicat. Versi sebelumnya menganimasikan variabel CSS (--glow) dan
-// background-position teks bergradien; keduanya memaksa cat ulang setiap frame dan membuat
-// animasi patah-patah di Galaxy A13. Callout baru menggantikan yang lama.
+// menggeser lapisan yang sudah dicat. Di luar animasi callout disembunyikan (kelas .showing).
+// Callout baru menggantikan yang lama.
 import type { FxScale } from "../render/fx.ts";
 
 export type CalloutTone = "normal" | "spin" | "gold";
@@ -13,7 +12,6 @@ export class Callout {
   private title: HTMLElement;
   private sub: HTMLElement;
   private glow: HTMLElement;
-  private shine: HTMLElement;
   private anims: Animation[] = [];
 
   constructor(root: HTMLElement) {
@@ -22,7 +20,6 @@ export class Callout {
     this.title = root.querySelector("#callout-title")!;
     this.sub = root.querySelector("#callout-sub")!;
     this.glow = root.querySelector("#callout-glow")!;
-    this.shine = root.querySelector("#callout-shine")!;
   }
 
   /**
@@ -68,6 +65,12 @@ export class Callout {
         { duration: total, fill: "forwards" },
       ),
     );
+    // Tampil hanya selama animasi; setelah selesai disembunyikan supaya tidak ikut dikomposit.
+    this.root.classList.add("showing");
+    const main = this.anims[0]!;
+    main.onfinish = () => {
+      if (this.anims[0] === main) this.root.classList.remove("showing");
+    };
     if (!minimal && power >= 3) {
       // Cahaya di belakang tulisan: elemen sendiri yang hanya diubah opacity dan skalanya.
       this.anims.push(
@@ -81,17 +84,7 @@ export class Callout {
         ),
       );
     }
-    if (!minimal && power >= 2) {
-      // Sapuan cahaya sekali melintasi judul: pita terang yang digeser dengan transform.
-      this.anims.push(
-        this.shine.animate([{ transform: "translateX(-120%) skewX(-20deg)" }, { transform: "translateX(320%) skewX(-20deg)" }], {
-          duration: 480,
-          delay: delay + 80,
-          easing: "ease-out",
-          fill: "both",
-        }),
-      );
-    }
+    // Sapuan cahaya di judul dihapus: di Galaxy A13 tampil sebagai kotak terang yang terpotong.
     if (!minimal) {
       // Angka skor melayang naik sedikit lebih jauh dari judul.
       if (points) {
@@ -110,6 +103,7 @@ export class Callout {
   hide(): void {
     for (const a of this.anims) a.cancel();
     this.anims.length = 0;
+    this.root.classList.remove("showing");
   }
 
   /** Siapkan animasi dan gaya teks callout sekali tanpa terlihat (lihat BoardRenderer.warmUp). */

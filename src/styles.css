@@ -426,8 +426,6 @@ kbd {
   font-size: 1.75rem;
   font-weight: 700;
   contain: layout paint style;
-  /* Lapisan sendiri: teks yang berganti hanya mengecat ulang skor, bukan seluruh dokumen. */
-  will-change: transform;
 }
 
 #btn-pause {
@@ -526,15 +524,20 @@ kbd {
 /*
  * Cahaya momen besar (revisi Fase 4): dua lapisan CSS di atas canvas, digerakkan main.ts hanya lewat
  * opacity dan transform. Warna lapisan berubah sekali saat dipicu, bukan setiap frame.
- * mix-blend-mode: screen memberi kesan cahaya tanpa mengisi ulang piksel canvas.
+ * Tanpa mix-blend-mode: di Galaxy A13 paduan itu memaksa GPU memadukan ulang seluruh papan setiap
+ * frame (tersendat naik dari 0,9% ke 6,3%). Saat tidak dipakai, lapisan dilepas (hidden) supaya
+ * tidak ikut dikomposit sama sekali.
  */
 .fx-flash,
 .fx-pillar {
   position: absolute;
   pointer-events: none;
   opacity: 0;
-  mix-blend-mode: screen;
-  will-change: transform, opacity;
+}
+
+.fx-flash[hidden],
+.fx-pillar[hidden] {
+  display: none;
 }
 
 .fx-flash {
@@ -605,8 +608,9 @@ kbd {
 
 /*
  * Callout reward: sepertiga atas papan, tidak menutup area spawn (DESIGN 8.3).
- * Semua animasinya hanya transform dan opacity (callout.ts), dan setiap bagian yang bergerak punya
- * lapisan sendiri (will-change), supaya browser tidak mengecat ulang teks setiap frame.
+ * Semua animasinya hanya transform dan opacity (callout.ts). Tidak ada will-change permanen: browser
+ * memberi lapisan sendiri hanya selama animasi berjalan, lalu melepasnya. Di luar animasi callout
+ * disembunyikan (visibility) supaya tidak ikut dikomposit.
  */
 .callout {
   position: absolute;
@@ -621,20 +625,17 @@ kbd {
   opacity: 0;
   text-align: center;
   z-index: 2;
-  will-change: transform, opacity;
+  visibility: hidden;
+}
+
+.callout.showing {
+  visibility: visible;
 }
 
 .callout-points {
   color: var(--text);
   font-size: 1rem;
   font-weight: 700;
-  will-change: transform;
-}
-
-.callout-title-wrap {
-  position: relative;
-  overflow: hidden;
-  padding: 0 4px;
 }
 
 .callout-title {
@@ -652,19 +653,6 @@ kbd {
 
 .callout[data-tone="gold"] .callout-title {
   color: #e3c35a;
-}
-
-/* Sapuan cahaya: pita terang miring yang digeser sekali melintasi judul (transform saja). */
-.callout-shine {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 35%;
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
-  mix-blend-mode: overlay;
-  transform: translateX(-120%) skewX(-20deg);
-  will-change: transform;
 }
 
 .callout-sub {
@@ -704,7 +692,6 @@ kbd {
   opacity: 0;
   transform: translate(-50%, -50%);
   z-index: -1;
-  will-change: transform, opacity;
 }
 .callout[data-tone="spin"] {
   --callout-glow: #a57bd8;

@@ -274,3 +274,11 @@ Keputusan lain sudah dicatat di bagian Keputusan masing-masing dokumen.
 |---|---|---|
 | Uji performa di Samsung Galaxy A13 (perangkat acuan) | Bersama kriteria sentuh Fase 3 | ARCHITECTURE.md bagian 14 |
 | Konsep ikon aplikasi | Sebelum Fase 5 | DESIGN.md bagian 10 |
+
+### Uji A13 kedua: tersendat naik ke 6,3%
+
+Masukan pemilik setelah `f35bb13`: `?perf` 138 detik menunjukkan fps 60, tersendat 484 (6,3%), maks 185 ms, kerja p99 2,5 ms. Kode game tetap ringan; kerja GPU naik. Pita sapuan di judul tampil sebagai kotak terang terpotong.
+
+Dugaan: lapisan baru selalu ada di papan dengan `mix-blend-mode: screen` dan `will-change` permanen, sehingga GPU A13 memadukan ulang papan setiap frame, termasuk saat tidak ada efek. Chrome laptop tanpa GPU tidak memperlihatkan perbedaan, jadi dugaan ini hanya bisa dipastikan di HP.
+
+Perbaikan: `mix-blend-mode` dihapus; lapisan kilat dan pilar dilepas (`hidden`) saat tidak dipakai; callout disembunyikan di luar animasinya; semua `will-change` permanen dihapus kecuali di papan (untuk guncangan); pita sapuan judul dihapus. Efek lain tetap. Tes 58 lulus, gestur, landscape, Game Over, lapisan tumpukan lulus; CPU 6 kali tanpa frame di atas 16,7 ms. Perlu dikonfirmasi di A13.

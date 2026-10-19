@@ -223,8 +223,7 @@ function startGame(id: ModeId): void {
   clk.sim = 0;
   board.reset();
   callout.hide();
-  fxFlash.style.opacity = "0";
-  fxPillar.style.opacity = "0";
+  fxFlash.hidden = fxPillar.hidden = true;
   light.flash = light.pillar = -1;
   roll.t = -1;
   hud.score.classList.remove("bump");
@@ -334,6 +333,7 @@ function drawLight(now: number): void {
       fxFlash.style.setProperty("--fx-flash", light.flashColor);
     }
     fxFlash.style.opacity = f > 0 ? f.toFixed(3) : "0";
+    fxFlash.hidden = f <= 0;
     light.flash = f;
   }
   if (pl > 0 || light.pillar > 0) {
@@ -347,6 +347,7 @@ function drawLight(now: number): void {
       fxPillar.style.transform = `translateY(${((base - 1) * 100).toFixed(2)}%) scale(${lightOut[3]!.toFixed(3)}, ${(lightOut[2]! / Math.max(0.01, base)).toFixed(3)})`;
     }
     fxPillar.style.opacity = pl > 0 ? pl.toFixed(3) : "0";
+    fxPillar.hidden = pl <= 0;
     light.pillar = pl;
   }
 }

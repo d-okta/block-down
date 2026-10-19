@@ -560,3 +560,4 @@ Perubahan:
 2. Teks yang berganti saat bermain (skor) harus berlebar tetap dan memakai `contain`, supaya tidak memicu tata letak dan cat ulang dokumen. Penggantian teks dibatasi sekitar 30 kali per detik.
 3. Cahaya yang menutupi area besar (kilat papan, pilar) dibuat sebagai lapisan CSS dengan `mix-blend-mode: screen`, bukan digambar di canvas setiap frame. Canvas hanya untuk elemen kecil (partikel, baris, garis, cincin).
 4. Cara mengukur: `rendertrace`, tracing Chrome 1 detik setelah Quad, menghitung `Paint`, `RasterTask`, `Layout`, dan elemen yang dicat ulang. Target: cat ulang dokumen tidak setiap frame.
+5. Jangan memakai `mix-blend-mode` atau `will-change` permanen pada lapisan di atas papan. Lapisan efek dilepas (`hidden` atau `visibility: hidden`) saat tidak dipakai. Di A13 lapisan paduan yang selalu ada menaikkan tersendat dari 0,9% ke 6,3%.

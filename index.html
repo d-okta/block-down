@@ -133,18 +133,15 @@
             <canvas id="cv-stack" aria-hidden="true"></canvas>
             <canvas id="cv-main" role="img"></canvas>
             <!-- Cahaya momen besar sebagai lapisan CSS yang hanya dipudarkan dan diregangkan (murah di GPU). -->
-            <div class="fx-flash" id="fx-flash" aria-hidden="true"></div>
-            <div class="fx-pillar" id="fx-pillar" aria-hidden="true"></div>
+            <div class="fx-flash" id="fx-flash" aria-hidden="true" hidden></div>
+            <div class="fx-pillar" id="fx-pillar" aria-hidden="true" hidden></div>
             <!-- Bingkai naik level, digambar ulang dengan warna aksen. -->
             <div class="board-frame" id="board-frame" aria-hidden="true"></div>
             <!-- Callout reward di sepertiga atas papan (DESIGN 8.3). Diumumkan lewat #live, jadi disembunyikan dari pembaca layar. -->
             <div class="callout" id="callout" aria-hidden="true">
               <span class="callout-glow" id="callout-glow"></span>
               <span class="callout-points num" id="callout-points"></span>
-              <span class="callout-title-wrap">
-                <span class="callout-title" id="callout-title"></span>
-                <span class="callout-shine" id="callout-shine"></span>
-              </span>
+              <span class="callout-title" id="callout-title"></span>
               <span class="callout-sub" id="callout-sub"></span>
             </div>
           </div>
