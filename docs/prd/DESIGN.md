@@ -77,7 +77,7 @@ Satu tema gelap, tanpa toggle. Alasannya: warna blok paling terbaca di atas lata
 | `surface-2` | #1E2530 | Panel overlay (Pause, Game Over), baris mode, kontrol Pengaturan |
 | `text` | #E6E9EF | Teks utama |
 | `text-dim` | #8A93A3 | Teks sekunder, deskripsi mode, "Belum ada" |
-| `accent` | #5B7CFA | Tombol utama, cincin fokus, bingkai saat naik level, sapuan cahaya callout |
+| `accent` | #5B7CFA | Tombol utama, cincin fokus, bingkai saat naik level, cahaya di belakang callout |
 | `on-accent` | #0F1217 | Teks di atas aksen |
 | `line-control` | #8A93A3 | Tepi kontrol interaktif (track switch, slider, segmented) |
 | `line-deco` | #262F3D | Tepi dekoratif panel HUD dan bingkai playfield. Tidak membawa informasi. Nilai dari Stitch. |
@@ -255,7 +255,7 @@ Batas yang jujur: permainannya sendiri membutuhkan penglihatan. Aksesibilitas di
 
 ### 7.3 Pause
 
-- Overlay `bg` dengan opasitas 60% dan blur. Playfield dibekukan saat pause, jadi blur hanya dihitung sekali. Jika `backdrop-filter` tidak didukung atau terlalu berat, overlay gelap 60% tanpa blur. Ini satu-satunya elemen yang memakai blur (R-10).
+- Overlay `bg` dengan opasitas 60%, tanpa blur. Rencana awal memakai blur statis dengan fallback tanpa blur; yang dibangun sejak Fase 2 langsung fallback-nya, dan dipertahankan karena Galaxy A13 sudah sensitif terhadap beban komposit (ROADMAP Fase 4). Tidak ada elemen yang memakai blur (R-10).
 - Panel `surface-2`, radius 12px, judul "Jeda" / "Paused".
 - Tombol bertumpuk: "Lanjutkan" (utama, aksen), "Ulangi", "Pengaturan", "Ke Menu". Setiap tombol diberi ikon kecil di kiri label (main, ulangi, pengaturan, beranda).
 - Baris bawah panel: "Waktu sesi" dengan durasi permainan berjalan dalam format `mm:ss.cc`, dihitung dari tick core (berhenti selama Pause).
@@ -379,7 +379,7 @@ Fungsi tingkat ada di `src/render/fx.ts` (`clearPower`), dan dites.
 | Partikel | Hingga 300 | Hingga 150 | Tidak ada |
 | Shake | Hingga 10 px | Hingga 3 px | Tidak ada |
 | Shockwave, riak, gelombang | Ya | Ya, opasitas setengah | Tidak ada |
-| Callout | Sapuan cahaya | Sapuan cahaya | Fade saja |
+| Callout | Hentakan masuk dan cahaya di belakang (sapuan cahaya dihapus setelah uji A13) | Hentakan masuk | Fade saja |
 | Penurunan stack | Pantulan elastis | Tanpa pantulan | Langsung |
 | Feedback lapis 2 | Ya | Ya | Hanya kilat lock berupa fade |
 | Pita ambient | Bergerak | Bergerak | Diam, warna tetap berganti |
@@ -394,7 +394,7 @@ Fungsi tingkat ada di `src/render/fx.ts` (`clearPower`), dan dites.
 |---|---|---|---|
 | Warna blok J | #4F6FD9 | #3F63C9 | Kontras J terhadap aksen hanya 1.24:1, sehingga aksen tidak lagi terasa istimewa dan efek naik level bisa terbaca sebagai blok J (antislop Part 3, R-29). Pemilik memilih menggeser J. |
 | Referensi motion | Nama game referensi | "Tenang saat bermain, spektakuler di momen reward" | Larangan memakai merek dagang. Pemilik memilih menulis tanpa nama. |
-| Blur Pause | Blur | Blur statis, dengan fallback tanpa blur | Performa di HP kelas menengah. Pemilik menyetujui. |
+| Blur Pause | Blur | Tanpa blur (fallback dipakai sebagai versi akhir, dicatat di audit akhir Fase 4) | Performa di HP kelas menengah. Pemilik menyetujui fallback. |
 | Teks beraksen di `surface-2` | Tidak diatur | Hanya teks besar | `accent` di atas `surface-2` 4.19:1, gagal untuk teks normal. |
 
 ### 9.1 Dari ekspor Google Stitch
@@ -460,134 +460,134 @@ Semua sudah diputuskan pemilik ("pakai usulan"):
 
 ## 11. Delivery Gate antislop (checklist)
 
-Dokumen ini belum berupa UI yang berjalan, jadi kolom "Cara memenuhi" menjelaskan cara memenuhinya. Checklist ini dijalankan ulang dengan bukti nyata di Fase 4 dan Fase 5 (ROADMAP.md).
+Dijalankan ulang di akhir Fase 4 (19 Oktober 2026) pada build lokal dengan bukti nyata. Alat uji: skrip Playwright dan Chrome sungguhan di lebar 320, 390, 600, 1024, dan 1280 px, landscape 844x390, serta pemeriksaan statis atas source dan kamus i18n. `[x]` berarti jawaban yang diminta terpenuhi. Dijalankan lagi di Fase 5.
 
 ### Blok 1: Hard Gate (semua jawaban harus "tidak")
 
-- [ ] Ada em dash di teks? (R-02). Cara memenuhi: grep karakter U+2014 (em dash) dan U+2013 (en dash) di repo dan kamus i18n sebelum rilis.
-- [ ] Ada overflow horizontal atau layout rusak di mobile? (R-03). Cara memenuhi: diuji di lebar 320, 390, 600, 1024 px, portrait dan landscape.
-- [ ] Ada statistik tanpa sumber? (R-17). Cara memenuhi: semua angka di layar berasal dari state permainan atau penyimpanan lokal.
-- [ ] Ada testimoni fiktif? (R-18). Cara memenuhi: tidak ada bagian testimoni.
-- [ ] Ada aset dibuat tanpa instruksi? (R-23). Cara memenuhi: logo mengikuti instruksi pemilik, ikon aplikasi masih placeholder.
-- [ ] Ada navigasi ke layar yang tidak ada? (R-24). Cara memenuhi: Menu hanya berisi mode yang bisa dimainkan dan Pengaturan. Fitur fase 2 tidak tampil.
-- [ ] Ada teks di bawah AA? (R-25). Cara memenuhi: tabel kontras bagian 4.3.
-- [ ] Ada kontrol yang tidak berbuat apa-apa? (R-26). Cara memenuhi: setiap tombol di bagian 7 punya aksi tertulis.
-- [ ] Ada layar tanpa state kosong, memuat, atau gagal? (R-27). Cara memenuhi: tabel state per layar di bagian 7.
-- [ ] Ada FAQ generik? (R-28). Cara memenuhi: tidak ada FAQ.
-- [ ] UI tidak bisa dipakai dengan keyboard atau fokus tidak terlihat? (R-32). Cara memenuhi: urutan fokus per layar dan cincin fokus aksen.
-- [ ] Ada fitur yang ditambal dengan skrip? (R-33). Cara memenuhi: tidak ada skrip patch. Semua ditulis di source.
-- [ ] Ada tema yang rusak? (R-34). Cara memenuhi: hanya satu tema.
-- [ ] Dikirim tanpa dijalankan dan tanpa click-through? (R-35). Status: belum bisa dijalankan karena ini dokumen. Click-through dicatat di Fase 4 dan 5.
-- [ ] Ada klaim keamanan, performa, atau pelanggan yang dikarang? (R-36). Cara memenuhi: listing toko hanya menyebut fitur yang ada (ROADMAP Fase 5).
-- [ ] Didesain tanpa arah? (R-37). Cara memenuhi: arah ditulis pemilik di brief dan dicatat di dokumen ini.
-- [ ] Ada konten realistis yang dikarang? (R-38). Cara memenuhi: angka di storyboard berasal dari tabel skor SPEC.md.
+- [x] Ada em dash di teks? (R-02). Tidak. Pemindaian U+2014 dan U+2013 di semua `.md`, `.ts`, `.css`, `.html`, `.txt`, `.json` (di luar `node_modules`, `dist`, `design`): 0.
+- [x] Ada overflow horizontal atau layout rusak di mobile? (R-03). Tidak. Menu, Pengaturan, Game, Pause, Game Over di lima lebar: gulir mendatar 0. Landscape HP menampilkan pesan putar HP. Satu temuan diperbaiki: catatan Sprint di Game Over tertutup cincin fokus tombol (jarak bawah ditambah).
+- [x] Ada statistik tanpa sumber? (R-17). Tidak. Angka di kamus hanya aturan mode (150 baris, 40 baris, 2 menit), nama aksi (1 sampai 4 Baris), dan satuan. Angka di layar berasal dari state permainan dan penyimpanan lokal.
+- [x] Ada testimoni fiktif? (R-18). Tidak ada bagian testimoni.
+- [x] Ada aset dibuat tanpa instruksi? (R-23). Tidak. Logo mengikuti instruksi pemilik. Suara dipilih sendiri oleh pemilik dari kandidat CC0 (`public/sfx/LISENSI.txt`). Ikon aplikasi dibuat setelah game selesai (keputusan pemilik).
+- [x] Ada navigasi ke layar yang tidak ada? (R-24). Tidak. Menu berisi 4 mode yang bisa dimainkan dan Pengaturan.
+- [x] Ada teks di bawah AA? (R-25). Tidak. Tabel kontras bagian 4.3; tidak ada warna teks baru sejak tabel itu (hex di CSS: 9 nilai, semua token bagian 4).
+- [x] Ada kontrol yang tidak berbuat apa-apa? (R-26). Tidak. Click-through Fase 2 dan 3, gestur, Pengaturan, Pause, Game Over, slider suara: lulus, 0 error.
+- [x] Ada layar tanpa state kosong, memuat, atau gagal? (R-27). Tidak. Rekor kosong "Belum ada", simpan gagal memberi pesan, suara tanpa Web Audio menampilkan alasan, getar tidak tersedia menampilkan alasan.
+- [x] Ada FAQ generik? (R-28). Tidak ada FAQ.
+- [x] UI tidak bisa dipakai dengan keyboard atau fokus tidak terlihat? (R-32). Tidak. Cincin fokus 2px aksen terukur di Pause pada semua lebar; Tab berpindah ke tombol berikutnya. Semua tombol punya nama yang bisa dibaca (0 tanpa nama).
+- [x] Ada fitur yang ditambal dengan skrip? (R-33). Tidak. Semua di source.
+- [x] Ada tema yang rusak? (R-34). Tidak. Satu tema gelap.
+- [x] Dikirim tanpa dijalankan dan tanpa click-through? (R-35). Tidak. Lihat ROADMAP Fase 4 untuk seluruh log uji.
+- [x] Ada klaim keamanan, performa, atau pelanggan yang dikarang? (R-36). Tidak. Angka performa di ROADMAP berasal dari pengukuran `?perf` pemilik di Galaxy A13.
+- [x] Didesain tanpa arah? (R-37). Tidak. Arah dari brief pemilik, bagian 1.
+- [x] Ada konten realistis yang dikarang? (R-38). Tidak.
 
 ### Blok 2: Purpose-Gate (gagal jika teknik tidak punya alasan tertulis)
 
-- [ ] Gradien atau glow tanpa tujuan? (R-01, R-13). Cara memenuhi: tidak ada gradien dekoratif. Cahaya hanya muncul di momen reward dan alasannya tertulis di bagian 8.
-- [ ] Ikon generik? (R-04). Cara memenuhi: ikon Material Symbols hanya untuk aksi (panah, putar, jatuh, simpan, jeda, pengaturan, ulangi, beranda). Ikon petir dari Stitch dibuang. Setiap tombol ikon punya label teks untuk pembaca layar.
-- [ ] Font tanpa alasan? (R-06). Cara memenuhi: bagian 3.
-- [ ] Grid latar tanpa tujuan? (R-07). Cara memenuhi: grid hanya di playfield untuk membaca kolom, dan bisa dimatikan.
-- [ ] Panah dekoratif di tombol? (R-08). Cara memenuhi: tidak ada.
-- [ ] Badge tanpa fungsi? (R-09). Cara memenuhi: hanya tag "Rekor baru" yang menandai kondisi nyata.
-- [ ] Glassmorphism di lebih dari 1 sampai 2 elemen? (R-10). Cara memenuhi: blur hanya di overlay Pause.
-- [ ] Bayangan di semua komponen? (R-12). Cara memenuhi: bayangan hanya di panel overlay.
-- [ ] Kartu identik tanpa alasan? (R-14). Cara memenuhi: baris mode berupa daftar, bukan kartu fitur.
-- [ ] Animasi template atau tidak sesuai dial MOTION? (R-19). Cara memenuhi: bagian 8. Setiap efek punya kejadian pemicu.
-- [ ] Ilustrasi generik? (R-22). Cara memenuhi: tidak ada ilustrasi.
+- [x] Gradien atau glow tanpa tujuan? (R-01, R-13). Tidak. Gradien di CSS ada empat, semuanya beralasan: pita ambient (warna level, bagian 8.1), pilar cahaya (clear 3 baris ke atas, bagian 8.3), cahaya di belakang callout (momen besar), dan masker pudar pilar. Tidak ada gradien di latar atau tombol.
+- [x] Ikon generik? (R-04). Tidak. 11 ikon Material Symbols, semuanya untuk aksi (pengaturan, jeda, kembali, ulangi, lanjut, akhiri, beranda, putar HP), `aria-hidden` dengan label teks di tombol.
+- [x] Font tanpa alasan? (R-06). Tidak. Bagian 3; Sora dan JetBrains Mono di-self-host.
+- [x] Grid latar tanpa tujuan? (R-07). Tidak. Grid hanya di papan, bisa dimatikan.
+- [x] Panah dekoratif di tombol? (R-08). Tidak ada.
+- [x] Badge tanpa fungsi? (R-09). Tidak. Hanya "Rekor baru".
+- [x] Glassmorphism di lebih dari 1 sampai 2 elemen? (R-10). Tidak ada sama sekali (`backdrop-filter`: 0). Overlay Pause memakai latar gelap transparan tanpa blur, karena blur di atas canvas berat untuk HP acuan.
+- [x] Bayangan di semua komponen? (R-12). Tidak. `box-shadow` ada tiga: bevel blok logo, bingkai naik level, dan panel dialog.
+- [x] Kartu identik tanpa alasan? (R-14). Tidak. Baris mode adalah daftar pilihan, isi berbeda per mode (rekor per mode).
+- [x] Animasi template atau tidak sesuai dial MOTION? (R-19). Tidak. Setiap efek dipicu kejadian (bagian 8), bertingkat menurut kekuatan clear, dan menghormati Kurangi animasi (diuji).
+- [x] Ilustrasi generik? (R-22). Tidak ada ilustrasi.
 
 ### Blok 3: Liveliness (semua jawaban harus "ya")
 
-- [ ] Dial dinyatakan? Ya, bagian 1.
-- [ ] Hasil konsisten dengan dial? Dicek di Fase 4: saat bermain tenang, momen reward ramai.
-- [ ] Satu titik fokus per layar? Menu: logo. Game: playfield. Pause: Lanjutkan. Game Over: hasil utama. Pengaturan: kelompok yang sedang dibuka.
-- [ ] Ruang kosong sebagai struktur? Grid 8px dan ruang di sekitar playfield.
-- [ ] Satu aksen yang disengaja? `accent` hanya untuk tombol utama, fokus, level up, dan sapuan callout.
-- [ ] Motif identitas? Blok yang "baru jatuh" di logo, diulang di gerak squash hard drop dan penurunan stack.
-- [ ] Design Read dinyatakan sebelum desain? Ya, bagian 1.
+- [x] Dial dinyatakan? Ya, bagian 1.
+- [x] Hasil konsisten dengan dial? Ya. Saat bermain hanya piece, ghost, dan pita ambient yang bergerak; momen 4 Baris memicu kilat, pilar, cincin, guncangan, dan callout (storyboard di ROADMAP). Pemilik menilai "sudah cukup wah" setelah uji A13.
+- [x] Satu titik fokus per layar? Ya. Menu: logo. Game: papan. Pause: Lanjutkan (fokus awal). Game Over: hasil utama, fokus awal Main Lagi. Pengaturan: tombol kembali sebagai fokus awal.
+- [x] Ruang kosong sebagai struktur? Ya. Grid 8px.
+- [x] Satu aksen yang disengaja? Ya. `accent` untuk tombol utama, fokus, naik level, dan cahaya callout.
+- [x] Motif identitas? Ya. Blok "baru jatuh" di logo, diulang di debu jatuh cepat dan tumpukan yang turun.
+- [x] Design Read dinyatakan sebelum desain? Ya, bagian 1.
 
 ### Blok 4: Craftsmanship dan Quality Locks (semua jawaban harus "tidak")
 
-- [ ] C-1: ada keputusan yang alasannya hanya "default AI"?
-- [ ] C-2: ada kontrol tanpa fungsi?
-- [ ] C-3: ada layar yang hanya mengisi template? (Fitur fase 2 sengaja tidak tampil.)
-- [ ] C-4: UI rusak di salah satu state, ukuran layar, atau tanpa mouse?
-- [ ] C-5: ada klaim yang dikarang?
-- [ ] R-05: tata letak mengikuti template AI?
-- [ ] R-11: semua elemen berbentuk pil?
-- [ ] R-15: CTA generik? Label tombol berupa aksi spesifik: "Main Lagi", "Lanjutkan", "Ke Menu".
-- [ ] R-16: ada buzzword?
-- [ ] R-20: desain terasa generik jika logo ditukar?
-- [ ] R-21: tema gelap tanpa alasan? Alasan di bagian 4.
-- [ ] R-29: palet melebihi batas? Netral, satu aksen, dan tujuh warna blok sebagai konten permainan.
-- [ ] R-30: meniru produk populer?
-- [ ] R-31: ada keputusan visual tanpa alasan satu baris?
+- [x] C-1: ada keputusan yang alasannya hanya "default AI"? Tidak. Setiap perubahan tercatat di bagian 9 dan ROADMAP.
+- [x] C-2: ada kontrol tanpa fungsi? Tidak (lihat R-26).
+- [x] C-3: ada layar yang hanya mengisi template? Tidak.
+- [x] C-4: UI rusak di salah satu state, ukuran layar, atau tanpa mouse? Tidak. Lima lebar, landscape, teks 200% di 320 dan 390 px, keyboard penuh. Temuan diperbaiki di Fase 4: logo dan tombol segmen keluar layar pada teks 200%, baris Pengaturan menyempit jadi kolom sempit, catatan Game Over tertutup fokus, area sentuh sakelar terpotong di sisi bawah (kini 64x44 px).
+- [x] C-5: ada klaim yang dikarang? Tidak.
+- [x] R-05: tata letak mengikuti template AI? Tidak.
+- [x] R-11: semua elemen berbentuk pil? Tidak. Blok 4px, kontrol 8px, panel 12px; hanya sakelar yang membulat.
+- [x] R-15: CTA generik? Tidak. "Main Lagi", "Lanjutkan", "Ke Menu", "Kembalikan bawaan".
+- [x] R-16: ada buzzword? Tidak. Pemindaian kamus ID dan EN: 0.
+- [x] R-20: desain terasa generik jika logo ditukar? Tidak. Motif blok jatuh dan efek bertingkat milik BlockDown.
+- [x] R-21: tema gelap tanpa alasan? Tidak. Alasan di bagian 4.
+- [x] R-29: palet melebihi batas? Tidak. Netral, satu aksen, tujuh warna blok sebagai konten.
+- [x] R-30: meniru produk populer? Tidak.
+- [x] R-31: ada keputusan visual tanpa alasan satu baris? Tidak.
 
 ---
 
 ## 12. Pre-Flight Check taste-skill (checklist)
 
-Taste-skill ditujukan untuk halaman marketing. BlockDown adalah UI game, jadi item khusus landing page ditandai N/A beserta alasannya.
+Dijalankan ulang di akhir Fase 4. Taste-skill ditujukan untuk halaman marketing; item khusus landing page tetap N/A dengan alasan yang sama. `[x]` berarti terpenuhi atau N/A dengan alasan.
 
-- [ ] Brief inference dinyatakan: bagian 1.
-- [ ] Dial eksplisit dan beralasan: bagian 1.
-- [ ] Design system dari bagian 2 taste-skill: N/A. Estetika ditulis sendiri sebagai minimal premium.
-- [ ] Mode redesign dan audit: N/A, proyek baru.
-- [ ] Nol em dash di seluruh teks.
-- [ ] Page Theme Lock: satu tema gelap.
-- [ ] Color Consistency Lock: satu aksen di semua layar.
-- [ ] Shape Consistency Lock: blok 4px, kontrol 8px, panel 12px, berlaku di semua layar.
-- [ ] Kontras tombol: `on-accent` di atas `accent` 5.10:1.
-- [ ] CTA tidak terbungkus dua baris di desktop.
-- [ ] Kontras form: kontrol Pengaturan memakai tepi `line-control` 4.98:1.
-- [ ] Disiplin serif: N/A, tidak memakai serif.
-- [ ] Palet premium-consumer: N/A untuk jenis produk. Palet tidak memakai keluarga krem dan kuningan.
-- [ ] Ruang descender italic: N/A, tidak memakai italic display.
-- [ ] Hero muat di viewport: N/A, tidak ada hero. Padanannya: logo dan daftar mode muat tanpa gulir di 390x844.
-- [ ] Padding atas hero: N/A.
-- [ ] Disiplin isi hero: N/A.
-- [ ] Hitungan eyebrow: nol eyebrow.
-- [ ] Split-header: N/A, tidak ada section marketing.
-- [ ] Zigzag: N/A.
-- [ ] CTA dengan maksud sama: tidak ada dua tombol dengan maksud sama di satu layar.
-- [ ] Logo wall: N/A, tidak ada.
-- [ ] Variasi latar bento: N/A, tidak ada bento.
-- [ ] Logo "Used by": N/A, dihilangkan sesuai aturan.
-- [ ] Copy self-audit: semua teks di kamus i18n dibaca ulang dalam ID dan EN.
-- [ ] Motion beralasan: bagian 8.
-- [ ] Maksimal satu marquee: N/A, tidak ada.
-- [ ] Navigasi satu baris: baris atas Menu satu baris.
-- [ ] Pengulangan layout section: N/A.
-- [ ] Jumlah sel bento: N/A.
-- [ ] Komponen daftar panjang: daftar mode hanya 4 baris.
-- [ ] Gambar asli: N/A, tidak ada foto. Ikon aplikasi berupa placeholder berlabel.
-- [ ] Tidak ada pil di atas gambar: N/A.
-- [ ] Tidak ada caption foto dekoratif: N/A.
-- [ ] Tidak ada footer versi: versi aplikasi hanya di Pengaturan jika diperlukan, bukan dekorasi.
-- [ ] Tidak ada kalimat meta di bawah eyebrow: tidak ada eyebrow.
-- [ ] Tidak ada strip teks dekoratif: tidak ada.
-- [ ] Tidak ada sub-teks melayang di kanan atas heading: tidak ada.
-- [ ] Tidak ada bar skor dengan track terisi: tidak ada.
-- [ ] Tidak ada strip kota, waktu, atau cuaca: tidak ada.
-- [ ] Tidak ada petunjuk gulir: tidak ada.
-- [ ] Tidak ada label versi di hero: tidak ada.
-- [ ] Tidak ada eyebrow bernomor: tidak ada.
-- [ ] Titik dekoratif: nol.
-- [ ] Garis atas dan bawah di setiap baris daftar: tidak. Baris mode dipisah dengan jarak.
-- [ ] Kepadatan isi: deskripsi mode satu baris.
-- [ ] Kutipan: N/A.
-- [ ] Motion yang diklaim benar-benar ada: dicek di Fase 4.
-- [ ] GSAP sticky-stack atau horizontal-pan: N/A, tidak memakai GSAP.
-- [ ] Tanpa listener scroll: permainan tidak memakai scroll. Pengaturan memakai scroll bawaan.
-- [ ] Reduced motion untuk MOTION_INTENSITY di atas 3: bagian 8.5.
-- [ ] Token dark mode diuji di kedua mode: N/A, satu tema sesuai AGENTS.md.
-- [ ] Mobile collapse eksplisit: bagian 7, tabel rentang lebar.
-- [ ] Stabilitas viewport: `100dvh`.
-- [ ] Cleanup `useEffect`: N/A, tanpa React. Padanannya: listener dilepas saat layar ditutup (ARCHITECTURE.md).
-- [ ] State kosong, memuat, dan gagal: bagian 7.
-- [ ] Kartu dihindari jika cukup dengan jarak: ya.
-- [ ] Ikon dari library yang diizinkan: menyimpang, dan disetujui pemilik. Ikon memakai Material Symbols (bukan daftar taste-skill) agar sesuai hasil Stitch. Hanya ikon yang dipakai yang disimpan sebagai file SVG self-host, tanpa memuat font ikon.
-- [ ] Motion di komponen klien: N/A, tanpa framework.
-- [ ] Tidak ada AI tells bagian 9 taste-skill.
-- [ ] Core Web Vitals: target di ARCHITECTURE.md.
-- [ ] Satu design system: ya, token di dokumen ini.
+- [x] Brief inference dinyatakan: bagian 1.
+- [x] Dial eksplisit dan beralasan: bagian 1.
+- [x] Design system dari bagian 2 taste-skill: N/A. Estetika ditulis sendiri sebagai minimal premium.
+- [x] Mode redesign dan audit: N/A, proyek baru.
+- [x] Nol em dash di seluruh teks: diperiksa, 0.
+- [x] Page Theme Lock: satu tema gelap di semua layar (screenshot lima lebar).
+- [x] Color Consistency Lock: satu aksen di semua layar.
+- [x] Shape Consistency Lock: blok 4px, kontrol 8px, panel 12px.
+- [x] Kontras tombol: `on-accent` di atas `accent` 5.10:1.
+- [x] CTA tidak terbungkus dua baris di desktop: "Main Lagi" dan "Ke Menu" satu baris di 1024 dan 1280 px.
+- [x] Kontras form: tepi kontrol `line-control` 4.98:1.
+- [x] Disiplin serif: N/A, tidak memakai serif.
+- [x] Palet premium-consumer: N/A untuk jenis produk; bukan keluarga krem dan kuningan.
+- [x] Ruang descender italic: N/A.
+- [x] Hero muat di viewport: N/A, tidak ada hero. Padanannya: logo dan empat mode muat tanpa gulir di 390x844 (screenshot).
+- [x] Padding atas hero: N/A.
+- [x] Disiplin isi hero: N/A.
+- [x] Hitungan eyebrow: nol.
+- [x] Split-header: N/A.
+- [x] Zigzag: N/A.
+- [x] CTA dengan maksud sama: tidak ada dua tombol bermaksud sama di satu layar.
+- [x] Logo wall: N/A.
+- [x] Variasi latar bento: N/A.
+- [x] Logo "Used by": N/A.
+- [x] Copy self-audit: kamus ID dan EN diperiksa (kunci identik lewat tes, 0 buzzword, 0 em dash).
+- [x] Motion beralasan: bagian 8.
+- [x] Maksimal satu marquee: N/A.
+- [x] Navigasi satu baris: baris atas Menu satu baris di ukuran teks normal; pada teks 200% di 320 px tombol Pengaturan turun ke baris kedua tanpa terpotong (disengaja).
+- [x] Pengulangan layout section: N/A.
+- [x] Jumlah sel bento: N/A.
+- [x] Komponen daftar panjang: daftar mode 4 baris.
+- [x] Gambar asli: N/A, tidak ada foto.
+- [x] Tidak ada pil di atas gambar: N/A.
+- [x] Tidak ada caption foto dekoratif: N/A.
+- [x] Tidak ada footer versi: tidak ada.
+- [x] Tidak ada kalimat meta di bawah eyebrow: tidak ada eyebrow.
+- [x] Tidak ada strip teks dekoratif: tidak ada.
+- [x] Tidak ada sub-teks melayang di kanan atas heading: tidak ada.
+- [x] Tidak ada bar skor dengan track terisi: tidak ada.
+- [x] Tidak ada strip kota, waktu, atau cuaca: tidak ada.
+- [x] Tidak ada petunjuk gulir: tidak ada.
+- [x] Tidak ada label versi di hero: tidak ada.
+- [x] Tidak ada eyebrow bernomor: tidak ada.
+- [x] Titik dekoratif: nol.
+- [x] Garis atas dan bawah di setiap baris daftar: tidak.
+- [x] Kepadatan isi: deskripsi mode satu baris di lebar 390 px.
+- [x] Kutipan: N/A.
+- [x] Motion yang diklaim benar-benar ada: storyboard Quad direkam di Chrome dan dikonfirmasi pemilik di HP.
+- [x] GSAP sticky-stack atau horizontal-pan: N/A.
+- [x] Tanpa listener scroll: tidak ada.
+- [x] Reduced motion untuk MOTION_INTENSITY di atas 3: diuji, tanpa guncangan dan partikel, callout hanya pudar.
+- [x] Token dark mode diuji di kedua mode: N/A, satu tema.
+- [x] Mobile collapse eksplisit: bagian 7, dan baris Pengaturan serta baris mode kini turun ke baris berikutnya saat ruang tidak cukup.
+- [x] Stabilitas viewport: `100dvh`.
+- [x] Cleanup `useEffect`: N/A, tanpa React.
+- [x] State kosong, memuat, dan gagal: bagian 7 dan Blok 1 R-27.
+- [x] Kartu dihindari jika cukup dengan jarak: ya.
+- [x] Ikon dari library yang diizinkan: menyimpang, disetujui pemilik (Material Symbols, SVG self-host).
+- [x] Motion di komponen klien: N/A.
+- [x] Tidak ada AI tells bagian 9 taste-skill: diperiksa pada screenshot lima lebar.
+- [x] Core Web Vitals: target ARCHITECTURE bagian 12; performa diukur di A13 (ROADMAP). LCP dan CLS diukur ulang di Fase 5 setelah PWA.
+- [x] Satu design system: token di dokumen ini.

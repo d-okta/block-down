@@ -171,11 +171,11 @@ Kriteria selesai:
 - [x] Setiap kejadian di tabel suara SPEC.md bagian 14 berbunyi (diuji di Chrome, lihat tahap 2). Tidak ada suara dan tidak ada unduhan file sebelum gestur pertama, dan tidak ada error di konsol. Kriteria `tidak ada file mp3` dicabut: pemilik memilih file CC0.
 - [x] Combo panjang menghasilkan melodi pentatonik yang naik (tes `comboRate` di `tests/client.test.ts`).
 - [x] Getar bekerja di Android, dan kontrol Getar nonaktif dengan alasan di perangkat yang tidak mendukung. Dikonfirmasi pemilik di Galaxy A13 (getar sudah terasa).
-- [ ] Mode aman buta warna: ketujuh jenis blok bisa dibedakan dalam screenshot grayscale.
-- [ ] Callout dan hasil Game Over diumumkan oleh TalkBack dan NVDA. Uji perangkat dilewati (keputusan pemilik); diganti uji otomatis isi region `aria-live` di Chrome. Belum diuji dengan pembaca layar sungguhan.
-- [ ] Teks bisa diperbesar ke 200% tanpa terpotong di Menu dan Pengaturan.
-- [ ] Delivery Gate antislop (DESIGN.md bagian 11) dijalankan ulang dengan bukti nyata dan click-through per kontrol. Semua item lolos.
-- [ ] Pre-Flight taste-skill (DESIGN.md bagian 12) dijalankan ulang.
+- [x] Mode aman buta warna: ketujuh jenis blok bisa dibedakan dalam screenshot grayscale (lihat audit akhir).
+- [x] Callout dan hasil Game Over diumumkan lewat region `aria-live` (uji otomatis di Chrome, lihat audit akhir). Uji TalkBack dan NVDA di perangkat dilewati atas keputusan pemilik; belum diuji dengan pembaca layar sungguhan.
+- [x] Teks bisa diperbesar ke 200% tanpa terpotong di Menu dan Pengaturan (320 dan 390 px, setelah perbaikan).
+- [x] Delivery Gate antislop (DESIGN.md bagian 11) dijalankan ulang dengan bukti nyata dan click-through per kontrol. Semua item lolos setelah perbaikan.
+- [x] Pre-Flight taste-skill (DESIGN.md bagian 12) dijalankan ulang.
 - [x] Target performa ARCHITECTURE.md bagian 12 terpenuhi di perangkat acuan, dengan catatan (lihat `Pengukuran akhir Fase 4`).
 
 ### Tahap 1: animasi dan getar (selesai, menunggu uji pemilik)
@@ -316,3 +316,24 @@ Versi dengan efek bertingkat, perbaikan beban GPU (`ec6be7e`), dan suara (`d5501
 Dugaan beban GPU terbukti: setelah `mix-blend-mode` dan `will-change` permanen dihapus, tersendat turun dari 6,3% ke 0,8%, di bawah 1%. Pemilik menilai efek dan getar sudah bagus dan tidak perlu dikurangi.
 
 Catatan: kriteria ARCHITECTURE bagian 12 menulis `tidak ada frame di atas 16,7 ms`. Di perangkat ini sekitar 0,8% frame lewat 25 ms dan satu jeda mencapai 284 ms, sementara kode game paling lama 11,9 ms per frame. Jeda itu berasal dari browser atau sistem, bukan kode game. HP acuan sudah dipakai hampir 5 tahun tanpa reset. Kriteria dinilai terpenuhi untuk kode game; jeda sistem dicatat dan tidak dikejar di Fase 4.
+
+### Audit akhir Fase 4 (aksesibilitas, Delivery Gate, Pre-Flight)
+
+Dijalankan di Chrome pada build lokal, 19 Oktober 2026.
+
+**Pembaca layar** (pengganti TalkBack, region `#live`: `aria-live=polite`, `aria-atomic`, tersembunyi secara visual):
+- 4 Baris di Maraton: `#live` berisi `4 BARIS, +800` (dalam bahasa Inggris `QUAD, +800`). Callout visual `aria-hidden`, jadi tidak dibaca dua kali.
+- Game Over: `#live` berisi judul, skor akhir, dan `Rekor baru` jika ada. Dialog bernama dari judulnya, fokus awal di `Main Lagi`.
+
+**Mode aman buta warna:** tujuh jenis terkunci di papan, dibaca dari canvas tumpukan. Dalam grayscale, kecerahan rata-rata per jenis 90 sampai 182, dan setiap jenis punya pola sendiri (garis mendatar, titik, segitiga, diagonal naik, diagonal turun, garis tegak, kotak berongga). Pasangan yang paling mirip kecerahannya (I dan S) tetap dibedakan oleh polanya; dicek pada screenshot grayscale papan.
+
+**Teks 200%** (`font-size` akar 200%, setara pembesaran teks Android), lebar 320 dan 390 px. Sebelum perbaikan: logo dan tombol segmen keluar layar, halaman bergulir mendatar, baris Pengaturan menyempit jadi kolom sangat sempit. Perbaikan: ukuran logo dibatasi lebar layar, baris atas Menu, tombol segmen, baris Pengaturan, dan baris mode boleh turun ke baris berikutnya, kolom tombol keyboard melebar sesuai label. Sesudah: gulir mendatar 0, tidak ada elemen terpotong atau keluar layar.
+
+**Delivery Gate** (lima lebar 320 sampai 1280 px, landscape 844x390): gulir mendatar 0 di Menu, Pengaturan, Game, Pause, Game Over. 0 tombol tanpa nama. Cincin fokus 2px aksen. Temuan dan perbaikan:
+- Area sentuh sakelar terpotong di sisi bawah oleh baris berikutnya; kini 64x44 px penuh.
+- Catatan Sprint di Game Over tertutup cincin fokus tombol `Main Lagi`; jarak bawah ditambah.
+- Dokumen DESIGN masih menyebut sapuan cahaya callout dan blur Pause; keduanya tidak ada di build, dokumen disamakan.
+
+Regresi: 59 tes lulus; gestur, landscape, click-through Fase 2 dan 3, efek, lapisan tumpukan, dan suara lulus, 0 error.
+
+**Fase 4 selesai.** Yang dicatat belum diuji di perangkat: TalkBack dan NVDA (dilewati pemilik), iPhone, gamepad fisik.

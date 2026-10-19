@@ -179,6 +179,8 @@ button {
 
 .seg {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   padding: 2px;
   gap: 2px;
   border: 1px solid var(--line-control);
@@ -215,6 +217,7 @@ button {
 
 .menu-top {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
 }
@@ -224,7 +227,8 @@ button {
   align-items: baseline;
   justify-content: center;
   margin: clamp(32px, 12vh, 112px) 0 clamp(32px, 10vh, 96px);
-  font-size: clamp(2.5rem, 11vw, 3.5rem);
+  /* Dibatasi lebar layar (vw) juga saat teks diperbesar 200%, supaya logo tidak keluar layar. */
+  font-size: min(clamp(2.5rem, 11vw, 3.5rem), 15vw);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -250,8 +254,10 @@ button {
   gap: 8px;
 }
 
+/* Rekor turun ke bawah deskripsi jika ruang tidak cukup (layar sempit atau teks diperbesar). */
 .mode-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -270,6 +276,7 @@ button {
 .mode-text {
   display: flex;
   flex-direction: column;
+  flex: 1 1 12rem;
   min-width: 0;
 }
 
@@ -299,7 +306,9 @@ button {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  text-align: right;
   flex: none;
+  margin-left: auto;
 }
 
 .record-label {
@@ -317,8 +326,9 @@ button {
   font-size: 0.875rem;
 }
 
+/* Jarak bawah supaya cincin fokus tombol berikutnya tidak menutup baris terakhir teks. */
 .notice {
-  margin: 8px 0 0;
+  margin: 8px 0 12px;
   color: var(--text-dim);
   font-size: 0.875rem;
 }
@@ -844,14 +854,27 @@ kbd {
   font-weight: 600;
 }
 
+/*
+ * Teks di kiri, kontrol di kanan. Jika ruang tidak cukup (layar sempit atau teks diperbesar 200%),
+ * kontrol turun ke baris sendiri di bawah teks, bukan menekan teks jadi kolom sempit.
+ */
 .set-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 8px 16px;
   min-height: 48px;
   padding: 12px 0;
   border-top: 1px solid var(--line-deco);
+}
+
+.set-row > .set-text {
+  flex: 1 1 14rem;
+}
+
+.set-row > .set-label {
+  flex: 1 1 auto;
 }
 
 .set-group h2 + .set-row {
@@ -875,7 +898,7 @@ kbd {
 }
 
 .set-help {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
   margin: 0;
 }
 
@@ -885,11 +908,11 @@ kbd {
 
 .set-value {
   font-size: 0.9375rem;
-  justify-self: end;
+  margin-left: auto;
 }
 
 .set-row input[type="range"] {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
   width: 100%;
   height: 44px;
   margin: 0;
@@ -912,11 +935,14 @@ kbd {
   background: var(--bg);
 }
 
-/* Target sentuh 44 px tanpa mengubah ukuran visual. */
+/*
+ * Target sentuh 64x44 px tanpa mengubah ukuran visual. Inset diukur dari dalam border 1px,
+ * jadi -7px (bukan -6px) yang menghasilkan 52+12 x 32+12.
+ */
 .switch::after {
   content: "";
   position: absolute;
-  inset: -6px;
+  inset: -7px;
 }
 
 .switch::before {
@@ -946,19 +972,17 @@ kbd {
   }
 }
 
-.keys-row {
-  grid-template-columns: 1fr;
-}
-
 .keymap {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-basis: 100%;
 }
 
+/* Kolom tombol minimal 72px, melebar mengikuti label terpanjang (misalnya "Space" pada teks 200%). */
 .key-row {
   display: grid;
-  grid-template-columns: 1fr 72px 72px;
+  grid-template-columns: 1fr minmax(72px, max-content) minmax(72px, max-content);
   align-items: center;
   gap: 8px;
 }
