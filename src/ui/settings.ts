@@ -1,5 +1,4 @@
 // Layar Pengaturan (DESIGN 7.5, EDD-2 bagian 6.3). Setiap perubahan langsung disimpan dan berlaku.
-// Musik dan Efek suara baru ditampilkan di Fase 4 tahap 2, bersama fiturnya.
 import { t, type Key } from "../i18n/index.ts";
 import { keyLabel, RESERVED_CODES } from "../input/keyboard.ts";
 import { BTNS, defaultSettings, type Btn, type Locale, type Settings } from "../store/storage.ts";
@@ -13,6 +12,8 @@ export interface SettingsHooks {
   systemReduce(): boolean;
   /** Getar tersedia di perangkat ini. */
   hapticsAvailable(): boolean;
+  /** Web Audio tersedia di perangkat ini. */
+  audioAvailable(): boolean;
   setLocale(l: Locale): void;
   announce(text: string): void;
   back(): void;
@@ -44,6 +45,14 @@ export class SettingsScreen {
     this.bindRange("in-soft", (v) => {
       this.s.softDropFactor = v === 9 ? "instant" : SOFT_STEPS[v - 1]!;
       this.h.changed("input");
+    });
+    this.bindRange("in-music", (v) => {
+      this.s.musicVolume = v / 100;
+      this.h.changed("display");
+    });
+    this.bindRange("in-sfx", (v) => {
+      this.s.sfxVolume = v / 100;
+      this.h.changed("display");
     });
 
     root.addEventListener("click", (e) => {
@@ -125,6 +134,17 @@ export class SettingsScreen {
       soft,
       s.softDropFactor === "instant" ? t("settings.softDrop.instant") : t("settings.unit.x", { n: s.softDropFactor }),
     );
+
+    // Suara: slider nonaktif dengan alasan jika Web Audio tidak tersedia (SPEC 14).
+    const audio = this.h.audioAvailable();
+    $<HTMLElement>(this.root, "#audio-unavailable").hidden = audio;
+    for (const [id, v] of [["music", s.musicVolume], ["sfx", s.sfxVolume]] as const) {
+      const input = $<HTMLInputElement>(this.root, `#in-${id}`);
+      const pct = Math.round(v * 100);
+      input.value = String(pct);
+      input.disabled = !audio;
+      this.showValue(`out-${id}`, input, t("settings.unit.percent", { n: pct }));
+    }
 
     for (const k of ["ghost", "grid", "colorSafe"] as const) {
       $<HTMLElement>(this.root, `[data-set="${k}"]`).setAttribute("aria-checked", String(s[k]));

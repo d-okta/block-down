@@ -249,6 +249,8 @@ let cursor = 0;
 
 ## 5. Audio
 
+> Revisi Fase 4 tahap 2: bagian 5.1 sampai 5.3 di bawah adalah rencana sintesis awal dan tidak dipakai. Implementasi memakai file CC0 pilihan pemilik di `public/sfx` lewat `src/audio/sound.ts`; lihat SPEC bagian 14 dan bagian 20 dokumen ini.
+
 ### 5.1 Unlock dan struktur (`src/audio/mixer.ts`)
 
 - `AudioContext` dibuat saat `pointerdown` atau `keydown` pertama di dokumen (listener sekali pakai), lalu `resume()`.
@@ -561,3 +563,12 @@ Perubahan:
 3. Cahaya yang menutupi area besar (kilat papan, pilar) dibuat sebagai lapisan CSS dengan `mix-blend-mode: screen`, bukan digambar di canvas setiap frame. Canvas hanya untuk elemen kecil (partikel, baris, garis, cincin).
 4. Cara mengukur: `rendertrace`, tracing Chrome 1 detik setelah Quad, menghitung `Paint`, `RasterTask`, `Layout`, dan elemen yang dicat ulang. Target: cat ulang dokumen tidak setiap frame.
 5. Jangan memakai `mix-blend-mode` atau `will-change` permanen pada lapisan di atas papan. Lapisan efek dilepas (`hidden` atau `visibility: hidden`) saat tidak dipakai. Di A13 lapisan paduan yang selalu ada menaikkan tersendat dari 0,9% ke 6,3%.
+
+## 20. Audio dengan file (Fase 4 tahap 2)
+
+- `src/audio/sound.ts`, kelas `Sound`. `AudioContext` dibuat di `pointerdown` atau `keydown` pertama (listener capture sekali pakai), lalu 17 file diunduh dan di-`decodeAudioData`. `play()` sebelum buffer siap tidak melakukan apa-apa.
+- Graf: `source` (opsional `GainNode` per bunyi) ke `sfx` atau `music` (`GainNode`) ke `destination`. Volume = nilai slider kuadrat; musik dikali 0,5 dan dikali 0,3 saat Pause.
+- Musik: `AudioBufferSourceNode` dengan `loop = true`, dibuat ulang setiap permainan baru, dihentikan di menu dan di `endGame`.
+- `visibilitychange`: `suspend` saat tersembunyi, `resume` saat terlihat.
+- Main: `EV.MOVE`, `SOFT`, `HOLD`, `ROTATE`, `HARD`, `LOCK` (dilewati jika ada `HARD` di tick yang sama), `LEVEL_UP`, dan `onClear` memilih satu suara utama ditambah nada combo.
+- Tes: `comboRate` naik dan tertahan, dan setiap nama file di `sound.ts` ada di `public/sfx`.

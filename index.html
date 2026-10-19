@@ -268,6 +268,25 @@
           </div>
         </section>
 
+        <section class="set-group" aria-labelledby="g-sound">
+          <h2 id="g-sound" data-i18n="settings.group.sound"></h2>
+          <p class="set-help" id="audio-unavailable" data-i18n="notice.audioUnavailable" hidden></p>
+          <div class="set-row">
+            <div class="set-text">
+              <label class="set-label" for="in-music" data-i18n="settings.music"></label>
+            </div>
+            <output class="num set-value" for="in-music" id="out-music"></output>
+            <input type="range" id="in-music" min="0" max="100" step="5" />
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <label class="set-label" for="in-sfx" data-i18n="settings.sfx"></label>
+            </div>
+            <output class="num set-value" for="in-sfx" id="out-sfx"></output>
+            <input type="range" id="in-sfx" min="0" max="100" step="5" />
+          </div>
+        </section>
+
         <section class="set-group" aria-labelledby="g-lang">
           <h2 id="g-lang" data-i18n="settings.group.language"></h2>
           <div class="set-row">

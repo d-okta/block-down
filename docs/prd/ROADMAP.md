@@ -160,7 +160,7 @@ Rincian dan hasil uji emulasi ada di EDD-2 bagian 14 dan 15.
 
 ## Fase 4: Motion, suara, haptics, aksesibilitas
 
-Lingkup: tiga lapis motion (DESIGN.md bagian 8), `audio/` (sintesis efek dan musik), `platform/haptics.ts`, mode aman buta warna, intensitas efek, kurangi animasi, dan audit aksesibilitas.
+Lingkup: tiga lapis motion (DESIGN.md bagian 8), `audio/` (file suara CC0 pilihan pemilik, revisi tahap 2), `platform/haptics.ts`, mode aman buta warna, intensitas efek, kurangi animasi, dan audit aksesibilitas.
 
 Kriteria selesai:
 - [x] Storyboard 4 Baris berjalan sesuai urutan waktu di DESIGN.md. Direkam di Chrome (catatan tahap 1 di bawah).
@@ -168,8 +168,8 @@ Kriteria selesai:
 - [x] Partikel tidak pernah melebihi 300 (tes pool di `tests/client.test.ts`). Heap selama satu menit dengan efek Penuh: diukur di Galaxy A13 lewat `?perf` (menunggu pemilik).
 - [x] Shake hanya dipicu oleh 4 Baris, T-Spin dengan baris, dan Bersih Total (`effects.ts`), simpangan maksimal 4 px (tes `effectiveFx`). Terukur 2,3 px di puncak dorongan Quad.
 - [x] Dengan `prefers-reduced-motion: reduce` di sistem: tanpa shake, tanpa partikel, callout hanya pudar, dan pita ambient diam.
-- [ ] Setiap kejadian di tabel suara SPEC.md bagian 14 berbunyi. Tidak ada file mp3 untuk efek. Tidak ada suara sebelum gestur pertama, dan tidak ada error di konsol.
-- [ ] Combo panjang menghasilkan melodi pentatonik yang naik.
+- [x] Setiap kejadian di tabel suara SPEC.md bagian 14 berbunyi (diuji di Chrome, lihat tahap 2). Tidak ada suara dan tidak ada unduhan file sebelum gestur pertama, dan tidak ada error di konsol. Kriteria `tidak ada file mp3` dicabut: pemilik memilih file CC0.
+- [x] Combo panjang menghasilkan melodi pentatonik yang naik (tes `comboRate` di `tests/client.test.ts`).
 - [ ] Getar bekerja di Android, dan kontrol Getar nonaktif dengan alasan di perangkat yang tidak mendukung. Kode: `navigator.vibrate` di web, kontrol nonaktif dengan alasan jika tidak ada. Rasa getar di Galaxy A13 menunggu pemilik.
 - [ ] Mode aman buta warna: ketujuh jenis blok bisa dibedakan dalam screenshot grayscale.
 - [ ] Callout dan hasil Game Over diumumkan oleh TalkBack dan NVDA.
@@ -282,3 +282,20 @@ Masukan pemilik setelah `f35bb13`: `?perf` 138 detik menunjukkan fps 60, tersend
 Dugaan: lapisan baru selalu ada di papan dengan `mix-blend-mode: screen` dan `will-change` permanen, sehingga GPU A13 memadukan ulang papan setiap frame, termasuk saat tidak ada efek. Chrome laptop tanpa GPU tidak memperlihatkan perbedaan, jadi dugaan ini hanya bisa dipastikan di HP.
 
 Perbaikan: `mix-blend-mode` dihapus; lapisan kilat dan pilar dilepas (`hidden`) saat tidak dipakai; callout disembunyikan di luar animasinya; semua `will-change` permanen dihapus kecuali di papan (untuk guncangan); pita sapuan judul dihapus. Efek lain tetap. Tes 58 lulus, gestur, landscape, Game Over, lapisan tumpukan lulus; CPU 6 kali tanpa frame di atas 16,7 ms. Perlu dikonfirmasi di A13.
+
+### Tahap 2: suara dan musik (selesai, menunggu uji pemilik)
+
+Keputusan pemilik: file suara CC0, bukan sintesis. Kandidat dari 4 paket Kenney (Interface Sounds, Impact Sounds, Digital Audio, Music Jingles) dan 3 musik OpenGameArt didengarkan pemilik di halaman uji sementara `/dengar/`, lalu dipilih satu per kejadian. Halaman uji dan file yang tidak terpilih sudah dihapus. Daftar akhir di SPEC bagian 14 dan `public/sfx/LISENSI.txt`. Musik: Crystal Cave (cynicmusic). Total 17 file, sekitar 660 KB, diunduh setelah sentuhan pertama.
+
+Isi: `src/audio/sound.ts` (muat dan putar, batas 4 bunyi untuk geser dan soft drop, nada combo pentatonik, musik berulang), sambungan event game di `main.ts`, bunyi tombol menu dan dialog, slider Musik dan Efek di Pengaturan (tersimpan, nonaktif dengan alasan tanpa Web Audio).
+
+Uji di Chrome (HP emulasi, autoplay hanya setelah gestur):
+- Sebelum sentuhan pertama: 0 file diminta, tidak ada AudioContext. Setelah: 17 file, AudioContext berjalan, musik mulai.
+- Bermain sampai 4 Baris: geser, putar, hold, hard drop, lalu `powerUp5` sekali. Hold lalu soft drop: `select_006`, `tick_004`.
+- Pause: musik diredam, tidak dihentikan. Tombol Pengaturan berbunyi `switch_002`.
+- Musik 25% dan Efek 0%: tersimpan 0,25 dan 0; dengan Efek 0% tombol tidak berbunyi.
+- Tab disembunyikan: AudioContext suspended, kembali running.
+- Ke menu: musik berhenti. Game Over: `zapThreeToneDown`, musik berhenti.
+- Error: tidak ada. 59 tes lulus. Gestur, landscape, click-through Fase 2 dan 3, efek, lapisan tumpukan: lulus. CPU 6 kali: tidak ada frame di atas 16,7 ms.
+
+Batas yang disengaja: tempo dan kunci musik tidak berubah per level (file audio); naik level ditandai jingle.

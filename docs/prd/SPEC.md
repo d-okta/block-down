@@ -407,32 +407,35 @@ Semua perubahan berlaku langsung, termasuk saat dibuka dari Pause.
 
 ## 14. Suara
 
-Semua efek disintesis dengan Web Audio dan dirender ke `AudioBuffer` dengan `OfflineAudioContext` saat aplikasi dimuat. Saat bermain, efek hanya memutar buffer yang sudah jadi, sehingga latensinya rendah dan tidak butuh file mp3.
+Revisi Fase 4 tahap 2 (keputusan pemilik): suara memakai file berlisensi CC0, bukan sintesis. Pemilik memilih sendiri setiap suara dari kandidat di halaman uji dengar. Daftar file dan sumbernya ada di `public/sfx/LISENSI.txt`. Total 17 file, sekitar 660 KB (efek sekitar 135 KB, musik 522 KB).
 
-| Kejadian | Suara |
-|---|---|
-| Geser | Klik kayu pendek sekitar 20 ms, pitch diacak +-3% |
-| Putar | Tik tinggi; ditambah nada naik kecil jika memakai kick |
-| Soft drop | Tik halus per sel |
-| Hard drop | Benturan berat dengan bass, ditambah getar |
-| Lock | Ketukan pendek |
-| Clear 1, 2, 3 baris | Akord yang makin tebal: 1, 2, lalu 3 nada |
-| 4 Baris | Arpeggio 4 nada, lalu chord terbuka dengan reverb |
-| Combo | Naik satu langkah di tangga nada pentatonik per combo, jadi combo panjang membentuk melodi yang tidak pernah sumbang |
-| T-Spin | Swoosh lalu akord |
-| Bersih Total | Glissando naik, lalu bel |
-| Naik level | Modulasi kunci nada musik latar |
-| Game over | Nada turun dan low-pass yang meredam semua suara |
+| Kejadian | File | Sumber |
+|---|---|---|
+| Geser | `click_003` (volume 60%, pitch diacak +-3%) | Kenney Interface Sounds |
+| Putar | `select_001` (nada naik sedikit jika memakai kick) | Kenney Interface Sounds |
+| Soft drop | `tick_004` (volume 40%) | Kenney Interface Sounds |
+| Hard drop | `impactPlate_heavy_001`, ditambah getar | Kenney Impact Sounds |
+| Lock tanpa hard drop | `drop_004` | Kenney Interface Sounds |
+| Hold | `select_006` | Kenney Interface Sounds |
+| 1, 2, 3 Baris | `confirmation_001`, `_002`, `_003` | Kenney Interface Sounds |
+| 4 Baris | `powerUp5` | Kenney Digital Audio |
+| T-Spin | `phaserUp4` | Kenney Digital Audio |
+| Combo | `pluck_002`, nadanya naik di tangga nada pentatonik per combo | Kenney Interface Sounds |
+| Bersih Total | `jingles_STEEL00` | Kenney Music Jingles |
+| Naik level | `jingles_STEEL16` | Kenney Music Jingles |
+| Game over | `zapThreeToneDown` | Kenney Digital Audio |
+| Tombol menu dan dialog | `switch_002` | Kenney Interface Sounds |
+| Musik latar | Crystal Cave (cynicmusic), diulang terus | OpenGameArt |
 
 Detail:
-- Pitch acak pada geser diterapkan lewat `playbackRate` saat diputar, jadi tidak perlu buffer baru.
-- Combo memakai buffer per nada pentatonik (dirender sekali). Setelah satu oktaf habis, melodi naik oktaf dengan batas atas, lalu tetap di nada tertinggi.
-- Rantai audio: efek dan musik punya `GainNode` masing-masing, lalu masuk ke master `GainNode` dan filter low-pass master (dipakai saat game over dan Pause).
-- Reverb: impulse response disintesis sekali saat load.
-- Musik latar: satu loop ambient yang disintesis dengan Web Audio, sehingga tidak ada file audio dan tidak ada urusan lisensi. Tempo dan cutoff filter naik bersama level.
-- Audio baru di-unlock setelah gestur pertama pemain (`pointerdown` atau `keydown` pertama memanggil `AudioContext.resume()`). Sebelum itu tidak ada suara dan tidak ada error.
+- Satu suara utama per clear, yang paling besar: Bersih Total, lalu T-Spin, lalu 4 Baris, lalu 1 sampai 3 Baris. Nada combo ditambahkan di atasnya.
+- Combo: `playbackRate = 2^(nada/12)` dengan nada pentatonik mayor 0, 2, 4, 7, 9, 12, 14, 16, 19, 21. Combo 10 ke atas tetap di nada tertinggi.
+- Geser dan soft drop maksimal 4 bunyi bersamaan; selebihnya dilewati.
+- Musik mulai dari awal setiap permainan baru, turun ke 30% saat Pause, berhenti di menu dan saat permainan berakhir. Tempo dan kunci musik tidak berubah per level (batas file audio; naik level ditandai jingle).
+- Rantai audio: efek dan musik punya `GainNode` masing-masing ke `destination`. Volume slider dikuadratkan supaya terasa rata di telinga.
+- Audio baru dibuat dan file baru diunduh setelah gestur pertama pemain (`pointerdown` atau `keydown`). Sebelum itu tidak ada suara, tidak ada unduhan, dan tidak ada error. File yang gagal dimuat dilewati; suara itu saja yang diam.
 - Saat tab disembunyikan atau aplikasi ke latar belakang, `AudioContext` di-suspend.
-- Jika Web Audio tidak tersedia, permainan tetap berjalan tanpa suara, dan Pengaturan Suara menampilkan alasannya.
+- Jika Web Audio tidak tersedia, permainan tetap berjalan tanpa suara, dan Pengaturan Suara menampilkan alasannya dengan slider nonaktif.
 
 ## 15. Di luar cakupan fase 1
 

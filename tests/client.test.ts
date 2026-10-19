@@ -372,3 +372,18 @@ test("i18n: pilih bahasa dan format angka", () => {
   assert.equal(formatMs(61234), "1:01.234");
   assert.equal(formatClock(258420), "04:18.42");
 });
+
+import { comboRate } from "../src/audio/sound.ts";
+import { readdirSync, readFileSync } from "node:fs";
+
+test("suara: nada combo naik di pentatonik, tertahan di atas, dan semua file suara ada", () => {
+  assert.equal(comboRate(1), 1);
+  assert.ok(Math.abs(comboRate(6) - 2) < 1e-9); // combo 6 = satu oktaf
+  for (let c = 2; c <= 10; c++) assert.ok(comboRate(c) > comboRate(c - 1));
+  assert.equal(comboRate(30), comboRate(10));
+  const src = readFileSync("src/audio/sound.ts", "utf8");
+  const files = [...src.matchAll(/"([\w-]+\.(?:ogg|mp3))"/g)].map((m) => m[1]);
+  const have = new Set(readdirSync("public/sfx"));
+  assert.equal(files.length, 17);
+  for (const f of files) assert.ok(have.has(f!), f!);
+});

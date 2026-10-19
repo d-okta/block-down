@@ -17,6 +17,7 @@ import { clearPower, effectiveFx } from "./render/fx.ts";
 import { BLOCK_COLORS } from "./render/sprites.ts";
 import { Callout, type CalloutTone } from "./ui/callout.ts";
 import { hapticsAvailable, vibrate } from "./platform/haptics.ts";
+import { audioAvailable, comboRate, Sound } from "./audio/sound.ts";
 
 const STEP = 1000 / 60;
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -62,6 +63,7 @@ const frameEl = $("board-frame");
 const fxFlash = $("fx-flash");
 const fxPillar = $("fx-pillar");
 const callout = new Callout($("callout"));
+const sound = new Sound();
 const holdView = new PreviewRenderer($<HTMLCanvasElement>("cv-hold"), 1);
 const nextView = new PreviewRenderer($<HTMLCanvasElement>("cv-next"), NEXT_COUNT);
 nextView.horizontal = true;
@@ -166,6 +168,7 @@ function applySettings(): void {
   effects.fx = currentFx();
   ambient.classList.toggle("moving", effects.fx.ambientMotion);
   document.documentElement.classList.toggle("reduce", effects.fx.level === "minimal");
+  sound.setVolume(s.musicVolume, s.sfxVolume);
   renderControlsList();
 }
 
@@ -241,6 +244,8 @@ function startGame(id: ModeId): void {
     callout.warmUp(effects.fx);
   }
   updateHud(true);
+  sound.musicStop();
+  sound.musicStart();
   resume();
 }
 let warmedUp = false;
@@ -359,8 +364,10 @@ function drawLight(now: number): void {
 function endGame(now: number): void {
   stopLoop();
   const s = game!.state;
+  sound.musicStop();
   if (s.status === STATUS.GAME_OVER) {
     vibrate("over", data.settings.haptics);
+    sound.play("over");
     board.collapse(now);
     const tick = (t: number) => {
       if (!game || scrGame.hidden) return;
@@ -374,26 +381,46 @@ function endGame(now: number): void {
   }
 }
 
+/** Hard drop sudah berbunyi benturan; bunyi lock di tick yang sama dilewati. */
+let hardThisTick = false;
+
 function handleEvents(now: number): void {
   const q = game!.events;
   const s = game!.state;
+  hardThisTick = false;
   for (let i = 0; i < q.count; i++) {
     const e = q.at(i);
     switch (e.type) {
+      case EV.MOVE:
+        // Nada sedikit diacak supaya geser beruntun tidak terdengar seperti mesin.
+        sound.play("move", 0.97 + Math.random() * 0.06, 0.6);
+        break;
+      case EV.SOFT:
+        sound.play("soft", 1, 0.4);
+        break;
+      case EV.HOLD:
+        sound.play("hold");
+        break;
       case EV.LOCK:
         board.lockFlash(e.cells, e.a, now);
+        if (!hardThisTick) sound.play("lock", 1, 0.8);
         break;
       case EV.HARD:
         perfTag("hard");
         effects.hardDrop(now, e.cells, e.a, e.b);
         vibrate("hard", data.settings.haptics);
+        sound.play("hard");
+        hardThisTick = true;
         break;
       case EV.ROTATE:
         if (e.b > 0) effects.kick(now, e.a);
+        // Rotasi dengan kick: nada sedikit lebih tinggi.
+        sound.play("rotate", e.b > 0 ? 1.12 : 1, 0.8);
         break;
       case EV.LEVEL_UP:
         perfTag("level");
         effects.levelUp(now);
+        sound.play("level");
         ambientFor(e.a);
         callout.show(t("callout.levelUp"), "", "", "normal", effects.fx);
         announce(t("callout.levelUp"));
@@ -436,6 +463,12 @@ function onClear(
   }
   if (perfect) effects.perfectClear(now);
   vibrate(perfect ? 5 : power, data.settings.haptics);
+  // Satu suara utama per clear (yang paling besar), ditambah nada combo yang naik.
+  if (perfect) sound.play("pc");
+  else if (spin > 0) sound.play("tspin");
+  else if (n >= 4) sound.play("quad");
+  else if (n > 0) sound.play(n === 1 ? "clear1" : n === 2 ? "clear2" : "clear3");
+  if (combo >= 1) sound.play("combo", comboRate(combo), 0.8);
   if (power >= 3) ambientBoost();
 
   comboWarm = Math.min(1, Math.max(0, combo) / 8);
@@ -568,12 +601,14 @@ new ResizeObserver(layout).observe(field);
 function pauseGame(): void {
   if (!game || !running || game.state.status !== STATUS.PLAYING) return;
   stopLoop();
+  sound.musicDuck(true);
   $("pause-time").textContent = formatClock(ticksToMs(game.state.tick));
   dlgPause.showModal();
 }
 
 function resumeGame(): void {
   dlgPause.close();
+  sound.musicDuck(false);
   resume();
 }
 
@@ -871,6 +906,7 @@ function showScreen(which: "menu" | "game" | "settings"): void {
 
 function showMenu(): void {
   stopLoop();
+  sound.musicStop();
   game = null;
   showScreen("menu");
   renderRecords();
@@ -894,6 +930,13 @@ const settings = new SettingsScreen(scrSettings, data.settings, {
   back: () => closeSettings(),
   systemReduce: () => systemReduceMq.matches,
   hapticsAvailable: () => hapticsAvailable,
+  audioAvailable: () => audioAvailable,
+});
+
+// Bunyi tombol di menu, dialog, dan Pengaturan (bukan saat bermain: tombol Pause punya Esc dan gestur).
+document.addEventListener("click", (e) => {
+  const b = (e.target as HTMLElement).closest("button");
+  if (b && !b.disabled && b.getAttribute("aria-disabled") !== "true" && !b.closest(".field")) sound.play("ui", 1, 0.6);
 });
 
 function openSettings(from: "menu" | "pause"): void {

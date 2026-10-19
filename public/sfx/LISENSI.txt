@@ -1,0 +1,17 @@
+Semua file suara di folder ini berlisensi Creative Commons Zero (CC0 1.0):
+https://creativecommons.org/publicdomain/zero/1.0/
+Bebas dipakai untuk proyek pribadi dan komersial, tanpa kewajiban kredit.
+
+Efek suara: Kenney (www.kenney.nl)
+- Interface Sounds 1.0: click_003, select_001, select_006, tick_004, drop_004,
+  confirmation_001, confirmation_002, confirmation_003, pluck_002, switch_002
+- Impact Sounds: impactPlate_heavy_001
+- Digital Audio 1.0: powerUp5, phaserUp4, zapThreeToneDown
+- Music Jingles 1.0: jingles_STEEL00, jingles_STEEL16
+
+Musik: "Crystal Cave (song18)" oleh cynicmusic, OpenGameArt
+https://opengameart.org/content/crystal-cave-song18
+File: crystal-cave.mp3 (dari song18_0.mp3)
+
+Dipilih pemilik pada Fase 4 tahap 2. Dicek: lisensi CC0 tertulis di License.txt paket Kenney
+dan di halaman OpenGameArt saat diunduh.
