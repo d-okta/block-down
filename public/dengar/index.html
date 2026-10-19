@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlockDown: pilih suara</title>
+<style>
+  :root { color-scheme: dark; --bg: #0e1116; --s1: #171b22; --line: #2a303a; --text: #e6e9ef; --dim: #9aa3b2; --accent: #5b7cfa; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px 16px 120px; }
+  h1 { font-size: 1.375rem; margin: 8px 0 4px; }
+  p { color: var(--dim); margin: 0 0 16px; }
+  fieldset { border: 1px solid var(--line); border-radius: 12px; background: var(--s1); margin: 0 0 12px; padding: 8px 12px 12px; }
+  legend { font-weight: 700; padding: 0 4px; }
+  .hint { color: var(--dim); font-size: 0.875rem; margin: 0 0 8px; }
+  .opt { display: flex; align-items: center; gap: 8px; min-height: 48px; border-top: 1px solid var(--line); }
+  .opt:first-of-type { border-top: 0; }
+  .opt label { flex: 1; display: flex; align-items: center; gap: 10px; min-height: 48px; cursor: pointer; }
+  .opt input { width: 20px; height: 20px; accent-color: var(--accent); }
+  button { min-width: 48px; min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: #222834; color: var(--text); font: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button[aria-pressed="true"] { border-color: var(--accent); }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #0e1116ee; border-top: 1px solid var(--line); padding: 12px 16px; }
+  .bar div { max-width: 640px; margin: 0 auto; display: flex; gap: 8px; align-items: center; }
+  .bar button { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; padding: 0 16px; }
+  .bar span { color: var(--dim); font-size: 0.875rem; }
+  small { color: var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pilih suara BlockDown</h1>
+  <p>Ketuk ▶ untuk mendengar, lalu pilih satu per kejadian. Semua file berlisensi CC0 (bebas dipakai, tanpa kewajiban kredit). Efek dari Kenney (kenney.nl), musik dari OpenGameArt. Setelah selesai, ketuk "Salin pilihan" dan kirim hasilnya ke chat.</p>
+  <div id="list"></div>
+</main>
+<div class="bar"><div><button id="copy" type="button">Salin pilihan</button><span id="status" role="status"></span></div></div>
+<script>
+const groups = [
+  ["geser", "Geser kiri/kanan. Sering sekali terdengar, jadi harus pendek dan pelan.", ["click_001", "click_003", "click_005", "tick_001", "tick_002", "tick_004", "impactWood_light_000"]],
+  ["putar", "Putar piece.", ["switch_002", "switch_004", "toggle_001", "toggle_003", "select_001", "pluck_001"]],
+  ["soft", "Soft drop, per sel turun.", ["tick_001", "tick_002", "tick_004", "click_005"]],
+  ["hard", "Hard drop: benturan berat.", ["impactWood_heavy_000", "impactWood_heavy_002", "impactPunch_heavy_000", "impactPunch_medium_001", "impactPlate_heavy_001", "impactSoft_heavy_000", "drop_002"]],
+  ["lock", "Piece terkunci tanpa hard drop.", ["drop_001", "drop_003", "drop_004", "impactWood_light_002", "impactGeneric_light_001"]],
+  ["hold", "Simpan piece.", ["select_003", "select_006", "maximize_003", "minimize_006", "pluck_002"]],
+  ["clear1", "Hapus 1 baris.", ["confirmation_001", "glass_001", "pepSound1", "phaseJump1", "impactGlass_light_002"]],
+  ["clear2", "Hapus 2 baris.", ["confirmation_002", "glass_003", "phaseJump3", "zapTwoTone", "highUp"]],
+  ["clear3", "Hapus 3 baris.", ["confirmation_003", "glass_006", "zapThreeToneUp", "phaserUp1", "threeTone1"]],
+  ["quad", "4 Baris: momen terbesar.", ["powerUp2", "powerUp5", "powerUp8", "powerUp11", "phaserUp4", "jingles_HIT05", "jingles_STEEL04"]],
+  ["tspin", "T-Spin.", ["phaserUp4", "zapThreeToneUp", "maximize_006", "maximize_008", "powerUp5"]],
+  ["combo", "Combo. Nadanya akan dinaikkan otomatis per combo, jadi pilih yang terdengar seperti satu nada.", ["pluck_001", "pluck_002", "glass_001", "pepSound1", "impactBell_heavy_000", "bong_001"]],
+  ["pc", "Bersih Total: jingle singkat.", ["jingles_STEEL00", "jingles_STEEL09", "jingles_PIZZI01", "jingles_PIZZI10", "jingles_HIT11", "jingles_NES03", "jingles_SAX03"]],
+  ["level", "Naik level.", ["jingles_PIZZI04", "jingles_NES00", "jingles_STEEL16", "confirmation_004", "powerUp11", "impactBell_heavy_002"]],
+  ["over", "Game over.", ["jingles_NES16", "jingles_PIZZI16", "jingles_HIT00", "lowDown", "zapThreeToneDown", "error_006"]],
+  ["menu", "Tombol di menu.", ["click_001", "select_001", "back_002", "switch_002"]],
+  ["musik", "Musik latar (diulang terus). Ukuran file ikut dimuat aplikasi.", ["musik-crystal-cave.mp3", "musik-observing-the-star.ogg", "musik-snowfall.ogg"]],
+];
+const music = {
+  "musik-crystal-cave.mp3": "Crystal Cave, cynicmusic: bel dan arpeggio, cocok untuk puzzle (522 KB)",
+  "musik-observing-the-star.ogg": "Observing The Star, yd: ambient luar angkasa yang tenang (768 KB)",
+  "musik-snowfall.ogg": "Snowfall, Kistol: piano waltz (857 KB)",
+};
+const list = document.getElementById("list");
+let playing = null, playBtn = null;
+function stop() {
+  if (playing) { playing.pause(); playing.currentTime = 0; }
+  if (playBtn) { playBtn.setAttribute("aria-pressed", "false"); playBtn.textContent = "▶"; }
+  playing = playBtn = null;
+}
+for (const [id, hint, opts] of groups) {
+  const fs = document.createElement("fieldset");
+  fs.innerHTML = `<legend>${id}</legend><p class="hint">${hint}</p>`;
+  opts.forEach((f, i) => {
+    const file = f.includes(".") ? f : f + ".ogg";
+    const row = document.createElement("div");
+    row.className = "opt";
+    const name = music[file] ?? f;
+    row.innerHTML = `<button type="button" aria-pressed="false" aria-label="Putar ${f}">▶</button><label><input type="radio" name="${id}" value="${f}"${i === 0 ? "" : ""}> <span>${name}</span></label>`;
+    const btn = row.querySelector("button");
+    btn.addEventListener("click", () => {
+      const same = playBtn === btn;
+      stop();
+      if (same) return;
+      playing = new Audio(file);
+      playing.loop = id === "musik";
+      playing.play();
+      playBtn = btn;
+      btn.setAttribute("aria-pressed", "true");
+      btn.textContent = "■";
+      playing.onended = stop;
+      row.querySelector("input").checked = true;
+    });
+    fs.appendChild(row);
+  });
+  list.appendChild(fs);
+}
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = groups.map(([id]) => `${id}: ${document.querySelector(`input[name="${id}"]:checked`)?.value ?? "-"}`).join("\n");
+  const status = document.getElementById("status");
+  try { await navigator.clipboard.writeText(text); status.textContent = "Tersalin. Tempel di chat."; }
+  catch { prompt("Salin teks ini:", text); }
+});
+</script>
+</body>
+</html>
