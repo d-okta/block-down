@@ -898,11 +898,25 @@ function applyLocale(l: Locale): void {
   }
 }
 
-function showScreen(which: "menu" | "game" | "settings"): void {
-  scrMenu.hidden = which !== "menu";
-  scrGame.hidden = which !== "game";
-  scrSettings.hidden = which !== "settings";
+/**
+ * Ganti layar. enter: putar animasi masuk (CSS `.enter`, styles.css). Tidak dipakai saat kembali
+ * dari Pengaturan ke Pause, karena papan permainan yang sedang dijeda harus tetap diam.
+ */
+function showScreen(which: "menu" | "game" | "settings", enter = true): void {
+  const screens = { menu: scrMenu, game: scrGame, settings: scrSettings };
+  for (const [k, el] of Object.entries(screens)) {
+    el.hidden = k !== which;
+    el.classList.remove("enter");
+  }
+  clearTimeout(enterTimer);
+  if (!enter) return;
+  const el = screens[which];
+  void el.offsetWidth; // mulai ulang animasi meski kelas dipasang lagi di layar yang sama
+  el.classList.add("enter");
+  // Animasi masuk terpanjang sekitar 1,1 s (Menu). Setelah itu kelas dilepas, jadi tidak ada animasi tersisa.
+  enterTimer = window.setTimeout(() => el.classList.remove("enter"), 1200);
 }
+let enterTimer = 0;
 
 function showMenu(): void {
   stopLoop();
@@ -947,7 +961,7 @@ function openSettings(from: "menu" | "pause"): void {
 
 function closeSettings(): void {
   if (settingsFrom === "pause" && game) {
-    showScreen("game");
+    showScreen("game", false);
     layout();
     dlgPause.showModal();
     dlgPause.querySelector<HTMLElement>('[data-act="settings"]')?.focus();

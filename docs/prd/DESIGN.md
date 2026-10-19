@@ -154,7 +154,7 @@ Konsekuensi:
 | Radius blok | 4px | Blok tetap terbaca sebagai blok, tidak menjadi kapsul. |
 | Radius panel | 12px | Panel lebih lembut dari blok, jadi hierarkinya terlihat. |
 | Radius tombol dan kontrol | 8px | Di antara blok dan panel. Tidak ada elemen berbentuk pil. |
-| Blok | Warna solid, bevel atas 1px putih 28%, garis dalam bawah 1px hitam 35% (nilai dari Stitch) | Memberi volume tanpa glow. |
+| Blok | Ubin bervolume (revisi setelah Fase 4, permintaan pemilik): warna dasar, gradien cahaya dari atas (putih 20% ke hitam 20%), tepi miring sekitar 14% sisi (atas terang, kiri sedikit terang, kanan dan bawah gelap), muka dalam sedikit lebih terang, satu kilau kecil di kiri atas, garis tepi atas terang dan bawah gelap. Ghost: outline 2px dengan isi warna 10%. | Volume tanpa glow. Digambar sekali ke atlas, jadi tidak menambah kerja per frame. |
 | Panel HUD | `surface-1`, radius 12px, tepi 1px `line-deco`. Isi pratinjau (Simpan, Antrean) di sumur `surface-2` radius 8px. | Memisahkan HUD dari latar tanpa bayangan. |
 | Bayangan | Hanya untuk panel overlay (Pause, Game Over): `0 16px 32px` hitam 70% | Penanda elevasi satu tingkat (R-12). |
 | Tombol utama | Isi `accent`, teks `on-accent` Sora 600, tinggi minimal 48px. Saat ditekan: skala 0.98, warna tetap. | Warna tekan #4B6DEB dari Stitch gagal kontras (4.19:1). |
@@ -387,6 +387,19 @@ Fungsi tingkat ada di `src/render/fx.ts` (`clearPower`), dan dites.
 `prefers-reduced-motion: reduce` membuat Kurangi animasi aktif sejak awal dan mengunci Intensitas efek di Minimal. Pemain tetap bisa mematikan Kurangi animasi secara manual.
 
 ---
+
+### 8.6 Animasi masuk layar (revisi setelah Fase 4, permintaan pemilik)
+
+Setiap layar dibuka dengan animasi singkat sekali jalan, hanya `transform` dan `opacity`, tanpa loop. Dimatikan oleh Kurangi animasi, Intensitas Minimal, dan `prefers-reduced-motion`.
+
+| Layar | Gerak | Durasi |
+|---|---|---|
+| Menu | Baris atas memudar; logo membesar dari 94%; blok logo jatuh dari atas, memipih saat mendarat, lalu kembali (motif identitas); baris mode naik berurutan, jeda 60 ms | sekitar 1,1 s total |
+| Varian Maraton | Dua baris turun berurutan saat dibuka | 260 ms |
+| Game | HUD memudar, papan naik 24 px ke tempatnya. Input aktif sejak awal. | 500 ms |
+| Pengaturan | Masuk dari kanan, kelompok berurutan jeda 50 ms. Tidak ada animasi saat kembali dari Pengaturan ke Pause. | 490 ms |
+| Dialog (Pause, konfirmasi, Game Over) | Panel naik 12 px dari skala 97%, latar memudar. Game Over: isi panel muncul berurutan. | 240 sampai 560 ms |
+| Tombol | Saat ditekan mengecil ke 97% | 90 ms |
 
 ## 9. Catatan perubahan dari brief
 

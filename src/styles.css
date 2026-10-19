@@ -120,7 +120,9 @@ button {
   display: none !important;
 }
 
+/* overflow-x clip: animasi masuk yang menggeser isi ke samping tidak boleh memunculkan gulir mendatar. */
 .screen {
+  overflow-x: clip;
   min-height: 100dvh;
   padding: calc(12px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l));
 }
@@ -146,10 +148,6 @@ button {
   background: var(--surface-2);
   font-weight: 500;
   font-size: 1rem;
-}
-
-.btn:active {
-  transform: scale(0.98);
 }
 
 .btn-primary {
@@ -1124,4 +1122,157 @@ dialog.panel h2 {
 
 .over-stats dd {
   margin: 0;
+}
+
+/*
+ * ---------- animasi masuk layar (revisi setelah Fase 4, permintaan pemilik) ----------
+ * Kelas `.enter` dipasang main.ts setiap layar dibuka, lalu dilepas saat animasi selesai.
+ * Hanya transform dan opacity, hanya sekali per pembukaan (tanpa loop), dan dimatikan oleh
+ * Kurangi animasi, Intensitas Minimal, atau prefers-reduced-motion (html.reduce).
+ * Urutan Menu: logo masuk, blok logo jatuh ke tempatnya, lalu baris mode muncul berurutan dari bawah.
+ */
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes enter-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes enter-slide {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes logo-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@keyframes logo-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-1.6em);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0.12em) scaleY(0.82) scaleX(1.1);
+  }
+  80% {
+    transform: translateY(0.02em) scaleY(1.04) scaleX(0.98);
+  }
+  100% {
+    transform: translateY(0.04em);
+  }
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes board-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+}
+
+html:not(.reduce) .menu.enter .menu-top {
+  animation: enter-fade 300ms ease-out both;
+}
+html:not(.reduce) .menu.enter .logo {
+  animation: logo-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both;
+}
+html:not(.reduce) .menu.enter .logo-block {
+  transform-origin: 50% 100%;
+  animation: logo-drop 560ms cubic-bezier(0.3, 0, 0.2, 1) 300ms both;
+}
+html:not(.reduce) .menu.enter .modes > *,
+html:not(.reduce) .menu.enter .controls {
+  animation: enter-rise 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html:not(.reduce) .menu.enter .modes > :nth-child(1) { animation-delay: 380ms; }
+html:not(.reduce) .menu.enter .modes > :nth-child(2) { animation-delay: 440ms; }
+html:not(.reduce) .menu.enter .modes > :nth-child(3) { animation-delay: 440ms; }
+html:not(.reduce) .menu.enter .modes > :nth-child(4) { animation-delay: 500ms; }
+html:not(.reduce) .menu.enter .modes > :nth-child(5) { animation-delay: 560ms; }
+html:not(.reduce) .menu.enter .modes > :nth-child(6) { animation-delay: 620ms; }
+html:not(.reduce) .menu.enter .controls { animation-delay: 700ms; }
+
+/* Varian Maraton terbuka: dua baris turun berurutan dari baris Maraton. */
+html:not(.reduce) .mode-variants:not([hidden]) > * {
+  animation: enter-rise 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html:not(.reduce) .mode-variants:not([hidden]) > :nth-child(2) {
+  animation-delay: 50ms;
+}
+
+/* Game: HUD turun pelan, papan naik ke tempatnya. */
+html:not(.reduce) .game.enter .game-top,
+html:not(.reduce) .game.enter .stats,
+html:not(.reduce) .game.enter .queue-row {
+  animation: enter-fade 320ms ease-out both;
+}
+html:not(.reduce) .game.enter .queue-row {
+  animation-delay: 60ms;
+}
+html:not(.reduce) .game.enter .board {
+  animation: board-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+}
+
+/* Pengaturan: masuk dari kanan, kelompok berurutan. */
+html:not(.reduce) .settings.enter .settings-top {
+  animation: enter-slide 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html:not(.reduce) .settings.enter .set-group {
+  animation: enter-slide 340ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html:not(.reduce) .settings.enter .set-group:nth-of-type(2) { animation-delay: 50ms; }
+html:not(.reduce) .settings.enter .set-group:nth-of-type(3) { animation-delay: 100ms; }
+html:not(.reduce) .settings.enter .set-group:nth-of-type(4) { animation-delay: 150ms; }
+
+/* Dialog (Pause, konfirmasi, Game Over): panel naik sedikit, latar memudar. */
+html:not(.reduce) dialog.panel[open] {
+  animation: panel-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+html:not(.reduce) dialog.panel[open]::backdrop {
+  animation: backdrop-in 240ms ease-out;
+}
+/* Game Over: isi panel muncul berurutan setelah tumpukan runtuh. */
+html:not(.reduce) #dlg-over[open] > * {
+  animation: enter-rise 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html:not(.reduce) #dlg-over[open] > :nth-child(2) { animation-delay: 40ms; }
+html:not(.reduce) #dlg-over[open] > :nth-child(3) { animation-delay: 100ms; }
+html:not(.reduce) #dlg-over[open] > :nth-child(4) { animation-delay: 160ms; }
+html:not(.reduce) #dlg-over[open] > :nth-child(5) { animation-delay: 200ms; }
+html:not(.reduce) #dlg-over[open] > :nth-child(n + 6) { animation-delay: 240ms; }
+
+/* Tombol: tekan terasa (skala kecil), untuk semua tombol yang bisa diklik. */
+@media (prefers-reduced-motion: no-preference) {
+  .btn,
+  .mode-row,
+  .seg-btn,
+  .icon-btn,
+  .key-btn {
+    transition: transform 90ms ease-out, border-color 150ms ease-out, background-color 150ms ease-out;
+  }
+  .btn:active,
+  .mode-row:active,
+  .seg-btn:active,
+  .icon-btn:active,
+  .key-btn:active {
+    transform: scale(0.97);
+  }
 }

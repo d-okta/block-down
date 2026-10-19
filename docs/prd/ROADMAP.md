@@ -337,3 +337,12 @@ Dijalankan di Chrome pada build lokal, 19 Oktober 2026.
 Regresi: 59 tes lulus; gestur, landscape, click-through Fase 2 dan 3, efek, lapisan tumpukan, dan suara lulus, 0 error.
 
 **Fase 4 selesai.** Yang dicatat belum diuji di perangkat: TalkBack dan NVDA (dilewati pemilik), iPhone, gamepad fisik.
+
+### Tambahan setelah Fase 4: animasi antar layar dan blok baru
+
+Permintaan pemilik: animasi antar layar dan blok yang lebih enak dilihat. Detail di DESIGN bagian 5 (blok) dan 8.6 (animasi).
+
+- Blok: ubin bervolume dengan gradien cahaya, tepi miring, muka dalam, dan kilau kecil; ghost diberi isi tipis. Digambar sekali ke atlas.
+- Animasi masuk: Menu (logo, blok logo jatuh dan memantul, mode berurutan), varian Maraton, Game, Pengaturan, dialog, dan tekan tombol. Kelas `.enter` dilepas 1,2 s setelah layar dibuka.
+
+Uji di Chrome: animasi berjalan di setiap layar dan semuanya selesai (tidak tersisa selain pita ambient yang memang ada sejak Fase 4). Dengan `prefers-reduced-motion`, jumlah animasi 0 di semua layar. Hard drop 100 ms setelah masuk Game langsung menambah skor. Kembali dari Pengaturan ke Pause tidak menganimasikan papan. Ditemukan dan diperbaiki: animasi geser Pengaturan memunculkan gulir mendatar (`overflow-x: clip` pada layar). Mode buta warna tetap terbedakan dalam grayscale, teks 200% tetap tanpa gulir mendatar, 59 tes dan regresi lulus, 0 error. CPU 6 kali, 9 putaran 1 detik setelah Quad: kerja p99 3,1 sampai 10,0 ms; 2 putaran mencatat satu frame 17,9 dan 22,6 ms (sebelumnya 0). Perlu dicek di Galaxy A13 lewat `?perf`.
