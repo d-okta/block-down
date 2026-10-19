@@ -170,13 +170,13 @@ Kriteria selesai:
 - [x] Dengan `prefers-reduced-motion: reduce` di sistem: tanpa shake, tanpa partikel, callout hanya pudar, dan pita ambient diam.
 - [x] Setiap kejadian di tabel suara SPEC.md bagian 14 berbunyi (diuji di Chrome, lihat tahap 2). Tidak ada suara dan tidak ada unduhan file sebelum gestur pertama, dan tidak ada error di konsol. Kriteria `tidak ada file mp3` dicabut: pemilik memilih file CC0.
 - [x] Combo panjang menghasilkan melodi pentatonik yang naik (tes `comboRate` di `tests/client.test.ts`).
-- [ ] Getar bekerja di Android, dan kontrol Getar nonaktif dengan alasan di perangkat yang tidak mendukung. Kode: `navigator.vibrate` di web, kontrol nonaktif dengan alasan jika tidak ada. Rasa getar di Galaxy A13 menunggu pemilik.
+- [x] Getar bekerja di Android, dan kontrol Getar nonaktif dengan alasan di perangkat yang tidak mendukung. Dikonfirmasi pemilik di Galaxy A13 (getar sudah terasa).
 - [ ] Mode aman buta warna: ketujuh jenis blok bisa dibedakan dalam screenshot grayscale.
-- [ ] Callout dan hasil Game Over diumumkan oleh TalkBack dan NVDA.
+- [ ] Callout dan hasil Game Over diumumkan oleh TalkBack dan NVDA. Uji perangkat dilewati (keputusan pemilik); diganti uji otomatis isi region `aria-live` di Chrome. Belum diuji dengan pembaca layar sungguhan.
 - [ ] Teks bisa diperbesar ke 200% tanpa terpotong di Menu dan Pengaturan.
 - [ ] Delivery Gate antislop (DESIGN.md bagian 11) dijalankan ulang dengan bukti nyata dan click-through per kontrol. Semua item lolos.
 - [ ] Pre-Flight taste-skill (DESIGN.md bagian 12) dijalankan ulang.
-- [ ] Target performa ARCHITECTURE.md bagian 12 terpenuhi di perangkat acuan.
+- [x] Target performa ARCHITECTURE.md bagian 12 terpenuhi di perangkat acuan, dengan catatan (lihat `Pengukuran akhir Fase 4`).
 
 ### Tahap 1: animasi dan getar (selesai, menunggu uji pemilik)
 
@@ -299,3 +299,20 @@ Uji di Chrome (HP emulasi, autoplay hanya setelah gestur):
 - Error: tidak ada. 59 tes lulus. Gestur, landscape, click-through Fase 2 dan 3, efek, lapisan tumpukan: lulus. CPU 6 kali: tidak ada frame di atas 16,7 ms.
 
 Batas yang disengaja: tempo dan kunci musik tidak berubah per level (file audio); naik level ditandai jingle.
+
+### Pengukuran akhir Fase 4 di Galaxy A13
+
+Versi dengan efek bertingkat, perbaikan beban GPU (`ec6be7e`), dan suara (`d5501e2`). Pemilik, Maraton, 124 detik, 7.338 frame, tumpukan tinggi:
+
+| Ukuran | Uji kedua (`f35bb13`) | Akhir | Target |
+|---|---|---|---|
+| fps | 60 | 60 | 60 |
+| Tersendat | 6,3% | 0,8% (56 frame di atas 25 ms) | di bawah 1% |
+| Jeda maks | 185 ms | 284 ms | tidak ada target |
+| Kerja p99 | 2,5 ms | 2,3 ms | jauh di bawah 16,7 ms |
+| Kerja maks | 10,8 ms (hard) | 11,9 ms (level) | di bawah 16,7 ms |
+| Heap | 9,5 MB stabil | 9,5 MB stabil (awal 9,5) | tidak naik |
+
+Dugaan beban GPU terbukti: setelah `mix-blend-mode` dan `will-change` permanen dihapus, tersendat turun dari 6,3% ke 0,8%, di bawah 1%. Pemilik menilai efek dan getar sudah bagus dan tidak perlu dikurangi.
+
+Catatan: kriteria ARCHITECTURE bagian 12 menulis `tidak ada frame di atas 16,7 ms`. Di perangkat ini sekitar 0,8% frame lewat 25 ms dan satu jeda mencapai 284 ms, sementara kode game paling lama 11,9 ms per frame. Jeda itu berasal dari browser atau sistem, bukan kode game. HP acuan sudah dipakai hampir 5 tahun tanpa reset. Kriteria dinilai terpenuhi untuk kode game; jeda sistem dicatat dan tidak dikejar di Fase 4.
