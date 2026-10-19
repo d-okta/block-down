@@ -154,7 +154,7 @@ Konsekuensi:
 | Radius blok | 4px | Blok tetap terbaca sebagai blok, tidak menjadi kapsul. |
 | Radius panel | 12px | Panel lebih lembut dari blok, jadi hierarkinya terlihat. |
 | Radius tombol dan kontrol | 8px | Di antara blok dan panel. Tidak ada elemen berbentuk pil. |
-| Blok | Ubin bervolume (revisi setelah Fase 4, permintaan pemilik): warna dasar, gradien cahaya dari atas (putih 20% ke hitam 20%), tepi miring sekitar 14% sisi (atas terang, kiri sedikit terang, kanan dan bawah gelap), muka dalam sedikit lebih terang, satu kilau kecil di kiri atas, garis tepi atas terang dan bawah gelap. Ghost: outline 2px dengan isi warna 10%. | Volume tanpa glow. Digambar sekali ke atlas, jadi tidak menambah kerja per frame. |
+| Blok | Warna solid dengan volume halus: gradien tipis dari atas (putih 10% ke hitam 10%), garis atas putih 22% dan garis bawah hitam 28% selebar 2px. Ghost: outline 2px dengan isi warna 10%. Versi ubin dengan tepi miring dan kilau sempat dicoba dan dinilai pemilik berlebihan. | Volume tanpa glow. Digambar sekali ke atlas, jadi tidak menambah kerja per frame. |
 | Panel HUD | `surface-1`, radius 12px, tepi 1px `line-deco`. Isi pratinjau (Simpan, Antrean) di sumur `surface-2` radius 8px. | Memisahkan HUD dari latar tanpa bayangan. |
 | Bayangan | Hanya untuk panel overlay (Pause, Game Over): `0 16px 32px` hitam 70% | Penanda elevasi satu tingkat (R-12). |
 | Tombol utama | Isi `accent`, teks `on-accent` Sora 600, tinggi minimal 48px. Saat ditekan: skala 0.98, warna tetap. | Warna tekan #4B6DEB dari Stitch gagal kontras (4.19:1). |

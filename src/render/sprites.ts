@@ -83,10 +83,9 @@ function drawPattern(ctx: Ctx, type: number, x: number, y: number, s: number): v
 }
 
 /**
- * Blok bervolume seperti ubin yang sedikit menonjol (revisi setelah Fase 4, permintaan pemilik):
- * cahaya dari atas (gradien), tepi miring terang di kiri-atas dan gelap di kanan-bawah, muka dalam
- * sedikit lebih terang, dan satu kilau kecil di sudut. Tanpa glow. Digambar sekali ke atlas, jadi
- * tidak menambah kerja per frame.
+ * Blok dengan volume halus (revisi kedua setelah Fase 4: pemilik menilai tepi miring dan kilau
+ * berlebihan). Warna solid, gradien cahaya tipis dari atas, garis terang di atas dan gelap di bawah
+ * selebar 2 piksel CSS. Digambar sekali ke atlas, jadi tidak menambah kerja per frame.
  */
 function drawBlock(ctx: Ctx, color: string, x: number, y: number, s: number, r: number, px: number): void {
   ctx.save();
@@ -96,45 +95,16 @@ function drawBlock(ctx: Ctx, color: string, x: number, y: number, s: number, r: 
   ctx.fillRect(x, y, s, s);
 
   const g = ctx.createLinearGradient(0, y, 0, y + s);
-  g.addColorStop(0, "rgba(255, 255, 255, 0.20)");
-  g.addColorStop(0.5, "rgba(255, 255, 255, 0)");
-  g.addColorStop(1, "rgba(0, 0, 0, 0.20)");
+  g.addColorStop(0, "rgba(255, 255, 255, 0.10)");
+  g.addColorStop(1, "rgba(0, 0, 0, 0.10)");
   ctx.fillStyle = g;
   ctx.fillRect(x, y, s, s);
 
-  // Lebar tepi miring: sekitar 14% sisi, minimal 2 piksel CSS supaya tetap terlihat di pratinjau kecil.
-  const e = Math.max(2 * px, Math.round(s * 0.14));
-  const quad = (fill: string, ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number) => {
-    ctx.fillStyle = fill;
-    ctx.beginPath();
-    ctx.moveTo(ax, ay);
-    ctx.lineTo(bx, by);
-    ctx.lineTo(cx, cy);
-    ctx.lineTo(dx, dy);
-    ctx.closePath();
-    ctx.fill();
-  };
-  const x2 = x + s, y2 = y + s;
-  quad("rgba(255, 255, 255, 0.24)", x, y, x2, y, x2 - e, y + e, x + e, y + e); // atas
-  quad("rgba(255, 255, 255, 0.12)", x, y, x + e, y + e, x + e, y2 - e, x, y2); // kiri
-  quad("rgba(0, 0, 0, 0.14)", x2, y, x2, y2, x2 - e, y2 - e, x2 - e, y + e); // kanan
-  quad("rgba(0, 0, 0, 0.26)", x, y2, x2, y2, x2 - e, y2 - e, x + e, y2 - e); // bawah
-
-  // Muka dalam yang sedikit lebih terang.
-  ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
-  ctx.fillRect(x + e, y + e, s - 2 * e, s - 2 * e);
-
-  // Kilau kecil di sudut kiri atas muka.
-  const face = s - 2 * e;
-  ctx.fillStyle = "rgba(255, 255, 255, 0.38)";
-  roundRect(ctx, x + e + px, y + e + px, Math.max(px, face * 0.34), Math.max(px, Math.round(e * 0.5)), Math.max(1, px));
-  ctx.fill();
-
-  // Garis tepi luar tipis: atas terang, bawah gelap, menjaga batas antarblok tetap jelas.
-  ctx.fillStyle = "rgba(255, 255, 255, 0.30)";
-  ctx.fillRect(x, y, s, px);
-  ctx.fillStyle = "rgba(0, 0, 0, 0.40)";
-  ctx.fillRect(x, y2 - px, s, px);
+  const edge = 2 * px;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+  ctx.fillRect(x, y, s, edge);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+  ctx.fillRect(x, y + s - edge, s, edge);
   ctx.restore();
 }
 
