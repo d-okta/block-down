@@ -1097,4 +1097,14 @@ showMenu();
 // PWA: hanya di HTTPS (Vercel). Di localhost dan di aplikasi Android (Fase 5) tidak dipasang.
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+  // Versi baru service worker mengambil alih: muat ulang sekali supaya aset baru (misalnya ikon) langsung
+  // terpakai. Hanya jika sebelumnya sudah ada service worker (bukan kunjungan pertama) dan pemain sedang
+  // tidak bermain; jika sedang bermain, versi baru terpakai saat game dibuka lagi.
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloaded || game) return;
+    reloaded = true;
+    location.reload();
+  });
 }

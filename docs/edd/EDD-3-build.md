@@ -180,7 +180,10 @@ Final, dipilih pemilik (DESIGN 6). Sumber: `design/app-icon/ikon.svg` dan `ikon-
 - Versi cache dari konstanta `VERSION`, diganti setiap rilis yang mengubah daftar file tetap.
 - `install`: simpan halaman, manifest, ikon, sprite ikon UI, 17 file suara, lalu aset build (JS dan CSS dibaca dari HTML, font dibaca dari CSS), lalu `skipWaiting()`.
 - Navigasi: jaringan dulu (versi baru langsung terpakai, salinannya disimpan), offline memakai salinan di cache.
-- Permintaan GET same-origin lain: cache dulu dengan `ignoreVary` (font diminta dengan header `Origin`; tanpa opsi ini font tidak cocok dan hilang saat offline). Respons 200 dari jaringan disimpan; 206 dari pemutar audio tidak.
+- Permintaan GET same-origin lain: cache dulu (hanya dari cache versi aktif) dengan `ignoreVary` (font diminta dengan header `Origin`; tanpa opsi ini font tidak cocok dan hilang saat offline). Respons 200 dari jaringan disimpan; 206 dari pemutar audio tidak.
+- File bernama tetap (`icons.svg`, ikon aplikasi, suara, manifest) tetap disajikan dari cache, tapi versi terbarunya diambil di latar untuk kunjungan berikutnya. Aset `assets/` ber-hash tidak perlu diambil ulang.
+- Saat service worker baru mengambil alih dan pemain tidak sedang bermain, halaman dimuat ulang sekali supaya aset baru langsung terpakai (`main.ts`).
+- v2 (Fase 6): v1 hanya cache-first dan membaca dari cache mana pun, sehingga `icons.svg` lama tidak pernah diperbarui dan ikon palet tidak muncul di HP pemilik. Diuji dari kondisi persis itu (SW v1 dengan ikon lama di cache): v2 mengambil alih, cache v1 dihapus, ikon palet tergambar.
 - Uji: Chrome offline setelah kunjungan pertama memuat Menu, font, suara (ter-decode), dan permainan berjalan, tanpa error.
 - `activate`: hapus cache versi lama, lalu `clients.claim()`.
 - Karena nama file hasil Vite memakai hash, cache-first aman: file baru punya nama baru.

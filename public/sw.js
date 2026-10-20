@@ -1,9 +1,12 @@
 // Service worker BlockDown (EDD-3 bagian 5): game bisa dimainkan tanpa internet setelah kunjungan pertama.
 // - Saat dipasang: simpan halaman, ikon, font, dan 17 file suara ke cache.
 // - Halaman (navigasi): jaringan dulu supaya versi baru langsung terpakai; offline memakai salinan di cache.
-// - File lain: cache dulu. Aset build bernama hash, jadi file baru selalu punya nama baru.
-// - VERSION diganti setiap rilis yang mengubah daftar PRECACHE; cache versi lama dihapus saat aktif.
-const VERSION = "v1";
+// - Aset build (assets/, nama ber-hash): cache dulu. File baru selalu punya nama baru.
+// - File lain bernama tetap (icons.svg, ikon aplikasi, suara, manifest): cache dulu supaya cepat dan
+//   offline, sambil mengambil versi terbaru di latar untuk kunjungan berikutnya. Versi v1 hanya cache-first,
+//   sehingga icons.svg lama tidak pernah diperbarui (ikon palet tidak muncul di HP pemilik).
+// - VERSION diganti jika daftar PRECACHE berubah atau cache lama harus dibuang; cache versi lama dihapus saat aktif.
+const VERSION = "v2";
 const CACHE = `blockdown-${VERSION}`;
 const PRECACHE = [
   "./",
@@ -61,7 +64,7 @@ self.addEventListener("fetch", (e) => {
           await cache.put("./", res.clone());
           return res;
         } catch {
-          return (await caches.match("./")) ?? Response.error();
+          return (await (await caches.open(CACHE)).match("./")) ?? Response.error();
         }
       })(),
     );
@@ -71,12 +74,19 @@ self.addEventListener("fetch", (e) => {
     (async () => {
       // ignoreVary: font diminta browser dengan header Origin, sedangkan saat dipasang disimpan tanpa itu.
       // Server yang mengirim `Vary: Origin` membuat cocokan biasa gagal, dan font hilang saat offline.
-      const hit = await caches.match(req, { ignoreVary: true });
-      if (hit) return hit;
-      const res = await fetch(req);
+      // Hanya dari cache versi ini: cache versi lama yang belum terhapus tidak boleh menyajikan file usang.
+      const hit = await (await caches.open(CACHE)).match(req, { ignoreVary: true });
+      const hashed = new URL(req.url).pathname.includes("/assets/");
       // Hanya respons utuh yang disimpan (bukan 206 Range dari pemutar audio, bukan error).
-      if (res.ok && res.status === 200) (await caches.open(CACHE)).put(req, res.clone());
-      return res;
+      const refresh = fetch(req).then(async (res) => {
+        if (res.ok && res.status === 200) await (await caches.open(CACHE)).put(req, res.clone());
+        return res;
+      });
+      if (hit) {
+        if (!hashed) e.waitUntil(refresh.catch(() => {}));
+        return hit;
+      }
+      return refresh;
     })(),
   );
 });
