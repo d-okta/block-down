@@ -254,6 +254,8 @@ Dikeluarkan dari lingkup (keputusan pemilik): AAB dan `npx cap sync android`, AP
 
 Lingkup kandidat: koin, item, toko, quest, rank, daily reward, notifikasi, dan leaderboard online.
 
+Usulan terbaru (draf, menunggu keputusan pemilik): tema yang terbuka lewat prestasi, menggantikan koin dan toko. Rancangan di [PRD-6-tema.md](PRD-6-tema.md).
+
 Fase ini belum dirancang. Sebelum dimulai, dibutuhkan PRD terpisah yang menjawab:
 - Fitur mana yang benar-benar dipakai, dan apakah fitur itu menjaga ketenangan arah desain.
 - Backend dan akun untuk leaderboard, termasuk anti-curang. Rekor lokal fase 1 tidak tepercaya (SPEC.md bagian 13).
