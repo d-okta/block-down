@@ -1,6 +1,6 @@
 # BlockDown: Rancangan Tema yang Terbuka lewat Prestasi (Fase 6)
 
-Status: **draf untuk diputuskan pemilik.** Belum ada kode. Bagian 9 berisi pertanyaan yang harus dijawab sebelum dikerjakan.
+Status: **disetujui pemilik** (jawaban di bagian 9). Tahap berikutnya: pemilik memilih tampilan tiap tema lewat pratinjau.
 
 Dokumen ini menggantikan kandidat "koin, item, toko" di ROADMAP Fase 6. Alasannya ada di bagian 2.
 
@@ -49,11 +49,11 @@ Lima tema: satu bawaan dan empat yang terbuka. Syarat diambil dari data yang **s
 |---|---|---|---|
 | **Klasik** | Tampilan sekarang | Bawaan | Titik awal. |
 | **Malam** | Biru tua dan ungu redup, blok sedikit transparan seperti kaca | Selesaikan Maraton 150 baris | Prestasi paling umum, didapat dengan bermain tekun. |
-| **Neon garis** | Blok hanya garis tepi menyala tipis di latar hitam | Sprint 40 selesai di bawah 2 menit | Hadiah untuk kecepatan. |
+| **Neon garis** | Blok hanya garis tepi menyala tipis di latar hitam | Sprint 40 selesai di bawah 3 menit | Hadiah untuk kecepatan. |
 | **Fajar** | Hijau laut dan toska lembut, aksen hijau | Satu permainan dengan 4 Baris sebanyak 10 kali | Hadiah untuk bermain rapi (menumpuk untuk 4 Baris). |
 | **Monokrom** | Abu-abu bertingkat, hanya piece aktif berwarna | Satu Bersih Total di mode apa pun | Prestasi langka, hadiah paling unik. |
 
-Angka syarat (150 baris, 2 menit, 10 kali) adalah usulan dan bisa diubah pemilik. Nama dan isi tema juga usulan; desain akhir tiap tema dibuat dan dipilih pemilik lewat halaman pratinjau, seperti saat memilih ikon dan suara.
+Angka syarat sudah diputuskan pemilik (Sprint diubah dari 2 menjadi 3 menit). Nama dan isi tema juga usulan; desain akhir tiap tema dibuat dan dipilih pemilik lewat halaman pratinjau, seperti saat memilih ikon dan suara.
 
 Kenapa tidak ada syarat "main 100 kali" atau "login tiap hari": syarat seperti itu mengukur waktu, bukan kemampuan, dan mendorong main karena kewajiban.
 
@@ -80,7 +80,7 @@ interface SaveData {
 ```
 
 - Migrasi dari skema 1: `unlocks` kosong, `theme` = `"classic"`. Rekor lama tetap.
-- **Rekor lama dihitung:** saat migrasi, tema yang syaratnya sudah terpenuhi oleh rekor tersimpan langsung terbuka. Contoh: rekor Sprint 40 di bawah 2 menit membuka Neon garis. Syarat yang tidak tercatat di rekor (10 kali 4 Baris dalam satu permainan, Bersih Total) baru bisa didapat mulai sekarang.
+- **Rekor lama dihitung:** saat migrasi, tema yang syaratnya sudah terpenuhi oleh rekor tersimpan langsung terbuka. Contoh: rekor Sprint 40 di bawah 3 menit membuka Neon garis. Syarat yang tidak tercatat di rekor (10 kali 4 Baris dalam satu permainan, Bersih Total) baru bisa didapat mulai sekarang.
 - Syarat dicek sekali saat permainan berakhir, dari state core yang sudah ada. Permainan yang ditinggalkan lewat "Ke Menu" tidak dihitung, sama seperti rekor.
 - Tidak ada server. Pemain bisa membuka semua tema dengan mengubah localStorage; ini diterima karena tidak ada yang dipertaruhkan selain kesenangan pemain itu sendiri.
 
@@ -99,13 +99,13 @@ interface SaveData {
 - Leaderboard online dan akun (butuh server dan anti-curang; dirancang terpisah jika suatu saat diinginkan).
 - Tema yang mengubah aturan atau memberi keuntungan permainan.
 
-## 9. Pertanyaan untuk pemilik
+## 9. Keputusan pemilik
 
-1. Setuju tema lewat prestasi menggantikan koin dan toko?
-2. Lima tema cukup, atau mau lebih sedikit (misalnya tiga) supaya cepat selesai?
-3. Syarat di bagian 4 sudah pas, atau ada yang terlalu sulit atau terlalu mudah?
-4. Rekor lama dihitung (bagian 6), atau semua mulai dari nol?
-5. Ada arah tampilan tema yang ingin Anda tentukan sendiri? Jika tidak, saya buat pratinjau tiap tema untuk Anda pilih.
+1. Tema lewat prestasi menggantikan koin dan toko: setuju.
+2. Jumlah tema: lima.
+3. Syarat: sesuai bagian 4, dengan Sprint 40 di bawah 3 menit (bukan 2).
+4. Rekor lama: dihitung, tema yang syaratnya sudah terpenuhi langsung terbuka.
+5. Tampilan tema: dibuat pratinjau untuk dipilih pemilik.
 
 ## 10. Kriteria selesai (diisi setelah pertanyaan dijawab)
 

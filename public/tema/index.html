@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlockDown: pilih tema</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b0c0f; color: #e6e9ef; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px 16px 120px; }
+  h1 { font-size: 1.375rem; margin: 8px 0 4px; }
+  p { color: #9aa3b2; margin: 0 0 12px; }
+  section.g { border-top: 1px solid #262b35; padding: 16px 0; }
+  h2 { font-size: 1.125rem; margin: 0; }
+  .meta { color: #9aa3b2; font-size: 0.875rem; margin: 2px 0 12px; }
+  .meta b { color: #e6e9ef; font-weight: 600; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; }
+  label.card { display: flex; flex-direction: column; gap: 8px; cursor: pointer; }
+  label.card input { width: 20px; height: 20px; accent-color: #5b7cfa; }
+  .pick { display: flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 600; }
+  canvas { display: block; border-radius: 12px; width: 220px; height: 330px; }
+  label.card:has(input:checked) canvas { outline: 2px solid #5b7cfa; outline-offset: 3px; }
+  input:focus-visible { outline: 2px solid #5b7cfa; outline-offset: 2px; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #0b0c0fee; border-top: 1px solid #262b35; padding: 12px 16px; }
+  .bar div { max-width: 760px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
+  .bar button { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 0; background: #5b7cfa; color: #0f1217; font: inherit; font-weight: 700; cursor: pointer; }
+  .bar span { color: #9aa3b2; font-size: 0.875rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pilih tampilan tema BlockDown</h1>
+  <p>Setiap tema punya dua varian (A dan B). Pilih satu per tema, lalu ketuk "Salin pilihan" dan kirim ke chat. Pratinjau digambar dengan cara yang sama seperti di game: tumpukan blok, piece yang sedang jatuh, bayangannya, dan tombol berwarna aksen.</p>
+  <section class="g"><h2>Klasik</h2><div class="meta">Bawaan, tampilan sekarang (pembanding). Terbuka: <b>Bawaan</b>.</div><div class="row"><label class="card"><canvas data-theme="classic" width="440" height="660" role="img" aria-label="Pratinjau Klasik"></canvas></label></div></section>
+<section class="g"><h2>Malam</h2><div class="meta">Biru tua dan ungu, blok seperti kaca. Terbuka: <b>Selesaikan Maraton 150 baris</b>.</div><div class="row"><label class="card"><canvas data-theme="night-a" width="440" height="660" role="img" aria-label="Pratinjau Malam A"></canvas><span class="pick"><input type="radio" name="Malam" value="A"> Varian A</span></label><label class="card"><canvas data-theme="night-b" width="440" height="660" role="img" aria-label="Pratinjau Malam B"></canvas><span class="pick"><input type="radio" name="Malam" value="B"> Varian B</span></label></div></section>
+<section class="g"><h2>Neon garis</h2><div class="meta">Latar hitam, blok berupa garis tepi menyala. Terbuka: <b>Sprint 40 di bawah 3 menit</b>.</div><div class="row"><label class="card"><canvas data-theme="neon-a" width="440" height="660" role="img" aria-label="Pratinjau Neon garis A"></canvas><span class="pick"><input type="radio" name="Neon garis" value="A"> Varian A</span></label><label class="card"><canvas data-theme="neon-b" width="440" height="660" role="img" aria-label="Pratinjau Neon garis B"></canvas><span class="pick"><input type="radio" name="Neon garis" value="B"> Varian B</span></label></div></section>
+<section class="g"><h2>Fajar</h2><div class="meta">Hijau laut dan toska. Terbuka: <b>10 kali 4 Baris dalam satu permainan</b>.</div><div class="row"><label class="card"><canvas data-theme="dawn-a" width="440" height="660" role="img" aria-label="Pratinjau Fajar A"></canvas><span class="pick"><input type="radio" name="Fajar" value="A"> Varian A</span></label><label class="card"><canvas data-theme="dawn-b" width="440" height="660" role="img" aria-label="Pratinjau Fajar B"></canvas><span class="pick"><input type="radio" name="Fajar" value="B"> Varian B</span></label></div></section>
+<section class="g"><h2>Monokrom</h2><div class="meta">Abu-abu bertingkat, hanya piece yang sedang jatuh berwarna. Terbuka: <b>Satu Bersih Total</b>.</div><div class="row"><label class="card"><canvas data-theme="mono-a" width="440" height="660" role="img" aria-label="Pratinjau Monokrom A"></canvas><span class="pick"><input type="radio" name="Monokrom" value="A"> Varian A</span></label><label class="card"><canvas data-theme="mono-b" width="440" height="660" role="img" aria-label="Pratinjau Monokrom B"></canvas><span class="pick"><input type="radio" name="Monokrom" value="B"> Varian B</span></label></div></section>
+</main>
+<div class="bar"><div><button id="copy" type="button">Salin pilihan</button><span id="st" role="status"></span></div></div>
+<script>
+const THEMES = [{"id":"classic","name":"Klasik","style":"solid","bg":"#0F1217","surface":"#161B22","board":"#161B22","grid":"rgba(230,233,239,0.04)","text":"#E6E9EF","dim":"#8A93A3","accent":"#5B7CFA","onAccent":"#0F1217","blocks":["#5CC8D6","#E3C35A","#A57BD8","#6CC489","#E06C75","#3F63C9","#E39A55"]},{"id":"night-a","name":"Malam A","style":"glass","bg":"#0B0D1A","surface":"#141833","board":"#121530","grid":"rgba(160,170,255,0.06)","text":"#E8E9FB","dim":"#9097C4","accent":"#8C7BFF","onAccent":"#0B0D1A","blocks":["#6FD3F5","#F2D16B","#B48CFF","#7EE0A8","#FF7F9E","#5B7BFF","#FFA86B"]},{"id":"night-b","name":"Malam B","style":"glass","bg":"#070A12","surface":"#0F1424","board":"#0D1220","grid":"rgba(140,190,255,0.06)","text":"#E3EAF7","dim":"#8B98B3","accent":"#6CB6FF","onAccent":"#070A12","blocks":["#79E2F2","#E8CF7A","#A98BEB","#84D9A0","#EE8A9C","#6B8CF0","#F0A574"]},{"id":"neon-a","name":"Neon garis A","style":"outline","bg":"#050507","surface":"#0E0E14","board":"#08080C","grid":"rgba(255,255,255,0.05)","text":"#F2F2F7","dim":"#9A9AB0","accent":"#00E5FF","onAccent":"#050507","blocks":["#00E5FF","#FFE45C","#D86BFF","#3DFF8F","#FF4F7B","#2E5BFF","#FF9B3D"]},{"id":"neon-b","name":"Neon garis B","style":"outline-fill","bg":"#050507","surface":"#0E0E14","board":"#08080C","grid":"rgba(255,255,255,0.05)","text":"#F2F2F7","dim":"#9A9AB0","accent":"#FF4FD8","onAccent":"#050507","blocks":["#00E5FF","#FFE45C","#D86BFF","#3DFF8F","#FF4F7B","#2E5BFF","#FF9B3D"]},{"id":"dawn-a","name":"Fajar A","style":"solid","bg":"#0A1513","surface":"#11201D","board":"#0F1D1A","grid":"rgba(200,255,235,0.05)","text":"#E4F2EE","dim":"#8FAAA3","accent":"#3DD6A8","onAccent":"#0A1513","blocks":["#5FD4E0","#E8D36A","#B39AE6","#6FDC9C","#F08A8A","#4E8FE0","#F2A970"]},{"id":"dawn-b","name":"Fajar B","style":"soft","bg":"#0B1618","surface":"#122326","board":"#102024","grid":"rgba(180,240,240,0.05)","text":"#E3F1F2","dim":"#8EA9AC","accent":"#4FD1C5","onAccent":"#0B1618","blocks":["#7FDDE8","#EBD27A","#B9A3EA","#7ED9A6","#F29595","#5E9AE6","#F4B07C"]},{"id":"mono-a","name":"Monokrom A","style":"solid","monoActive":"#F2F2F2","bg":"#0E0E0F","surface":"#18181A","board":"#151517","grid":"rgba(255,255,255,0.04)","text":"#EDEDEF","dim":"#9696A0","accent":"#F2F2F2","onAccent":"#0E0E0F","blocks":["#C9C9CF","#E6E6EA","#8E8E96","#B0B0B8","#6E6E76","#5A5A62","#A0A0A8"]},{"id":"mono-b","name":"Monokrom B","style":"solid","monoActive":"color","bg":"#0D0F12","surface":"#171A1F","board":"#14171B","grid":"rgba(255,255,255,0.04)","text":"#ECEEF2","dim":"#939AA6","accent":"#C8D0DC","onAccent":"#0D0F12","blocks":["#C4CBD6","#E2E6EC","#8A93A1","#AAB2BE","#6C7480","#58606B","#9AA2AE"],"colors":["#5CC8D6","#E3C35A","#A57BD8","#6CC489","#E06C75","#3F63C9","#E39A55"]}];
+// Tumpukan contoh (baris dari bawah, 10 kolom, huruf = jenis, titik = kosong), piece aktif T dan ghost-nya.
+const STACK = [
+  "JJJ.OOIIII",
+  "LJZZOOSS.T",
+  "LLZZSSTTTL".slice(0,10),
+  "L.....T.LL",
+];
+const IDX = { I: 0, O: 1, T: 2, S: 3, Z: 4, J: 5, L: 6 };
+const ACTIVE = { type: "T", cells: [[4, 15], [3, 14], [4, 14], [5, 14]] };
+const GHOST = [[4, 5], [3, 4], [4, 4], [5, 4]];
+
+function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
+function block(g, t, color, x, y, s, active) {
+  const r = Math.max(2, s * 0.14), st = t.style;
+  if (st === "outline" || st === "outline-fill") {
+    const lw = Math.max(2, s * 0.09);
+    if (st === "outline-fill") { g.globalAlpha = 0.22; g.fillStyle = color; rr(g, x + 1, y + 1, s - 2, s - 2, r); g.fill(); g.globalAlpha = 1; }
+    g.shadowColor = color; g.shadowBlur = s * 0.35;
+    g.strokeStyle = color; g.lineWidth = lw; rr(g, x + lw / 2 + 1, y + lw / 2 + 1, s - lw - 2, s - lw - 2, r); g.stroke();
+    g.shadowBlur = 0;
+    return;
+  }
+  g.save(); rr(g, x, y, s, s, st === "soft" ? s * 0.28 : r); g.clip();
+  g.fillStyle = color; g.fillRect(x, y, s, s);
+  if (st === "glass") {
+    const gr = g.createLinearGradient(x, y, x + s, y + s);
+    gr.addColorStop(0, "rgba(255,255,255,0.35)"); gr.addColorStop(0.45, "rgba(255,255,255,0.06)"); gr.addColorStop(1, "rgba(0,0,0,0.25)");
+    g.fillStyle = gr; g.fillRect(x, y, s, s);
+    g.strokeStyle = "rgba(255,255,255,0.35)"; g.lineWidth = 2; rr(g, x + 1, y + 1, s - 2, s - 2, r); g.stroke();
+  } else {
+    const gr = g.createLinearGradient(0, y, 0, y + s);
+    gr.addColorStop(0, "rgba(255,255,255,0.10)"); gr.addColorStop(1, "rgba(0,0,0,0.10)");
+    g.fillStyle = gr; g.fillRect(x, y, s, s);
+    g.fillStyle = "rgba(255,255,255,0.22)"; g.fillRect(x, y, s, 2);
+    g.fillStyle = "rgba(0,0,0,0.28)"; g.fillRect(x, y + s - 2, s, 2);
+  }
+  g.restore();
+}
+function draw(cv) {
+  const t = THEMES.find((x) => x.id === cv.dataset.theme);
+  const g = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  g.fillStyle = t.bg; g.fillRect(0, 0, W, H);
+  // HUD kecil: label dan skor.
+  g.fillStyle = t.dim; g.font = "600 22px system-ui"; g.fillText("Skor", 24, 40);
+  g.fillStyle = t.text; g.font = "700 30px ui-monospace, monospace"; g.fillText("12.480", 24, 74);
+  // Tombol aksen.
+  g.fillStyle = t.accent; rr(g, W - 150, 30, 126, 44, 10); g.fill();
+  g.fillStyle = t.onAccent; g.font = "700 20px system-ui"; g.fillText("Main Lagi", W - 136, 59);
+  // Papan 10 x 16.
+  const s = 40, bx = 20, by = 100, cols = 10, rows = 14;
+  g.fillStyle = t.board; rr(g, bx, by, cols * s, rows * s, 8); g.fill();
+  g.strokeStyle = t.grid; g.lineWidth = 1;
+  for (let c = 1; c < cols; c++) { g.beginPath(); g.moveTo(bx + c * s + 0.5, by); g.lineTo(bx + c * s + 0.5, by + rows * s); g.stroke(); }
+  for (let r = 1; r < rows; r++) { g.beginPath(); g.moveTo(bx, by + r * s + 0.5); g.lineTo(bx + cols * s, by + r * s + 0.5); g.stroke(); }
+  const at = (c, r) => [bx + c * s + 1, by + (rows - 1 - r) * s + 1];
+  const mono = !!t.monoActive;
+  STACK.forEach((row, r) => [...row].forEach((ch, c) => { if (ch === ".") return; const [x, y] = at(c, r); block(g, t, t.blocks[IDX[ch]], x, y, s - 2, false); }));
+  // Ghost.
+  const activeColor = mono ? (t.monoActive === "color" ? t.colors[IDX[ACTIVE.type]] : t.monoActive) : t.blocks[IDX[ACTIVE.type]];
+  GHOST.forEach(([c, r]) => { const [x, y] = at(c, r); g.strokeStyle = activeColor; g.lineWidth = 3; g.globalAlpha = 0.9; rr(g, x + 2, y + 2, s - 6, s - 6, 5); g.stroke(); g.globalAlpha = 1; });
+  // Piece aktif (baris 12 dari bawah).
+  ACTIVE.cells.forEach(([c, r]) => { const [x, y] = at(c, r - 3); block(g, t, activeColor, x, y, s - 2, true); });
+}
+document.querySelectorAll("canvas").forEach(draw);
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = ["Malam","Neon garis","Fajar","Monokrom"].map((n) => n + ": " + (document.querySelector('input[name="' + n + '"]:checked')?.value ?? "-")).join("\n");
+  try { await navigator.clipboard.writeText(text); document.getElementById("st").textContent = "Tersalin. Tempel di chat."; }
+  catch { prompt("Salin teks ini:", text); }
+});
+</script>
+</body>
+</html>
