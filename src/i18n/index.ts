@@ -43,13 +43,16 @@ export function t(key: Key, vars?: Record<string, string | number>): string {
   });
 }
 
-/** Isi semua elemen bertanda data-i18n / data-i18n-aria di dalam root. */
+/** Isi semua elemen bertanda data-i18n / data-i18n-aria / data-i18n-title di dalam root. */
 export function applyI18n(root: ParentNode): void {
   root.querySelectorAll<HTMLElement>("[data-i18n]").forEach((el) => {
     el.textContent = t(el.dataset["i18n"] as Key);
   });
   root.querySelectorAll<HTMLElement>("[data-i18n-aria]").forEach((el) => {
     el.setAttribute("aria-label", t(el.dataset["i18nAria"] as Key));
+  });
+  root.querySelectorAll<HTMLElement>("[data-i18n-title]").forEach((el) => {
+    el.title = t(el.dataset["i18nTitle"] as Key);
   });
 }
 

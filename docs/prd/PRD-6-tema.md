@@ -62,7 +62,7 @@ Kenapa tidak ada syarat "main 100 kali" atau "login tiap hari": syarat seperti i
 1. **Menu** tidak berubah. Tidak ada tombol "Hadiah" baru.
 2. **Saat bermain** tidak ada pemberitahuan apa pun, meskipun syarat tercapai di tengah permainan.
 3. **Game Over:** jika permainan itu membuka tema, satu baris muncul di bawah hasil: "Tema Malam terbuka" dengan tombol kecil "Pakai sekarang". Hanya satu baris, sama gaya dengan tag "Rekor baru". Diumumkan juga lewat `aria-live`.
-4. **Pengaturan > Tampilan > Tema:** daftar kelima tema dengan contoh kecil (tiga blok dalam warna tema). Tema yang terkunci tampil redup dengan syaratnya, misalnya "Selesaikan Maraton 150 baris". Tema yang terbuka bisa dipilih langsung.
+4. **Layar Tema sendiri** (revisi, permintaan pemilik: pemain tidak menyangka ada tema di Pengaturan): dibuka dari ikon palet di baris atas Menu. Satu kartu per tema dengan contoh mini-papan dalam warna dan gaya blok tema itu, nama, dan status ("Sedang dipakai", "Ketuk untuk memakai", atau syaratnya). Tema terkunci bertepi putus-putus, berlabel "Terkunci", dan tidak bisa dipilih. Di atas daftar: "2 dari 5 tema terbuka".
 
 Tema terkunci tetap terlihat beserta syaratnya, supaya pemain tahu apa yang bisa dikejar. Tidak ada progres batang atau persentase (DESIGN melarang bar skor dekoratif).
 
@@ -132,3 +132,9 @@ Uji di Chrome dengan permainan sungguhan: seed 23 menghasilkan 4 Baris yang juga
 ## 12. Mencoba semua tema (`?coba-tema`)
 
 Atas permintaan pemilik: https://block-down.vercel.app/?coba-tema membuka kelima tema selama alamat itu dipakai, supaya tampilannya bisa dicoba tanpa memenuhi syarat. Kemajuan asli (`unlocks`) tidak diubah. Saat game dibuka lagi tanpa `?coba-tema`, tema yang belum benar-benar terbuka kembali ke Klasik dan datanya ikut disimpan bersih. Judul tab menjadi `BlockDown (coba tema)` sebagai penanda.
+
+## 13. Revisi tata letak Menu (permintaan pemilik)
+
+- Tombol Pengaturan di Menu menjadi ikon roda gigi saja, tanpa tulisan. Namanya tetap dibacakan pembaca layar (`aria-label`) dan muncul sebagai tooltip.
+- Tema dipindah dari Pengaturan ke layar sendiri, dibuka dari ikon palet di samping ikon roda gigi (pilihan pemilik dari tiga usulan).
+- Uji Chrome di 320, 390, dan 1280 px: kedua ikon 44x44 px, layar Tema tanpa gulir mendatar (juga pada teks 200%), pilih tema dengan klik, panah, dan Enter, Esc kembali ke Menu dengan fokus di ikon palet, tema terkunci tidak bisa dipilih, Pengaturan tidak lagi berisi Tema, `?coba-tema` tetap membuka semua tema.

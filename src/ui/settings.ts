@@ -1,9 +1,7 @@
 // Layar Pengaturan (DESIGN 7.5, EDD-2 bagian 6.3). Setiap perubahan langsung disimpan dan berlaku.
 import { t, type Key } from "../i18n/index.ts";
 import { keyLabel, RESERVED_CODES } from "../input/keyboard.ts";
-import { BTNS, defaultSettings, type Btn, type Locale, type Settings, type Unlocks } from "../store/storage.ts";
-import { isUnlocked, THEME_IDS, type ThemeId } from "../core/unlocks.ts";
-import { THEMES } from "../render/themes.ts";
+import { BTNS, defaultSettings, type Btn, type Locale, type Settings } from "../store/storage.ts";
 
 const SOFT_STEPS = [5, 10, 15, 20, 25, 30, 35, 40] as const;
 
@@ -30,12 +28,9 @@ export class SettingsScreen {
   private listening: { btn: Btn; slot: number; el: HTMLButtonElement } | null = null;
   private keyMsg: HTMLElement;
 
-  private unlocks: Unlocks;
-
-  constructor(root: HTMLElement, settings: Settings, unlocks: Unlocks, hooks: SettingsHooks) {
+  constructor(root: HTMLElement, settings: Settings, hooks: SettingsHooks) {
     this.root = root;
     this.s = settings;
-    this.unlocks = unlocks;
     this.h = hooks;
     this.keyMsg = $(root, "#keys-msg");
 
@@ -74,11 +69,6 @@ export class SettingsScreen {
       } else if (set === "effects") {
         if (el.getAttribute("aria-disabled") === "true") return;
         this.s.effects = el.dataset["value"] as Settings["effects"];
-        this.h.changed("display");
-      } else if (el.dataset["theme"]) {
-        const id = el.dataset["theme"] as ThemeId;
-        if (!isUnlocked(this.unlocks, id)) return;
-        this.s.theme = id;
         this.h.changed("display");
       } else if (el.dataset["locale"]) {
         this.h.setLocale(el.dataset["locale"] as Locale);
@@ -128,50 +118,6 @@ export class SettingsScreen {
     this.renderKeymap();
   }
 
-  /**
-   * Pilihan tema (PRD-6): kotak contoh berisi tiga blok dalam warna tema, nama, dan syarat jika terkunci.
-   * Tema terkunci tetap terlihat supaya pemain tahu apa yang bisa dikejar, tapi tidak bisa dipilih.
-   */
-  private renderThemes(): void {
-    const box = $<HTMLElement>(this.root, "#themes");
-    box.textContent = "";
-    for (const id of THEME_IDS) {
-      const th = THEMES[id];
-      const open = isUnlocked(this.unlocks, id);
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "theme-opt";
-      btn.dataset["theme"] = id;
-      btn.setAttribute("role", "radio");
-      btn.setAttribute("aria-checked", String(this.s.theme === id));
-      btn.setAttribute("aria-disabled", String(!open));
-      const sw = document.createElement("span");
-      sw.className = "theme-swatch";
-      sw.setAttribute("aria-hidden", "true");
-      sw.style.background = th.css["--surface-1"]!;
-      for (const k of [3, 1, 7]) {
-        const b = document.createElement("i");
-        b.style.setProperty("--c", th.blocks[k]!);
-        if (th.style === "neon") b.className = "neon";
-        sw.append(b);
-      }
-      const text = document.createElement("span");
-      text.className = "theme-text";
-      const name = document.createElement("span");
-      name.className = "theme-name";
-      name.textContent = t(`theme.${id}` as Key);
-      text.append(name);
-      if (!open) {
-        const req = document.createElement("span");
-        req.className = "theme-req";
-        req.textContent = t("settings.theme.locked", { req: t(`theme.req.${id}` as Key) });
-        text.append(req);
-      }
-      btn.append(sw, text);
-      box.append(btn);
-    }
-  }
-
   private renderValues(): void {
     const s = this.s;
     const das = $<HTMLInputElement>(this.root, "#in-das");
@@ -199,8 +145,6 @@ export class SettingsScreen {
       input.disabled = !audio;
       this.showValue(`out-${id}`, input, t("settings.unit.percent", { n: pct }));
     }
-
-    this.renderThemes();
 
     for (const k of ["ghost", "grid", "colorSafe"] as const) {
       $<HTMLElement>(this.root, `[data-set="${k}"]`).setAttribute("aria-checked", String(s[k]));

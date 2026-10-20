@@ -196,7 +196,7 @@ Rentang lebar:
 ### 7.1 Menu
 
 Isi, dari atas ke bawah:
-1. Baris atas: switch bahasa `ID | EN` (segmented, 2 tombol) di kanan, lalu tombol "Pengaturan".
+1. Baris atas: switch bahasa `ID | EN` (segmented, 2 tombol) di kanan, lalu dua tombol ikon tanpa tulisan: palet (layar Tema, PRD-6) dan roda gigi (Pengaturan). Nama tombol lewat `aria-label` dan tooltip.
 2. Logo di sepertiga atas. Logo adalah titik fokus layar ini.
 3. Daftar mode, satu baris per mode: nama, deskripsi satu baris (`text-dim`), dan rekor pribadi di kanan (JetBrains Mono).
    - Maraton: baris ini bisa dibuka (`aria-expanded`) dan menampilkan dua tombol, "150 baris" dan "Tanpa batas". Masing-masing punya rekor sendiri.

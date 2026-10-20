@@ -10,6 +10,7 @@ import { GamepadInput, type MenuNav } from "./input/gamepad.ts";
 import { BoardRenderer, PreviewRenderer } from "./render/board.ts";
 import { applyI18n, fmt, formatClock, formatMs, pickLocale, setLocale, t, type Key } from "./i18n/index.ts";
 import { BTNS, load, save, submitResult, type Locale, type ResultInput, type SaveData } from "./store/storage.ts";
+import { ThemesScreen } from "./ui/themes.ts";
 import { SettingsScreen } from "./ui/settings.ts";
 import { perfFrame, perfPause, perfTag } from "./debug/perf.ts";
 import { Effects } from "./render/effects.ts";
@@ -59,6 +60,7 @@ function persist(): boolean {
 const scrMenu = $("scr-menu");
 const scrGame = $("scr-game");
 const scrSettings = $("scr-settings");
+const scrThemes = $("scr-themes");
 const dlgPause = $<HTMLDialogElement>("dlg-pause");
 const dlgConfirm = $<HTMLDialogElement>("dlg-confirm");
 const dlgOver = $<HTMLDialogElement>("dlg-over");
@@ -909,6 +911,7 @@ scrMenu.addEventListener("click", (e) => {
 });
 
 $("btn-settings").addEventListener("click", () => openSettings("menu"));
+$("btn-themes").addEventListener("click", () => openThemes());
 
 // Panah atas/bawah memindahkan fokus di daftar mode (DESIGN 7.1).
 scrMenu.querySelector(".modes")!.addEventListener("keydown", (e) => {
@@ -930,6 +933,7 @@ function moveFocus(dir: 1 | -1, selector: string): void {
 function activeRoot(): ParentNode {
   for (const d of [dlgConfirm, dlgPause, dlgOver]) if (d.open) return d;
   if (!scrSettings.hidden) return scrSettings;
+  if (!scrThemes.hidden) return scrThemes;
   return scrMenu;
 }
 
@@ -943,6 +947,7 @@ function menuNav(nav: MenuNav): void {
     if (dlgPause.open) resumeGame();
     else if (dlgConfirm.open) dlgConfirm.dispatchEvent(new Event("cancel", { cancelable: true }));
     else if (!scrSettings.hidden) closeSettings();
+    else if (!scrThemes.hidden) closeThemes();
     return;
   }
   const el = document.activeElement as HTMLElement | null;
@@ -973,6 +978,7 @@ function applyLocale(l: Locale): void {
   renderRecords();
   renderControlsList();
   if (!scrSettings.hidden) settings.render();
+  if (!scrThemes.hidden) themes.render();
   if (game) {
     hud.mode.textContent = modeLabel(modeId);
     shown.level = -1;
@@ -983,8 +989,8 @@ function applyLocale(l: Locale): void {
  * Ganti layar. enter: putar animasi masuk (CSS `.enter`, styles.css). Tidak dipakai saat kembali
  * dari Pengaturan ke Pause, karena papan permainan yang sedang dijeda harus tetap diam.
  */
-function showScreen(which: "menu" | "game" | "settings", enter = true): void {
-  const screens = { menu: scrMenu, game: scrGame, settings: scrSettings };
+function showScreen(which: "menu" | "game" | "settings" | "themes", enter = true): void {
+  const screens = { menu: scrMenu, game: scrGame, settings: scrSettings, themes: scrThemes };
   for (const [k, el] of Object.entries(screens)) {
     el.hidden = k !== which;
     el.classList.remove("enter");
@@ -1012,7 +1018,7 @@ function showMenu(): void {
 
 let settingsFrom: "menu" | "pause" = "menu";
 
-const settings = new SettingsScreen(scrSettings, data.settings, shownUnlocks, {
+const settings = new SettingsScreen(scrSettings, data.settings, {
   changed: () => {
     applySettings();
     persist();
@@ -1050,6 +1056,28 @@ function closeSettings(): void {
     showScreen("menu");
     $("btn-settings").focus();
   }
+}
+
+// ---------- tema ----------
+
+const themes = new ThemesScreen(scrThemes, data.settings, shownUnlocks, {
+  pick: (id) => {
+    data.settings.theme = id;
+    applySettings();
+    persist();
+    announce(t("settings.theme.applied", { name: t(`theme.${id}` as Key) }));
+  },
+  back: () => closeThemes(),
+});
+
+function openThemes(): void {
+  showScreen("themes");
+  themes.open();
+}
+
+function closeThemes(): void {
+  showScreen("menu");
+  $("btn-themes").focus();
 }
 
 // Gamepad di menu dan Pengaturan: loop kecil yang hanya berjalan saat permainan tidak berjalan.

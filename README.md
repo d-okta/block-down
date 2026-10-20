@@ -15,8 +15,8 @@ Bisa dipasang ke layar utama HP atau komputer, lalu dimainkan tanpa internet.
 - Ghost piece, Simpan (sekali per piece), dan 5 piece berikutnya.
 - Skor lengkap: 1 sampai 4 Baris, T-Spin dan Mini, Back-to-Back, Combo, Bersih Total.
 - Rekor pribadi per mode, tersimpan di perangkat.
-- Lima tema tampilan. Empat di antaranya terbuka lewat prestasi: Malam (selesaikan Maraton 150 baris), Neon (Sprint 40 di bawah 3 menit), Fajar (10 kali 4 Baris dalam satu permainan), dan Monokrom (satu Bersih Total).
-- Pengaturan: DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, tema, ghost, grid, mode aman buta warna, intensitas efek, kurangi animasi, getar, dan bahasa.
+- Lima tema tampilan (ikon palet di Menu). Empat di antaranya terbuka lewat prestasi: Malam (selesaikan Maraton 150 baris), Neon (Sprint 40 di bawah 3 menit), Fajar (10 kali 4 Baris dalam satu permainan), dan Monokrom (satu Bersih Total).
+- Pengaturan: DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, ghost, grid, mode aman buta warna, intensitas efek, kurangi animasi, getar, dan bahasa.
 - Bahasa Indonesia dan Inggris.
 
 Semua data (rekor dan pengaturan) hanya disimpan di browser perangkatmu. Tidak ada akun, iklan, atau data yang dikirim ke server.
