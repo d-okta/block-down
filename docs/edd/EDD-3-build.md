@@ -149,7 +149,7 @@ Ikon dari Stitch yang tidak dipakai: `person`, `account_circle`, `military_tech`
 
 ### 4.3 Ikon aplikasi
 
-Placeholder sampai pemilik memberi arahan (DESIGN 10). Placeholder: persegi `#0F1217` dengan teks "BD" Sora 700 `#E6E9EF` dan label `[IKON APLIKASI]` di nama file, ukuran 192, 512, dan 512 maskable. Kriteria Fase 5 menolak rilis selama placeholder masih ada.
+Final, dipilih pemilik (DESIGN 6). Sumber: `design/app-icon/ikon.svg` dan `ikon-maskable.svg`, dibuat oleh `design/app-icon/generate.mjs` (ubah lalu jalankan ulang, lalu render ke PNG). File di `public/app-icon/`: `192.png`, `512.png`, `512-maskable.png`, `apple-touch-icon.png` (180), `favicon-32.png`. Ikon launcher Android (mipmap) dibuat dari SVG yang sama saat proyek Capacitor ditambahkan.
 
 ## 5. PWA
 
@@ -177,12 +177,14 @@ Placeholder sampai pemilik memberi arahan (DESIGN 10). Placeholder: persegi `#0F
 `orientation: portrait` adalah preferensi, bukan kunci. Tata letak landscape tetap dibuat (DESIGN 7).
 
 `public/sw.js` (ditulis tangan):
-- Versi cache dari konstanta `VERSION`, diganti setiap rilis.
-- `install`: ambil `./` dan `./index.html`, lalu `skipWaiting()`.
-- `fetch` untuk permintaan GET same-origin: cache-first. Respons yang berhasil dari jaringan disimpan ke cache. Navigasi yang gagal (offline) mengembalikan `index.html` dari cache.
+- Versi cache dari konstanta `VERSION`, diganti setiap rilis yang mengubah daftar file tetap.
+- `install`: simpan halaman, manifest, ikon, sprite ikon UI, 17 file suara, lalu aset build (JS dan CSS dibaca dari HTML, font dibaca dari CSS), lalu `skipWaiting()`.
+- Navigasi: jaringan dulu (versi baru langsung terpakai, salinannya disimpan), offline memakai salinan di cache.
+- Permintaan GET same-origin lain: cache dulu dengan `ignoreVary` (font diminta dengan header `Origin`; tanpa opsi ini font tidak cocok dan hilang saat offline). Respons 200 dari jaringan disimpan; 206 dari pemutar audio tidak.
+- Uji: Chrome offline setelah kunjungan pertama memuat Menu, font, suara (ter-decode), dan permainan berjalan, tanpa error.
 - `activate`: hapus cache versi lama, lalu `clients.claim()`.
 - Karena nama file hasil Vite memakai hash, cache-first aman: file baru punya nama baru.
-- Didaftarkan di `main.ts` hanya jika `!Capacitor.isNativePlatform()` dan `location.protocol === "https:"`.
+- Didaftarkan di `main.ts` hanya jika `location.protocol === "https:"` (aplikasi Android Capacitor memakai skema sendiri, jadi tidak ikut terdaftar).
 
 `index.html` memuat `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">` dan `<meta name="theme-color" content="#0F1217">`.
 

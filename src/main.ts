@@ -984,3 +984,8 @@ requestAnimationFrame(menuPoll);
 applySettings();
 applyLocale(pickLocale(data.settings.locale, navigator.languages ?? [navigator.language]));
 showMenu();
+
+// PWA: hanya di HTTPS (Vercel). Di localhost dan di aplikasi Android (Fase 5) tidak dipasang.
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+}

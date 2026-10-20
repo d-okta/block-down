@@ -246,8 +246,8 @@ Kriteria selesai:
 - [ ] APK berjalan di perangkat acuan. Tombol kembali Android membuka dan menutup Pause, lalu keluar dari Menu.
 - [ ] Safe-area benar di perangkat dengan notch dan navigasi gestur.
 - [ ] PWA bisa dipasang, lalu dimainkan dalam mode pesawat setelah kunjungan pertama.
-- [ ] Deploy Vercel dari branch utama, dengan URL produksi tercatat.
-- [ ] Ikon aplikasi final sudah disetujui pemilik. Tidak ada placeholder yang tersisa.
+- [x] Deploy Vercel dari branch utama, dengan URL produksi tercatat: https://block-down.vercel.app (auto-deploy dari `main`).
+- [x] Ikon aplikasi final sudah disetujui pemilik (varian gelap). Tidak ada placeholder yang tersisa di web; ikon launcher Android dibuat saat proyek Capacitor ditambahkan.
 - [ ] Listing toko (ID dan EN) ditulis dari daftar fitur yang lolos Fase 1 sampai 4. Setiap kalimat listing bisa ditunjuk ke fitur yang ada. Tidak ada angka, klaim, atau testimoni yang dikarang, dan tidak ada kata merek dagang permainan blok jatuh.
 - [ ] Screenshot listing diambil dari build asli, bukan mockup.
 - [ ] Kebijakan privasi tersedia jika diwajibkan toko. Isinya sesuai kenyataan: data hanya disimpan di perangkat.
@@ -273,7 +273,7 @@ Keputusan lain sudah dicatat di bagian Keputusan masing-masing dokumen.
 | Keputusan | Batas waktu | Asal |
 |---|---|---|
 | Uji performa di Samsung Galaxy A13 (perangkat acuan) | Bersama kriteria sentuh Fase 3 | ARCHITECTURE.md bagian 14 |
-| Konsep ikon aplikasi | Sebelum Fase 5 | DESIGN.md bagian 10 |
+| Konsep ikon aplikasi | Selesai di Fase 5 (varian gelap) | DESIGN.md bagian 6 |
 
 ### Uji A13 kedua: tersendat naik ke 6,3%
 

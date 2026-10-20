@@ -172,7 +172,7 @@ Rumus ukuran sel: `cell = floor(min(tinggiTersedia / 20, lebarTersedia / lebarKo
 - Wordmark "BlockDown", satu kata, Sora 700, warna `text`.
 - Huruf "o" pada "Down" diganti satu blok persegi seukuran tinggi huruf kecil x. Posisinya turun sekitar 8% dari tinggi x di bawah garis dasar, seolah baru jatuh.
 - Warna blok pengganti: `accent`, sesuai hasil Stitch. Logo adalah satu-satunya tempat aksen muncul di Menu selain cincin fokus.
-- Versi ikon aplikasi Android dan PWA: belum ada arahan. Sampai diputuskan, ikon adalah slot placeholder `[IKON APLIKASI 512x512]` (R-23).
+- Ikon aplikasi (dipilih pemilik dari tiga varian, Fase 5): gaya datar dengan bayangan panjang 45 derajat, mengikuti contoh yang disukai pemilik. Latar `surface-2` #1E2530, bayangan #151A22. Isinya blok O kuning yang jatuh ke celah di antara L oranye dan J hijau, motif yang sama dengan logo (blok yang baru jatuh). Blok memakai gaya blok game (gradien tipis, garis atas terang dan bawah gelap). Versi maskable diperkecil ke 78% supaya aman dipotong lingkaran Android. Sumber SVG dan generator di `design/app-icon/`, PNG di `public/app-icon/`.
 - Di Menu, logo diberi `aria-label="BlockDown"` supaya blok pengganti tidak dibaca sebagai huruf terpisah.
 
 ---
@@ -464,7 +464,7 @@ Font Stitch sama dengan brief (Sora dan JetBrains Mono), jadi tidak ada perubaha
 Semua sudah diputuskan pemilik ("pakai usulan"):
 
 1. Warna blok di logo: aksen (dari Stitch).
-2. Konsep ikon aplikasi: tetap placeholder `[IKON APLIKASI 512x512]` sampai pemilik memberi arahan. Wajib selesai sebelum Fase 5 (ROADMAP.md).
+2. Konsep ikon aplikasi: diputuskan pemilik di Fase 5, varian gelap (bagian 6).
 3. Rekor Zen: baris terbanyak dalam satu sesi.
 4. Konfirmasi Ulangi dan Ke Menu: hanya jika permainan sudah berjalan lebih dari satu piece (bagian 7.3).
 5. Kurangi animasi dan Intensitas efek tetap dua kontrol terpisah. Kurangi animasi aktif berarti Intensitas efek dikunci ke Minimal dan kontrol Intensitas dinonaktifkan dengan alasan "Dikunci oleh Kurangi animasi". Saat Kurangi animasi dimatikan, Intensitas kembali ke nilai terakhir yang dipilih.
