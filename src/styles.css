@@ -436,8 +436,10 @@ kbd {
   contain: layout paint style;
 }
 
+/* Ikon jeda (24 px) di tengah tombol 44 px: digeser 10 px supaya tepi ikonnya, bukan tepi tombol, sejajar papan. */
 #btn-pause {
   justify-self: end;
+  margin-right: -10px;
 }
 
 .hud-label {
@@ -470,10 +472,30 @@ kbd {
   font-size: 1rem;
 }
 
+/*
+ * Baris atas, statistik, dan antrean selebar papan (--board-w diatur main.ts), supaya tepi kiri
+ * dan kanan semuanya sejajar dengan tepi papan.
+ */
+.game:not(.side-layout) > .game-top,
+.game:not(.side-layout) > .stats,
+.game:not(.side-layout) > .queue-row {
+  width: min(100%, var(--board-w, 100%));
+  margin-inline: auto;
+}
+
 .queue-row {
   display: flex;
   gap: 8px;
   flex: none;
+}
+
+/*
+ * Tinggi sumur tetap per lebar layar (--well-h dari main.ts), apa pun ukuran sel mininya.
+ * Tanpa ini, tinggi antrean ikut menentukan tinggi papan dan papan menentukan ukuran antrean,
+ * sehingga keduanya saling mengubah setiap frame.
+ */
+.game:not(.side-layout) .queue-row .well {
+  height: var(--well-h, 56px);
 }
 
 .queue-box {
@@ -724,11 +746,17 @@ kbd {
  */
 .game.side-layout {
   display: grid;
-  /* Kolom samping selebar isinya; papan mengambil sisa ruang di tengah. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+  /*
+   * Tiga kolom selebar isinya dan dipusatkan: Simpan, papan, Antrean berdempetan dengan jarak 16 px,
+   * dan baris atas selebar ketiganya, jadi nama mode sejajar tepi Simpan dan tombol jeda sejajar
+   * tepi Antrean. Kolom samping sama lebar supaya papan tepat di tengah.
+   */
+  grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr);
+  justify-content: center;
   column-gap: 16px;
-  max-width: 1024px;
+  max-width: none;
+  width: fit-content;
 }
 .game.side-layout .game-top,
 .game.side-layout .stats {
@@ -904,8 +932,11 @@ kbd {
   display: none;
 }
 
+/* Nilai slider sejajar dengan judul pengaturan (baris pertama), bukan di tengah deskripsi. */
 .set-value {
+  align-self: flex-start;
   font-size: 0.9375rem;
+  line-height: 1.5rem;
   margin-left: auto;
 }
 

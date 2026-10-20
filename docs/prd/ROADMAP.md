@@ -237,20 +237,18 @@ Hasil, 1 detik setelah Quad (Chrome, HP emulasi 412x915, DPR 2,625):
 
 Tampilan efek tetap sama (screenshot storyboard Quad dicek). CPU 6 kali: kerja p99 2,6 sampai 3,6 ms, tidak ada frame di atas 16,7 ms. Gestur, click-through Fase 2 dan 3, Kurangi animasi, Game Over, lapisan tumpukan: lulus. Perlu dikonfirmasi pemilik di Galaxy A13.
 
-## Fase 5: Android, PWA, Vercel, listing toko
+## Fase 5: PWA, Vercel, GitHub
 
-Lingkup: proyek Capacitor Android, manifest dan service worker PWA, deploy Vercel, ikon aplikasi, dan teks listing Play Store.
+Keputusan pemilik (Fase 5): BlockDown tidak diterbitkan di Play Store. Distribusi hanya lewat GitHub (https://github.com/d-okta/block-down) dan deploy Vercel, dipasang sebagai PWA. Proyek Capacitor Android, AAB, listing toko, dan screenshot listing dikeluarkan dari lingkup.
 
 Kriteria selesai:
-- [ ] `npx cap sync android` dan build release menghasilkan AAB dengan appId `com.nusavisionmedia.blockdown`.
-- [ ] APK berjalan di perangkat acuan. Tombol kembali Android membuka dan menutup Pause, lalu keluar dari Menu.
-- [ ] Safe-area benar di perangkat dengan notch dan navigasi gestur.
-- [ ] PWA bisa dipasang, lalu dimainkan dalam mode pesawat setelah kunjungan pertama.
+- [ ] PWA bisa dipasang, lalu dimainkan dalam mode pesawat setelah kunjungan pertama. Uji Chrome lulus (offline: menu, font, suara, permainan); menunggu konfirmasi pemilik di HP.
 - [x] Deploy Vercel dari branch utama, dengan URL produksi tercatat: https://block-down.vercel.app (auto-deploy dari `main`).
-- [x] Ikon aplikasi final sudah disetujui pemilik (varian gelap). Tidak ada placeholder yang tersisa di web; ikon launcher Android dibuat saat proyek Capacitor ditambahkan.
-- [ ] Listing toko (ID dan EN) ditulis dari daftar fitur yang lolos Fase 1 sampai 4. Setiap kalimat listing bisa ditunjuk ke fitur yang ada. Tidak ada angka, klaim, atau testimoni yang dikarang, dan tidak ada kata merek dagang permainan blok jatuh.
-- [ ] Screenshot listing diambil dari build asli, bukan mockup.
-- [ ] Kebijakan privasi tersedia jika diwajibkan toko. Isinya sesuai kenyataan: data hanya disimpan di perangkat.
+- [x] Ikon aplikasi final sudah disetujui pemilik (varian gelap). Tidak ada placeholder yang tersisa.
+- [ ] Safe-area benar di perangkat dengan notch dan navigasi gestur (PWA terpasang, layar penuh).
+- [ ] README di GitHub menjelaskan cara main, cara memasang PWA, dan lisensi aset (suara CC0).
+
+Dikeluarkan dari lingkup (keputusan pemilik): AAB dan `npx cap sync android`, APK di perangkat acuan dan tombol kembali Android native, listing toko ID dan EN, screenshot listing, kebijakan privasi toko. Jika suatu saat diterbitkan ke toko, kriteria ini dikembalikan.
 
 ## Fase 6: Sistem meta (fase 2 produk)
 
@@ -348,3 +346,12 @@ Permintaan pemilik: animasi antar layar dan blok yang lebih enak dilihat. Detail
 Uji di Chrome: animasi berjalan di setiap layar dan semuanya selesai (tidak tersisa selain pita ambient yang memang ada sejak Fase 4). Dengan `prefers-reduced-motion`, jumlah animasi 0 di semua layar. Hard drop 100 ms setelah masuk Game langsung menambah skor. Kembali dari Pengaturan ke Pause tidak menganimasikan papan. Ditemukan dan diperbaiki: animasi geser Pengaturan memunculkan gulir mendatar (`overflow-x: clip` pada layar). Mode buta warna tetap terbedakan dalam grayscale, teks 200% tetap tanpa gulir mendatar, 59 tes dan regresi lulus, 0 error. CPU 6 kali, 9 putaran 1 detik setelah Quad: kerja p99 3,1 sampai 10,0 ms; 2 putaran mencatat satu frame 17,9 dan 22,6 ms (sebelumnya 0). Perlu dicek di Galaxy A13 lewat `?perf`.
 
 Revisi blok: pemilik menilai versi ubin (tepi miring dan kilau) berlebihan. Diganti warna solid dengan gradien tipis dan garis atas-bawah 2px (DESIGN bagian 5). Mode buta warna tetap terbedakan dalam grayscale; tes dan lapisan tumpukan lulus.
+
+### Perataan tampilan (Fase 5, masukan pemilik)
+
+Masukan pemilik: tampilan masih ada yang kurang sejajar. Diukur tepi kiri dan kanan setiap elemen:
+- Layar Game (HP): baris atas, statistik, dan antrean selebar layar, sedangkan papan lebih sempit, jadi tepinya tidak segaris. Kini ketiganya selebar papan (`--board-w`). Ikon jeda digeser supaya tepi ikonnya, bukan tepi tombolnya, segaris dengan papan.
+- Layar Game (desktop): Simpan dan Antrean jauh dari papan di kolom lebar, nama mode dan tombol jeda di tepi jendela. Kini tiga kolom selebar isinya, berdempetan 16 px, dan baris atas selebar ketiganya.
+- Pengaturan: nilai slider (misalnya `167 ms`) berada di tengah deskripsi; kini sejajar dengan judul pengaturan.
+
+Ditemukan saat perbaikan: tinggi antrean ikut menentukan tinggi papan dan papan menentukan ukuran antrean, sehingga di DPR 3 keduanya berganti setiap frame (tombol jeda tidak stabil). Tinggi sumur antrean kini dihitung dari lebar layar saja. Diuji di 320x568, 320x640, 360x740, 390x844, 412x915, 768x1024, 1280x800: tepi kiri dan kanan baris atas, antrean, dan papan sama persis, isi antrean muat, posisi stabil di DPR 3. 59 tes dan seluruh regresi (gestur, landscape, Game Over, efek, suara, animasi, teks 200%, PWA offline) lulus, 0 error.

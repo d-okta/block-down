@@ -562,7 +562,7 @@ const holdBuf = new Uint8Array(1);
  * padding sumur dan jarak (sekitar 40 px). Sel mini dibatasi 7 sampai 14 px.
  */
 const QUEUE_CELLS = 29;
-const QUEUE_CHROME = 40;
+const QUEUE_CHROME = 36;
 
 function layout(): void {
   if (scrGame.hidden) return;
@@ -574,20 +574,34 @@ function layout(): void {
     nextView.horizontal = !side;
     nextView.resize(0, dpr, data.settings.colorSafe); // paksa bangun ulang di ukuran baru
   }
+  // Tinggi sumur antrean dihitung dari lebar layar saja (bukan dari papan), lalu dipasang sebelum papan
+  // diukur. Dengan begitu tinggi antrean tetap selama lebar layar sama, papan dan antrean tidak saling
+  // mengubah, dan sumur tidak lebih tinggi dari isinya.
+  if (!side) {
+    const cap = Math.max(5, Math.min(14, Math.floor((innerWidth - 24 - QUEUE_CHROME) / QUEUE_CELLS)));
+    queueRow.style.setProperty("--well-h", `${cap * 3 + 14}px`);
+  }
+  // Papan dulu, karena lebarnya menentukan lebar HUD (semua baris sejajar dengan tepi papan).
+  // Di tata letak samping, kolom papan selebar papan itu sendiri, jadi lebar yang tersedia diambil
+  // dari jendela (setengah lebar), bukan dari kolom.
+  const rect = field.getBoundingClientRect();
+  cellCss = board.resize(side ? innerWidth * 0.5 : rect.width - 2, rect.height - 2, dpr);
+  // Bungkus papan mengikuti ukuran canvas, supaya callout dan bingkai menempel tepat di papan.
+  boardEl.style.width = cvMain.style.width;
+  boardEl.style.height = cvMain.style.height;
+  scrGame.style.setProperty("--board-w", cvMain.style.width);
   let mini: number;
   if (side) {
     mini = Math.max(10, Math.min(16, Math.floor((innerHeight - 200) / (3 * NEXT_COUNT))));
   } else {
-    const rowW = queueRow.getBoundingClientRect().width;
-    mini = Math.max(7, Math.min(14, Math.floor((rowW - QUEUE_CHROME) / QUEUE_CELLS)));
+    // Antrean selebar papan. Tinggi sumurnya tetap di CSS (.queue-row .well), jadi ukuran sel mini
+    // tidak mengubah tinggi papan, dan papan serta antrean tidak saling mengubah tanpa henti.
+    const rowW = parseFloat(cvMain.style.width) || queueRow.getBoundingClientRect().width;
+    // Minimal 5 px: di layar 320x640 papan hanya sekitar 215 px, dan antrean harus tetap muat di dalamnya.
+    mini = Math.max(5, Math.min(14, Math.floor((rowW - QUEUE_CHROME) / QUEUE_CELLS)));
   }
   holdView.resize(mini, dpr, data.settings.colorSafe);
   nextView.resize(mini, dpr, data.settings.colorSafe);
-  const rect = field.getBoundingClientRect();
-  cellCss = board.resize(rect.width - 2, rect.height - 2, dpr);
-  // Bungkus papan mengikuti ukuran canvas, supaya callout dan bingkai menempel tepat di papan.
-  boardEl.style.width = cvMain.style.width;
-  boardEl.style.height = cvMain.style.height;
   if (game) {
     updateHud(true);
     board.draw(game.state, NaN, 1, performance.now(), game.state.status === STATUS.PLAYING);
@@ -595,6 +609,8 @@ function layout(): void {
 }
 
 new ResizeObserver(layout).observe(field);
+// Tata letak samping: kolom papan tidak ikut melebar saat jendela dilebarkan, jadi pantau jendela juga.
+window.addEventListener("resize", layout);
 
 // ---------- pause dan dialog ----------
 
