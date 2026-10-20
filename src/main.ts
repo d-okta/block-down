@@ -30,6 +30,20 @@ const data: SaveData = loaded.data;
 const storageOk = loaded.status !== "unavailable" && loaded.status !== "newer";
 let saveFailedShown = false;
 
+/**
+ * ?coba-tema: semua tema bisa dipilih selama alamat ini dipakai, untuk mencoba tampilannya.
+ * Kemajuan asli (data.unlocks) tidak diubah. Tema yang belum terbuka dan dipilih di sini kembali
+ * ke Klasik saat game dibuka tanpa ?coba-tema (validasi di storage.ts).
+ */
+const trialThemes = new URLSearchParams(location.search).has("coba-tema");
+const shownUnlocks = trialThemes
+  ? { night: "trial", neon: "trial", dawn: "trial", mono: "trial" }
+  : data.unlocks;
+if (trialThemes) document.title = "BlockDown (coba tema)";
+// Kembali dari ?coba-tema dengan tema yang belum terbuka: storage.ts sudah mengembalikannya ke Klasik,
+// simpan sekarang supaya data tersimpan juga bersih.
+else if (loaded.status === "ok" && localStorage.getItem("blockdown")?.includes(`"theme":"`) && !localStorage.getItem("blockdown")!.includes(`"theme":"${data.settings.theme}"`)) persist();
+
 function persist(): boolean {
   if (!storageOk) return false;
   const ok = save(data);
@@ -801,7 +815,7 @@ function showGameOver(): void {
 /** "Pakai sekarang" di Game Over: ganti tema tanpa membuka Pengaturan. */
 $("over-unlock-use").addEventListener("click", (e) => {
   const id = (e.currentTarget as HTMLElement).dataset["theme"] as ThemeId;
-  if (!isUnlocked(data.unlocks, id)) return;
+  if (!isUnlocked(shownUnlocks, id)) return;
   data.settings.theme = id;
   applySettings();
   persist();
@@ -998,7 +1012,7 @@ function showMenu(): void {
 
 let settingsFrom: "menu" | "pause" = "menu";
 
-const settings = new SettingsScreen(scrSettings, data.settings, data.unlocks, {
+const settings = new SettingsScreen(scrSettings, data.settings, shownUnlocks, {
   changed: () => {
     applySettings();
     persist();

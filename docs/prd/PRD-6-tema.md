@@ -128,3 +128,7 @@ interface SaveData {
 | Pemberitahuan dan Pakai sekarang di Game Over | `src/main.ts`, `index.html` |
 
 Uji di Chrome dengan permainan sungguhan: seed 23 menghasilkan 4 Baris yang juga Bersih Total (dicari dengan `node tests/tools/plan-quad.ts 23 pc`). Zen diakhiri, Game Over menampilkan `Tema Monokrom terbuka` dan mengumumkannya lewat `aria-live`; `Pakai sekarang` mengganti tema, menyimpan, dan mengumumkan; Bersih Total kedua tidak memunculkan pemberitahuan lagi. Data lama dengan Maraton 150 selesai dan Sprint 2:50 langsung membuka Malam dan Neon. Tema terkunci tidak bisa dipilih. Pilihan tema bertahan setelah muat ulang, dan warna bilah browser (`theme-color`) ikut berganti.
+
+## 12. Mencoba semua tema (`?coba-tema`)
+
+Atas permintaan pemilik: https://block-down.vercel.app/?coba-tema membuka kelima tema selama alamat itu dipakai, supaya tampilannya bisa dicoba tanpa memenuhi syarat. Kemajuan asli (`unlocks`) tidak diubah. Saat game dibuka lagi tanpa `?coba-tema`, tema yang belum benar-benar terbuka kembali ke Klasik dan datanya ikut disimpan bersih. Judul tab menjadi `BlockDown (coba tema)` sebagai penanda.
