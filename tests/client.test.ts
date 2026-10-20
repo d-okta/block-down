@@ -387,3 +387,61 @@ test("suara: nada combo naik di pentatonik, tertahan di atas, dan semua file sua
   assert.equal(files.length, 17);
   for (const f of files) assert.ok(have.has(f!), f!);
 });
+
+import { earnedBy, earnedByRecords, unlock, isUnlocked, SPRINT_MS } from "../src/core/unlocks.ts";
+
+test("tema: syarat terbuka dari satu permainan (PRD-6)", () => {
+  const base = { mode: "zen" as const, marathonDone: false, sprintMs: null, quads: 0, perfects: 0 };
+  assert.deepEqual(earnedBy(base), []);
+  assert.deepEqual(earnedBy({ ...base, mode: "marathon150", marathonDone: true }), ["night"]);
+  assert.deepEqual(earnedBy({ ...base, mode: "marathonEndless", marathonDone: true }), []); // hanya Maraton 150
+  assert.deepEqual(earnedBy({ ...base, mode: "sprint40", sprintMs: SPRINT_MS - 1 }), ["neon"]);
+  assert.deepEqual(earnedBy({ ...base, mode: "sprint40", sprintMs: SPRINT_MS }), []); // di bawah 3 menit, bukan sama dengan
+  assert.deepEqual(earnedBy({ ...base, mode: "sprint40", sprintMs: null }), []); // Sprint gagal
+  assert.deepEqual(earnedBy({ ...base, quads: 9 }), []);
+  assert.deepEqual(earnedBy({ ...base, quads: 10 }), ["dawn"]);
+  assert.deepEqual(earnedBy({ ...base, perfects: 1 }), ["mono"]);
+  assert.deepEqual(earnedBy({ ...base, mode: "marathon150", marathonDone: true, quads: 12, perfects: 2 }), ["night", "dawn", "mono"]);
+});
+
+test("tema: unlock mencatat sekali, Klasik selalu terbuka", () => {
+  const u: Record<string, string> = {};
+  const now = new Date("2026-10-20T10:00:00Z");
+  assert.deepEqual(unlock(u, ["night", "dawn"], now), ["night", "dawn"]);
+  assert.deepEqual(unlock(u, ["night", "mono"], now), ["mono"]); // night sudah ada
+  assert.equal(u["night"], now.toISOString());
+  assert.equal(isUnlocked(u, "classic"), true);
+  assert.equal(isUnlocked({}, "neon"), false);
+});
+
+test("tema: migrasi skema 1 ke 2, rekor lama langsung membuka tema", () => {
+  assert.deepEqual(earnedByRecords({ marathon150: { lines: 150 }, sprint40: { timeMs: 170000 } }), ["night", "neon"]);
+  assert.deepEqual(earnedByRecords({ marathon150: { lines: 90 }, sprint40: { timeMs: 200000 } }), []);
+  const old = {
+    schema: 1,
+    settings: { dasMs: 120 },
+    records: {
+      marathon150: { score: 90000, lines: 150, level: 15, at: "2026-10-01T08:00:00.000Z" },
+      sprint40: { timeMs: 150000, at: "2026-10-02T08:00:00.000Z" },
+    },
+  };
+  const { data, status } = parseSave(JSON.stringify(old));
+  assert.equal(status, "ok");
+  assert.equal(data.schema, SCHEMA);
+  assert.equal(data.settings.dasMs, 120); // pengaturan lama tetap
+  assert.equal(data.settings.theme, "classic");
+  assert.equal(data.records.marathon150?.score, 90000); // rekor lama tetap
+  assert.equal(data.unlocks.night, "2026-10-01T08:00:00.000Z"); // tanggal dari rekornya
+  assert.equal(data.unlocks.neon, "2026-10-02T08:00:00.000Z");
+  assert.equal(data.unlocks.dawn, undefined);
+});
+
+test("tema: tema terpilih yang belum terbuka kembali ke Klasik; data unlocks rusak diabaikan", () => {
+  const raw = JSON.stringify({ schema: 2, settings: { theme: "mono" }, records: {}, unlocks: { mono: "bukan tanggal", dawn: 5, night: "2026-10-03T00:00:00.000Z", palsu: "2026-10-03T00:00:00.000Z" } });
+  const { data } = parseSave(raw);
+  assert.equal(data.settings.theme, "classic");
+  assert.deepEqual(Object.keys(data.unlocks), ["night"]);
+  const ok = parseSave(JSON.stringify({ schema: 2, settings: { theme: "night" }, unlocks: { night: "2026-10-03T00:00:00.000Z" } })).data;
+  assert.equal(ok.settings.theme, "night");
+  assert.equal(parseSave(JSON.stringify({ schema: 2, settings: { theme: "ungu" } })).data.settings.theme, "classic");
+});

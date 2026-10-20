@@ -14,7 +14,8 @@ import { SettingsScreen } from "./ui/settings.ts";
 import { perfFrame, perfPause, perfTag } from "./debug/perf.ts";
 import { Effects } from "./render/effects.ts";
 import { clearPower, effectiveFx } from "./render/fx.ts";
-import { BLOCK_COLORS } from "./render/sprites.ts";
+import { THEMES } from "./render/themes.ts";
+import { earnedBy, isUnlocked, unlock, type ThemeId } from "./core/unlocks.ts";
 import { Callout, type CalloutTone } from "./ui/callout.ts";
 import { hapticsAvailable, vibrate } from "./platform/haptics.ts";
 import { audioAvailable, comboRate, Sound } from "./audio/sound.ts";
@@ -158,12 +159,20 @@ function applySettings(): void {
   input.arr = s.arrMs;
   keyboard.setKeymap(s.keymap);
   game?.setConfig({ softDropFactor: s.softDropFactor });
-  const displayChanged = board.ghost !== s.ghost || board.grid !== s.grid || board.colorSafe !== s.colorSafe;
+  const theme = THEMES[s.theme];
+  const displayChanged = board.ghost !== s.ghost || board.grid !== s.grid || board.colorSafe !== s.colorSafe || board.theme !== theme;
   board.ghost = s.ghost;
   board.grid = s.grid;
-  if (board.colorSafe !== s.colorSafe || displayChanged) {
+  if (displayChanged) {
     board.colorSafe = s.colorSafe;
+    board.theme = theme;
+    effects.theme = theme;
+    applyThemeCss(theme);
     board.rebuild();
+    // Pratinjau Simpan dan Antrean dibangun ulang dengan tema baru di ukuran yang sama.
+    holdView.resize(0, 1, false);
+    nextView.resize(0, 1, false);
+    layout();
   }
   effects.fx = currentFx();
   ambient.classList.toggle("moving", effects.fx.ambientMotion);
@@ -174,6 +183,14 @@ function applySettings(): void {
 
 systemReduceMq.addEventListener("change", applySettings);
 
+/** Warna antarmuka tema (PRD-6): variabel CSS di :root dan warna bilah browser. */
+const themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+function applyThemeCss(theme: (typeof THEMES)[ThemeId]): void {
+  const root = document.documentElement.style;
+  for (const [k, v] of Object.entries(theme.css)) root.setProperty(k, v);
+  themeMeta?.setAttribute("content", theme.css["--bg"]!);
+}
+
 // ---------- pita ambient ----------
 
 /** Warna pita per level (DESIGN 8.1): urutan warna blok I, T, S, L, Z, O, J, berulang. */
@@ -181,7 +198,7 @@ const AMBIENT_ORDER = [1, 3, 4, 7, 5, 2, 6] as const;
 let comboWarm = 0;
 
 function ambientFor(level: number): void {
-  const color = BLOCK_COLORS[AMBIENT_ORDER[(level - 1) % AMBIENT_ORDER.length]!]!;
+  const color = THEMES[data.settings.theme].blocks[AMBIENT_ORDER[(level - 1) % AMBIENT_ORDER.length]!]!;
   // Combo panjang menggeser warna ke hangat (warna L), DESIGN 8.3.
   ambient.style.setProperty("--ambient-color", comboWarm > 0 ? `color-mix(in srgb, ${color}, #E39A55 ${Math.round(comboWarm * 100)}%)` : color);
 }
@@ -572,7 +589,7 @@ function layout(): void {
   if (side !== scrGame.classList.contains("side-layout")) {
     scrGame.classList.toggle("side-layout", side);
     nextView.horizontal = !side;
-    nextView.resize(0, dpr, data.settings.colorSafe); // paksa bangun ulang di ukuran baru
+    nextView.resize(0, dpr, data.settings.colorSafe, THEMES[data.settings.theme]); // paksa bangun ulang di ukuran baru
   }
   // Tinggi sumur antrean dihitung dari lebar layar saja (bukan dari papan), lalu dipasang sebelum papan
   // diukur. Dengan begitu tinggi antrean tetap selama lebar layar sama, papan dan antrean tidak saling
@@ -600,8 +617,8 @@ function layout(): void {
     // Minimal 5 px: di layar 320x640 papan hanya sekitar 215 px, dan antrean harus tetap muat di dalamnya.
     mini = Math.max(5, Math.min(14, Math.floor((rowW - QUEUE_CHROME) / QUEUE_CELLS)));
   }
-  holdView.resize(mini, dpr, data.settings.colorSafe);
-  nextView.resize(mini, dpr, data.settings.colorSafe);
+  holdView.resize(mini, dpr, data.settings.colorSafe, THEMES[data.settings.theme]);
+  nextView.resize(mini, dpr, data.settings.colorSafe, THEMES[data.settings.theme]);
   if (game) {
     updateHud(true);
     board.draw(game.state, NaN, 1, performance.now(), game.state.status === STATUS.PLAYING);
@@ -743,8 +760,29 @@ function showGameOver(): void {
   $("over-combo").textContent = String(s.maxCombo);
 
   const isNew = submitResult(data.records, resultFor(modeId), new Date());
-  const saved = isNew ? persist() : true;
+  // Tema yang terbuka oleh permainan ini (PRD-6). Hanya dari permainan yang selesai, bukan yang ditinggalkan.
+  const freshThemes = unlock(
+    data.unlocks,
+    earnedBy({
+      mode: modeId,
+      marathonDone: modeId === "marathon150" && s.status === STATUS.FINISHED,
+      sprintMs: sprintDone ? ticksToMs(s.tick) : null,
+      quads: s.quads,
+      perfects: s.perfects,
+    }),
+    new Date(),
+  );
+  const saved = isNew || freshThemes.length > 0 ? persist() : true;
   $("over-new").hidden = !(isNew && saved);
+  const unlocked = $("over-unlock");
+  unlocked.hidden = freshThemes.length === 0;
+  if (freshThemes.length > 0) {
+    // Satu baris per permainan; jika lebih dari satu tema terbuka sekaligus, semua disebut dan yang pertama bisa langsung dipakai.
+    const names = freshThemes.map((id) => t(`theme.${id}` as Key)).join(", ");
+    $("over-unlock-text").textContent = t("over.themeUnlocked", { name: names });
+    $("over-unlock-use").dataset["theme"] = freshThemes[0]!;
+    $("over-unlock-use").hidden = data.settings.theme === freshThemes[0];
+  }
   const notice = $("over-notice");
   if (modeId === "sprint40" && !sprintDone) {
     notice.hidden = false;
@@ -755,8 +793,21 @@ function showGameOver(): void {
   }
 
   dlgOver.showModal();
-  announce(`${t(titleKey)}. ${t(label)} ${value}${isNew && saved ? `. ${t("over.newRecord")}` : ""}`);
+  announce(
+    `${t(titleKey)}. ${t(label)} ${value}${isNew && saved ? `. ${t("over.newRecord")}` : ""}${freshThemes.length ? `. ${$("over-unlock-text").textContent}` : ""}`,
+  );
 }
+
+/** "Pakai sekarang" di Game Over: ganti tema tanpa membuka Pengaturan. */
+$("over-unlock-use").addEventListener("click", (e) => {
+  const id = (e.currentTarget as HTMLElement).dataset["theme"] as ThemeId;
+  if (!isUnlocked(data.unlocks, id)) return;
+  data.settings.theme = id;
+  applySettings();
+  persist();
+  (e.currentTarget as HTMLElement).hidden = true;
+  announce(t("settings.theme.applied", { name: t(`theme.${id}` as Key) }));
+});
 
 dlgOver.addEventListener("cancel", (e) => e.preventDefault());
 dlgOver.addEventListener("click", (e) => {
@@ -947,7 +998,7 @@ function showMenu(): void {
 
 let settingsFrom: "menu" | "pause" = "menu";
 
-const settings = new SettingsScreen(scrSettings, data.settings, {
+const settings = new SettingsScreen(scrSettings, data.settings, data.unlocks, {
   changed: () => {
     applySettings();
     persist();

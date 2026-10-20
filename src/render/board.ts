@@ -1,11 +1,11 @@
 import { COLS, VISIBLE_ROWS, type PieceType, type Rot } from "../core/constants.ts";
 import { SHAPES, shapeOffset } from "../core/piece.ts";
 import type { GameState } from "../core/game.ts";
-import { buildAtlas, ROW_BLOCK, ROW_FLASH, ROW_GHOST, type Atlas } from "./sprites.ts";
+import { buildAtlas, ROW_ACTIVE, ROW_BLOCK, ROW_FLASH, ROW_GHOST, type Atlas } from "./sprites.ts";
+import { THEMES, type Theme } from "./themes.ts";
 import { Effects } from "./effects.ts";
 import { easeIn, easeOut, easeSpring } from "./fx.ts";
 
-const GRID_COLOR = "rgba(230, 233, 239, 0.04)";
 const LOCK_FLASH_MS = 90;
 /** Tumpukan turun ke posisi akhir (DESIGN 8.3: Quad mulai 450 ms, lainnya lebih cepat). */
 const DROP_MS = 160;
@@ -33,6 +33,7 @@ export class BoardRenderer {
   ghost = true;
   grid = true;
   colorSafe = false;
+  theme: Theme = THEMES.classic;
   readonly fx: Effects;
   // Kilat lock.
   private flashCells = new Int8Array(8);
@@ -89,12 +90,12 @@ export class BoardRenderer {
   /** Bangun ulang sprite dan latar (ukuran, buta warna, atau grid berubah). */
   rebuild(): void {
     if (this.cell === 0) return;
-    this.atlas = buildAtlas(this.cell, this.dpr, this.colorSafe);
+    this.atlas = buildAtlas(this.cell, this.dpr, this.colorSafe, this.theme);
     this.stackValid = false;
     const g = this.bgCtx;
     g.clearRect(0, 0, this.bg.width, this.bg.height);
     if (!this.grid) return;
-    g.fillStyle = GRID_COLOR;
+    g.fillStyle = this.theme.grid;
     const lw = Math.max(1, Math.round(this.dpr));
     for (let x = 1; x < COLS; x++) g.fillRect(x * this.cell, 0, lw, this.bg.height);
     for (let y = 1; y < VISIBLE_ROWS; y++) g.fillRect(0, y * this.cell, this.bg.width, lw);
@@ -242,10 +243,10 @@ export class BoardRenderer {
         if (tilt !== 0) ctx.rotate(tilt);
         if (squash !== 1) ctx.scale(1 + (1 - squash) * 0.5, squash);
         ctx.translate(-px, -py);
-        this.drawPiece(s.type, s.rot, s.x, s.y, ROW_BLOCK, -smooth);
+        this.drawPiece(s.type, s.rot, s.x, s.y, ROW_ACTIVE, -smooth);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
       } else {
-        this.drawPiece(s.type, s.rot, s.x, s.y, ROW_BLOCK, -smooth);
+        this.drawPiece(s.type, s.rot, s.x, s.y, ROW_ACTIVE, -smooth);
       }
     }
 
@@ -355,6 +356,7 @@ export class PreviewRenderer {
   private cell = 0;
   private dpr = 1;
   private colorSafe = false;
+  private theme: Theme = THEMES.classic;
   private last = new Int8Array(6).fill(-1); // isi slot + redup, untuk melewati gambar ulang
 
   private canvas: HTMLCanvasElement;
@@ -369,13 +371,14 @@ export class PreviewRenderer {
   }
 
   /** cssCell: ukuran sel mini dalam piksel CSS. Setiap slot berukuran 4x3 sel (mendatar: 5x3). */
-  resize(cssCell: number, dpr: number, colorSafe: boolean): void {
+  resize(cssCell: number, dpr: number, colorSafe: boolean, theme: Theme = this.theme): void {
     const cell = Math.max(1, Math.round(cssCell * dpr));
-    if (cell === this.cell && dpr === this.dpr && colorSafe === this.colorSafe) return;
+    if (cell === this.cell && dpr === this.dpr && colorSafe === this.colorSafe && theme === this.theme) return;
     this.cell = cell;
     this.dpr = dpr;
     this.colorSafe = colorSafe;
-    this.atlas = buildAtlas(cell, dpr, colorSafe);
+    this.theme = theme;
+    this.atlas = buildAtlas(cell, dpr, colorSafe, theme);
     const w = this.horizontal ? cell * 5 * this.slots : cell * 4;
     const h = this.horizontal ? cell * 3 : cell * 3 * this.slots;
     this.canvas.width = w;

@@ -1,11 +1,16 @@
 // Atlas blok yang di-cache sekali per ukuran sel (EDD-2 bagian 3.3).
 // Satu-satunya tempat gradien, path, dan pola dibuat. Loop gambar hanya memanggil drawImage.
 
-export const BLOCK_COLORS = ["", "#5CC8D6", "#E3C35A", "#A57BD8", "#6CC489", "#E06C75", "#3F63C9", "#E39A55"] as const;
+import { THEMES, type Theme } from "./themes.ts";
+
+/** Warna blok tema Klasik (dipakai tes dan sebagai bawaan). Tema lain: render/themes.ts. */
+export const BLOCK_COLORS = THEMES.classic.blocks;
 
 export const ROW_BLOCK = 0;
 export const ROW_GHOST = 1;
 export const ROW_FLASH = 2;
+/** Piece yang sedang jatuh. Sama dengan ROW_BLOCK kecuali tema Monokrom (piece aktif berwarna sendiri). */
+export const ROW_ACTIVE = 3;
 
 type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
@@ -27,12 +32,15 @@ function roundRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: numb
   ctx.roundRect(x, y, w, h, r);
 }
 
-/** Pola mode aman buta warna per jenis (DESIGN 4.2). */
-function drawPattern(ctx: Ctx, type: number, x: number, y: number, s: number): void {
+/**
+ * Pola mode aman buta warna per jenis (DESIGN 4.2). ink: warna pola. Bawaan gelap transparan di atas
+ * blok berwarna penuh; tema Neon (isi blok gelap) memakai warna bloknya sendiri supaya pola terlihat.
+ */
+function drawPattern(ctx: Ctx, type: number, x: number, y: number, s: number, ink = "rgba(15, 18, 23, 0.35)"): void {
   const u = s / 8;
   ctx.save();
-  ctx.fillStyle = "rgba(15, 18, 23, 0.35)";
-  ctx.strokeStyle = "rgba(15, 18, 23, 0.35)";
+  ctx.fillStyle = ink;
+  ctx.strokeStyle = ink;
   ctx.lineWidth = Math.max(1, Math.round(u * 0.8));
   ctx.beginPath();
   switch (type) {
@@ -87,12 +95,48 @@ function drawPattern(ctx: Ctx, type: number, x: number, y: number, s: number): v
  * berlebihan). Warna solid, gradien cahaya tipis dari atas, garis terang di atas dan gelap di bawah
  * selebar 2 piksel CSS. Digambar sekali ke atlas, jadi tidak menambah kerja per frame.
  */
-function drawBlock(ctx: Ctx, color: string, x: number, y: number, s: number, r: number, px: number): void {
+function drawBlock(ctx: Ctx, color: string, x: number, y: number, s: number, r: number, px: number, style: Theme["style"] = "solid"): void {
+  if (style === "neon") {
+    // Garis tepi menyala dengan isi samar (tema Neon garis). Cahaya tetap di dalam sel atlas.
+    const lw = Math.max(2 * px, Math.round(s * 0.09));
+    ctx.save();
+    roundRect(ctx, x, y, s, s, r);
+    ctx.clip();
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, s, s);
+    ctx.globalAlpha = 1;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = s * 0.3;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lw;
+    roundRect(ctx, x + lw / 2, y + lw / 2, s - lw, s - lw, Math.max(1, r - lw / 2));
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+  if (style === "soft") r = Math.round(s * 0.26);
   ctx.save();
   roundRect(ctx, x, y, s, s, r);
   ctx.clip();
   ctx.fillStyle = color;
   ctx.fillRect(x, y, s, s);
+
+  if (style === "glass") {
+    // Kaca (tema Malam): kilau diagonal dan tepi dalam terang.
+    const gl = ctx.createLinearGradient(x, y, x + s, y + s);
+    gl.addColorStop(0, "rgba(255, 255, 255, 0.35)");
+    gl.addColorStop(0.45, "rgba(255, 255, 255, 0.06)");
+    gl.addColorStop(1, "rgba(0, 0, 0, 0.25)");
+    ctx.fillStyle = gl;
+    ctx.fillRect(x, y, s, s);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = Math.max(1, px);
+    roundRect(ctx, x + px / 2, y + px / 2, s - px, s - px, Math.max(1, r - px / 2));
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
 
   const g = ctx.createLinearGradient(0, y, 0, y + s);
   g.addColorStop(0, "rgba(255, 255, 255, 0.10)");
@@ -109,38 +153,42 @@ function drawBlock(ctx: Ctx, color: string, x: number, y: number, s: number, r: 
 }
 
 /** size: piksel perangkat per sel. dpr dipakai untuk menskalakan radius dan garis. */
-export function buildAtlas(size: number, dpr: number, colorSafe: boolean): Atlas {
-  const canvas = makeCanvas(size * 8, size * 3);
+export function buildAtlas(size: number, dpr: number, colorSafe: boolean, theme: Theme = THEMES.classic): Atlas {
+  const canvas = makeCanvas(size * 8, size * 4);
   const ctx = canvas.getContext("2d") as Ctx;
   const r = Math.max(1, Math.round(4 * dpr * (size / (22 * dpr))));
   const px = Math.max(1, Math.round(dpr));
   const inset = Math.max(1, Math.round(dpr)); // celah antar blok
 
   for (let type = 1; type <= 7; type++) {
-    const color = BLOCK_COLORS[type]!;
+    const color = theme.blocks[type]!;
+    const activeColor = theme.active ?? color;
     const x = type * size + inset / 2;
     const s = size - inset;
 
-    // Blok normal (DESIGN 5).
-    let y = ROW_BLOCK * size + inset / 2;
-    drawBlock(ctx, color, x, y, s, r, px);
-    if (colorSafe) {
-      ctx.save();
-      roundRect(ctx, x, y, s, s, r);
-      ctx.clip();
-      drawPattern(ctx, type, x, y, s);
-      ctx.restore();
+    // Blok normal (DESIGN 5) dan piece aktif (berbeda hanya di tema Monokrom).
+    for (const [row, c] of [[ROW_BLOCK, color], [ROW_ACTIVE, activeColor]] as const) {
+      const y = row * size + inset / 2;
+      drawBlock(ctx, c, x, y, s, r, px, theme.style);
+      if (colorSafe) {
+        ctx.save();
+        roundRect(ctx, x, y, s, s, r);
+        ctx.clip();
+        drawPattern(ctx, type, x, y, s, theme.style === "neon" ? c : undefined);
+        ctx.restore();
+      }
     }
 
-    // Ghost: outline 2px warna penuh, dengan isi sangat tipis supaya bentuknya terbaca sebagai satu piece.
-    y = ROW_GHOST * size + inset / 2;
+    // Ghost: outline 2px warna piece aktif, dengan isi sangat tipis supaya bentuknya terbaca sebagai satu piece.
+    let y = ROW_GHOST * size + inset / 2;
+    const ghostColor = activeColor;
     const lw = Math.max(1, Math.round(2 * dpr));
     roundRect(ctx, x + lw / 2, y + lw / 2, s - lw, s - lw, Math.max(1, r - lw / 2));
     ctx.globalAlpha = 0.1;
-    ctx.fillStyle = color;
+    ctx.fillStyle = ghostColor;
     ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = ghostColor;
     ctx.lineWidth = lw;
     ctx.stroke();
 

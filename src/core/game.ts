@@ -50,6 +50,8 @@ export interface GameState {
   quads: number;
   tspins: number;
   maxCombo: number;
+  /** Jumlah Bersih Total (syarat tema Monokrom, PRD-6). */
+  perfects: number;
   /** Jumlah piece yang sudah muncul, termasuk yang aktif. */
   pieces: number;
   tick: number;
@@ -108,6 +110,7 @@ export function createGame(modeId: ModeId, seed: number, cfg: CoreConfig): Game 
     quads: 0,
     tspins: 0,
     maxCombo: 0,
+    perfects: 0,
     pieces: 0,
     tick: 0,
     status: STATUS.PLAYING,
@@ -223,6 +226,7 @@ export function createGame(modeId: ModeId, seed: number, cfg: CoreConfig): Game 
     s.combo = sc[SC.NEW_COMBO]!;
     if (s.combo > s.maxCombo) s.maxCombo = s.combo;
     if (n === 4) s.quads++;
+    if (perfect) s.perfects++;
     if (spin !== SPIN_NONE) s.tspins++;
 
     if (n > 0 || spin !== SPIN_NONE) {

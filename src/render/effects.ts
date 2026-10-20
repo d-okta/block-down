@@ -6,14 +6,11 @@
 // makin besar makin meriah. Cahaya digambar dengan mode "lighter" (penjumlahan), tanpa gradien
 // yang dibuat setiap frame, supaya tetap murah di HP kelas bawah.
 import { COLS, VISIBLE_ROWS } from "../core/constants.ts";
-import { BLOCK_COLORS } from "./sprites.ts";
+import { THEMES, type Theme } from "./themes.ts";
 import { Particles } from "./particles.ts";
 import { easeOut, SHAKE_SHARE, type FxScale, type Power } from "./fx.ts";
 
 const WHITE = "#FFFFFF";
-const ACCENT = "#5B7CFA";
-const T_COLOR = BLOCK_COLORS[3]!;
-const GOLD = BLOCK_COLORS[2]!;
 
 /** Partikel per sel baris yang dihapus, per kekuatan. */
 const PER_CELL = [0, 2, 3, 4, 6, 6] as const;
@@ -26,6 +23,11 @@ export class Effects {
   /** Ukuran sel dan DPR terakhir, dipakai untuk mengubah satuan sel ke piksel perangkat. */
   cell = 0;
   dpr = 1;
+  /** Tema aktif: warna partikel, riak T-Spin, gelombang Bersih Total, dan cahaya aksen. */
+  theme: Theme = THEMES.classic;
+  get accent(): string {
+    return this.theme.css["--accent"]!;
+  }
 
   // Kilat baris yang dihapus.
   private rowFlashT = -1;
@@ -142,7 +144,7 @@ export class Effects {
       this.boardFlashColor = WHITE;
       this.pillarT = now;
       this.pillarY = midY;
-      this.pillarColor = power >= 4 ? ACCENT : WHITE;
+      this.pillarColor = power >= 4 ? this.accent : WHITE;
     }
     // Kekuatan 4 ke atas: dua cincin melebar dari tengah baris, papan menghentak.
     if (power >= 4) {
@@ -160,11 +162,11 @@ export class Effects {
     this.ringX = (cx + 0.5) * this.cell;
     this.ringY = (VISIBLE_ROWS - 1 - cy + 0.5) * this.cell;
     this.ringT = now;
-    this.ringColor = T_COLOR;
+    this.ringColor = this.theme.blocks[3]!;
     this.ringCount = withLines ? 3 : 2;
     this.boardFlashT = now;
     this.boardFlashAlpha = withLines ? 0.3 : 0.15;
-    this.boardFlashColor = T_COLOR;
+    this.boardFlashColor = this.theme.blocks[3]!;
     if (withLines) {
       this.punch(now, 0.03);
       this.shake(now, 4, 1);
@@ -175,7 +177,7 @@ export class Effects {
     this.waveT = now;
     this.boardFlashT = now;
     this.boardFlashAlpha = 0.45;
-    this.boardFlashColor = GOLD;
+    this.boardFlashColor = this.theme.blocks[2]!;
     this.punch(now, 0.05);
     this.shake(now, 5, 1);
     // Hujan partikel emas dari bawah.
@@ -194,7 +196,7 @@ export class Effects {
     this.frameT = now;
     this.boardFlashT = now;
     this.boardFlashAlpha = 0.2;
-    this.boardFlashColor = ACCENT;
+    this.boardFlashColor = this.accent;
   }
 
   /** cells: 8 angka (x, y) core; dist dalam sel; type: jenis piece (warna debu). */
@@ -354,7 +356,7 @@ export class Effects {
 
     // Partikel.
     this.particles.update(dt, c * 30);
-    this.particles.draw(ctx, BLOCK_COLORS);
+    this.particles.draw(ctx, this.theme.blocks);
 
     if (waves > 0) {
       ctx.globalCompositeOperation = "lighter";
@@ -397,7 +399,7 @@ export class Effects {
         else {
           const y = h * (1 - easeOut(p));
           // Hanya pita tepinya; cahaya di bawahnya ikut lapisan kilat papan (CSS).
-          ctx.fillStyle = GOLD;
+          ctx.fillStyle = this.theme.blocks[2]!;
           ctx.globalAlpha = waves * 0.6 * (1 - p);
           ctx.fillRect(0, y, w, c * 1.5);
         }

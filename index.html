@@ -220,6 +220,13 @@
 
         <section class="set-group" aria-labelledby="g-display">
           <h2 id="g-display" data-i18n="settings.group.display"></h2>
+          <div class="set-row theme-row">
+            <div class="set-text">
+              <span class="set-label" id="lbl-theme" data-i18n="settings.theme"></span>
+              <span class="set-desc" data-i18n="settings.theme.desc"></span>
+            </div>
+            <div class="themes" id="themes" role="radiogroup" aria-labelledby="lbl-theme"></div>
+          </div>
           <div class="set-row">
             <div class="set-text">
               <span class="set-label" id="lbl-ghost" data-i18n="settings.ghost"></span>
@@ -360,6 +367,11 @@
         <div><dt data-i18n="over.statTSpins"></dt><dd class="num" id="over-tspins"></dd></div>
         <div><dt data-i18n="over.statMaxCombo"></dt><dd class="num" id="over-combo"></dd></div>
       </dl>
+      <!-- Tema yang terbuka oleh permainan ini (PRD-6). Satu baris, gaya sama dengan tag Rekor baru. -->
+      <div class="over-unlock" id="over-unlock" hidden>
+        <span class="tag" id="over-unlock-text"></span>
+        <button type="button" class="btn btn-small" id="over-unlock-use" data-i18n="over.themeUse"></button>
+      </div>
       <p class="notice" id="over-notice" hidden></p>
       <div class="actions">
         <button type="button" class="btn btn-primary" data-act="again" autofocus>

@@ -2,7 +2,9 @@
 // Fase 2 memakai rekor dan nilai bawaan pengaturan; layar Pengaturan menyusul di Fase 3.
 
 export const KEY = "blockdown";
-export const SCHEMA = 1;
+export const SCHEMA = 2;
+
+import { earnedByRecords, THEME_IDS, unlock, type ThemeId } from "../core/unlocks.ts";
 
 export type Locale = "id" | "en";
 export type Btn = "left" | "right" | "soft" | "hard" | "cw" | "ccw" | "hold";
@@ -22,6 +24,8 @@ export interface Settings {
   musicVolume: number;
   sfxVolume: number;
   haptics: boolean;
+  /** Tema yang dipakai (PRD-6). Selalu tema yang sudah terbuka. */
+  theme: ThemeId;
 }
 
 export interface ScoreRecord {
@@ -38,10 +42,14 @@ export interface Records {
   zen?: { lines: number; at: string };
 }
 
+/** Tema yang sudah terbuka: id ke tanggal ISO. Klasik selalu terbuka dan tidak dicatat. */
+export type Unlocks = Partial<Record<ThemeId, string>>;
+
 export interface SaveData {
   schema: number;
   settings: Settings;
   records: Records;
+  unlocks: Unlocks;
 }
 
 export type LoadStatus = "ok" | "empty" | "corrupt" | "newer" | "unavailable";
@@ -74,6 +82,7 @@ export function defaultSettings(): Settings {
     musicVolume: 0.6,
     sfxVolume: 0.8,
     haptics: true,
+    theme: "classic",
   };
 }
 
@@ -140,6 +149,7 @@ function readSettings(v: unknown): Settings {
     musicVolume: num(v["musicVolume"], 0, 1, d.musicVolume),
     sfxVolume: num(v["sfxVolume"], 0, 1, d.sfxVolume),
     haptics: bool(v["haptics"], d.haptics),
+    theme: oneOf(v["theme"], THEME_IDS, d.theme),
   };
 }
 
@@ -163,9 +173,16 @@ function readRecords(v: unknown): Records {
   return out;
 }
 
+function readUnlocks(v: unknown): Unlocks {
+  const out: Unlocks = {};
+  if (!isObj(v)) return out;
+  for (const id of THEME_IDS) if (id !== "classic" && isoDate(v[id])) out[id] = v[id];
+  return out;
+}
+
 /** Validasi data mentah hasil JSON.parse. Dipisah dari load() supaya bisa dites tanpa localStorage. */
 export function parseSave(raw: string | null): { data: SaveData; status: LoadStatus } {
-  const fresh = (status: LoadStatus) => ({ data: { schema: SCHEMA, settings: defaultSettings(), records: {} }, status });
+  const fresh = (status: LoadStatus) => ({ data: { schema: SCHEMA, settings: defaultSettings(), records: {}, unlocks: {} }, status });
   if (raw === null) return fresh("empty");
   let parsed: unknown;
   try {
@@ -176,12 +193,20 @@ export function parseSave(raw: string | null): { data: SaveData; status: LoadSta
   if (!isObj(parsed)) return fresh("corrupt");
   const schema = int(parsed["schema"], 1, Number.MAX_SAFE_INTEGER, 0);
   if (schema === 0) return fresh("corrupt");
-  // Belum ada migrasi: skema 1 adalah yang pertama. Migrasi berikutnya ditambahkan di sini, berurutan.
   const data: SaveData = {
     schema: SCHEMA,
     settings: readSettings(parsed["settings"]),
     records: readRecords(parsed["records"]),
+    unlocks: readUnlocks(parsed["unlocks"]),
   };
+  // Migrasi 1 ke 2 (PRD-6): rekor lama yang memenuhi syarat langsung membuka temanya. Dijalankan
+  // setiap muat, jadi juga memperbaiki data yang unlocks-nya hilang; tanggal dari rekornya.
+  for (const id of earnedByRecords(data.records)) {
+    const at = id === "night" ? data.records.marathon150?.at : data.records.sprint40?.at;
+    unlock(data.unlocks, [id], at ? new Date(at) : new Date(0));
+  }
+  // Tema terpilih yang belum terbuka (data diubah tangan) kembali ke Klasik.
+  if (data.settings.theme !== "classic" && !data.unlocks[data.settings.theme]) data.settings.theme = "classic";
   return { data, status: schema > SCHEMA ? "newer" : "ok" };
 }
 

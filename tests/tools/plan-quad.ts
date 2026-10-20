@@ -1,4 +1,5 @@
 // Alat uji (bukan bagian aplikasi): cari urutan tombol yang menghasilkan 4 Baris dari seed tertentu,
+// Dengan argumen kedua "pc": hanya berhasil jika 4 Baris itu juga Bersih Total (papan kosong), untuk menguji tema Monokrom.
 // untuk memutar ulang momen Quad di browser saat menguji efek. Jalankan: node tests/tools/plan-quad.ts [seed]
 // Strategi: isi kolom 1..9 dengan piece apa pun (rata dari kiri), sisakan kolom 0, lalu I tegak di kolom 0.
 import { createGame } from "../../src/core/game.ts";
@@ -7,6 +8,7 @@ import { fits } from "../../src/core/board.ts";
 import { SHAPES, shapeOffset } from "../../src/core/piece.ts";
 
 const seed = Number(process.argv[2] ?? 7);
+const needPc = process.argv[3] === "pc";
 
 /** Ketinggian kolom (jumlah sel terisi dari bawah sampai sel teratas). */
 function heights(b: Uint8Array): number[] {
@@ -65,8 +67,9 @@ for (let piece = 0; piece < 40; piece++) {
     }
     keys.push("Space");
     step([ACT.HARD]);
-    console.log(JSON.stringify({ seed, keys, lines: g.state.lines }));
-    process.exit(g.state.lines >= 4 ? 0 : 1);
+    const ok = g.state.lines >= 4 && (!needPc || g.state.perfects > 0);
+    if (ok) console.log(JSON.stringify({ seed, keys, lines: g.state.lines }));
+    process.exit(ok ? 0 : 1);
   }
   // Cari penempatan terbaik untuk piece ini (atau simpan I untuk nanti jika board belum siap).
   let best: { rot: Rot; x: number; c: number } | null = null;

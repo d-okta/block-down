@@ -368,7 +368,7 @@ Semua perubahan berlaku langsung, termasuk saat dibuka dari Pause.
 
 ```ts
 {
-  schema: 1,
+  schema: 2,
   settings: {
     locale: "id" | "en",
     dasMs: number,        // 50..300
@@ -382,7 +382,8 @@ Semua perubahan berlaku langsung, termasuk saat dibuka dari Pause.
     reduceMotion: boolean | null,   // null = ikuti sistem
     musicVolume: number,  // 0..1
     sfxVolume: number,    // 0..1
-    haptics: boolean
+    haptics: boolean,
+    theme: "classic" | "night" | "neon" | "dawn" | "mono"   // PRD-6, selalu tema yang terbuka
   },
   records: {
     marathon150?: { score: number, lines: number, level: number, at: string },
@@ -390,11 +391,13 @@ Semua perubahan berlaku langsung, termasuk saat dibuka dari Pause.
     sprint40?: { timeMs: number, at: string },
     ultra?: { score: number, lines: number, at: string },
     zen?: { lines: number, at: string }
-  }
+  },
+  unlocks: { night?: string, neon?: string, dawn?: string, mono?: string }  // tanggal terbuka (PRD-6)
 }
 ```
 
-- `at` adalah tanggal ISO 8601.
+- `at` dan nilai `unlocks` adalah tanggal ISO 8601.
+- Migrasi skema 1 ke 2 (PRD-6): `unlocks` kosong dan `theme` Klasik, lalu tema yang syaratnya terpenuhi oleh rekor tersimpan (Maraton 150 selesai, Sprint 40 di bawah 3 menit) langsung terbuka dengan tanggal rekornya.
 - Validasi saat dibaca:
   - JSON rusak: pakai nilai bawaan, tampilkan pemberitahuan satu baris, dan jangan menimpa data lama sampai ada penyimpanan berikutnya yang berhasil.
   - `schema` lebih lama: jalankan migrasi berurutan.

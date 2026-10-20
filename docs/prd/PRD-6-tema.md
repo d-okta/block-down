@@ -1,6 +1,6 @@
 # BlockDown: Rancangan Tema yang Terbuka lewat Prestasi (Fase 6)
 
-Status: **disetujui pemilik** (jawaban di bagian 9). Tahap berikutnya: pemilik memilih tampilan tiap tema lewat pratinjau.
+Status: **dibangun** (bagian 11). Varian dipilih pemilik lewat pratinjau: Malam B, Neon garis B, Fajar B, Monokrom A.
 
 Dokumen ini menggantikan kandidat "koin, item, toko" di ROADMAP Fase 6. Alasannya ada di bagian 2.
 
@@ -107,10 +107,24 @@ interface SaveData {
 4. Rekor lama: dihitung, tema yang syaratnya sudah terpenuhi langsung terbuka.
 5. Tampilan tema: dibuat pratinjau untuk dipilih pemilik.
 
-## 10. Kriteria selesai (diisi setelah pertanyaan dijawab)
+## 10. Kriteria selesai
 
-- [ ] Setiap tema lolos kontras AA dan mode buta warna tetap terbedakan dalam grayscale.
-- [ ] Syarat terbuka diuji dengan tes, termasuk migrasi skema dan rekor lama.
-- [ ] Pemberitahuan hanya di Game Over; tidak ada apa pun saat bermain.
-- [ ] Ganti tema tidak menambah kerja per frame (diukur dengan `?perf` di Galaxy A13).
-- [ ] Desain akhir tiap tema dipilih pemilik lewat pratinjau.
+- [x] Setiap tema lolos kontras AA (teks 14,5 sampai 17,9:1, teks redup 5,6 sampai 7,3:1, tombol aksen 7,1 sampai 17,2:1) dan mode buta warna tetap terbedakan (pola per jenis; di Neon pola digambar dengan warna blok supaya terlihat di isi yang gelap).
+- [x] Syarat terbuka diuji dengan tes, termasuk migrasi skema 1 ke 2, rekor lama, tanggal dari rekor, tema terpilih yang belum terbuka, dan data unlocks rusak (4 tes baru, total 63).
+- [x] Pemberitahuan hanya di Game Over; tidak ada apa pun saat bermain.
+- [x] Ganti tema tidak menambah kerja per frame: atlas blok dibuat sekali per tema dan ukuran. Pengukuran `?perf` di Galaxy A13 menunggu pemilik.
+- [x] Desain akhir tiap tema dipilih pemilik lewat pratinjau.
+
+## 11. Yang dibangun
+
+| Bagian | File |
+|---|---|
+| Syarat dan pencatatan (murni, dites) | `src/core/unlocks.ts` |
+| Hitungan Bersih Total per permainan | `src/core/game.ts` (`perfects`) |
+| Lima tema: warna blok, gaya blok, grid, variabel CSS | `src/render/themes.ts` |
+| Gaya blok kaca, neon, dan lembut; baris atlas piece aktif (Monokrom) | `src/render/sprites.ts` |
+| Skema 2, migrasi, rekor lama membuka tema | `src/store/storage.ts` |
+| Pilihan tema di Pengaturan | `src/ui/settings.ts`, `index.html`, `styles.css` |
+| Pemberitahuan dan Pakai sekarang di Game Over | `src/main.ts`, `index.html` |
+
+Uji di Chrome dengan permainan sungguhan: seed 23 menghasilkan 4 Baris yang juga Bersih Total (dicari dengan `node tests/tools/plan-quad.ts 23 pc`). Zen diakhiri, Game Over menampilkan `Tema Monokrom terbuka` dan mengumumkannya lewat `aria-live`; `Pakai sekarang` mengganti tema, menyimpan, dan mengumumkan; Bersih Total kedua tidak memunculkan pemberitahuan lagi. Data lama dengan Maraton 150 selesai dan Sprint 2:50 langsung membuka Malam dan Neon. Tema terkunci tidak bisa dipilih. Pilihan tema bertahan setelah muat ulang, dan warna bilah browser (`theme-color`) ikut berganti.
