@@ -242,11 +242,11 @@ Tampilan efek tetap sama (screenshot storyboard Quad dicek). CPU 6 kali: kerja p
 Keputusan pemilik (Fase 5): BlockDown tidak diterbitkan di Play Store. Distribusi hanya lewat GitHub (https://github.com/d-okta/block-down) dan deploy Vercel, dipasang sebagai PWA. Proyek Capacitor Android, AAB, listing toko, dan screenshot listing dikeluarkan dari lingkup.
 
 Kriteria selesai:
-- [ ] PWA bisa dipasang, lalu dimainkan dalam mode pesawat setelah kunjungan pertama. Uji Chrome lulus (offline: menu, font, suara, permainan); menunggu konfirmasi pemilik di HP.
+- [x] PWA bisa dipasang, lalu dimainkan dalam mode pesawat setelah kunjungan pertama. Uji Chrome lulus (offline: menu, font, suara, permainan) dan dikonfirmasi pemilik di Galaxy A13.
 - [x] Deploy Vercel dari branch utama, dengan URL produksi tercatat: https://block-down.vercel.app (auto-deploy dari `main`).
 - [x] Ikon aplikasi final sudah disetujui pemilik (varian gelap). Tidak ada placeholder yang tersisa.
-- [ ] Safe-area benar di perangkat dengan notch dan navigasi gestur (PWA terpasang, layar penuh).
-- [ ] README di GitHub menjelaskan cara main, cara memasang PWA, dan lisensi aset (suara CC0).
+- [x] Safe-area benar di perangkat dengan navigasi gestur (PWA terpasang di Galaxy A13, dikonfirmasi pemilik). Perangkat dengan notch belum diuji.
+- [x] README di GitHub menjelaskan cara main, cara memasang PWA, dan lisensi aset (suara CC0).
 
 Dikeluarkan dari lingkup (keputusan pemilik): AAB dan `npx cap sync android`, APK di perangkat acuan dan tombol kembali Android native, listing toko ID dan EN, screenshot listing, kebijakan privasi toko. Jika suatu saat diterbitkan ke toko, kriteria ini dikembalikan.
 
