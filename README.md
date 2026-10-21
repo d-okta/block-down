@@ -16,7 +16,7 @@ Bisa dipasang ke layar utama HP atau komputer, lalu dimainkan tanpa internet.
 - Blok Pengisi: saat papan tinggal sedikit setelah menghapus baris, satu blok 1x1 masuk Antrean untuk menambal lubang menuju Bersih Total.
 - Skor lengkap: 1 sampai 4 Baris, T-Spin dan Mini, Back-to-Back, Combo, Bersih Total.
 - Rekor pribadi per mode, tersimpan di perangkat.
-- Lima tema tampilan (ikon palet di Menu). Empat di antaranya terbuka lewat prestasi: Malam (selesaikan Maraton 150 baris), Neon (Sprint 40 di bawah 3 menit), Fajar (10 kali 4 Baris dalam satu permainan), dan Monokrom (satu Bersih Total).
+- Lima tema tampilan (ikon palet di Menu). Empat di antaranya terbuka lewat prestasi: Malam (100 baris dalam satu permainan Maraton), Neon (Sprint 40 di bawah 3 menit), Fajar (5 kali 4 Baris dalam satu permainan), dan Monokrom (Combo 8, atau satu Bersih Total).
 - Pengaturan: DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, ghost, grid, mode aman buta warna, intensitas efek, kurangi animasi, getar, dan bahasa.
 - Bahasa Indonesia dan Inggris.
 

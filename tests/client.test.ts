@@ -390,18 +390,26 @@ test("suara: nada combo naik di pentatonik, tertahan di atas, dan semua file sua
 
 import { earnedBy, earnedByRecords, unlock, isUnlocked, SPRINT_MS } from "../src/core/unlocks.ts";
 
-test("tema: syarat terbuka dari satu permainan (PRD-6)", () => {
-  const base = { mode: "zen" as const, marathonDone: false, sprintMs: null, quads: 0, perfects: 0 };
+test("tema: syarat terbuka dari satu permainan (PRD-6 bagian 15)", () => {
+  const base = { mode: "zen" as const, lines: 0, sprintMs: null, quads: 0, perfects: 0, maxCombo: 0 };
   assert.deepEqual(earnedBy(base), []);
-  assert.deepEqual(earnedBy({ ...base, mode: "marathon150", marathonDone: true }), ["night"]);
-  assert.deepEqual(earnedBy({ ...base, mode: "marathonEndless", marathonDone: true }), []); // hanya Maraton 150
+  // Malam: 100 baris di Maraton (150 baris atau tanpa batas), tidak di mode lain.
+  assert.deepEqual(earnedBy({ ...base, mode: "marathon150", lines: 99 }), []);
+  assert.deepEqual(earnedBy({ ...base, mode: "marathon150", lines: 100 }), ["night"]);
+  assert.deepEqual(earnedBy({ ...base, mode: "marathonEndless", lines: 120 }), ["night"]);
+  assert.deepEqual(earnedBy({ ...base, mode: "zen", lines: 300 }), []);
+  // Neon: Sprint 40 di bawah 3 menit.
   assert.deepEqual(earnedBy({ ...base, mode: "sprint40", sprintMs: SPRINT_MS - 1 }), ["neon"]);
   assert.deepEqual(earnedBy({ ...base, mode: "sprint40", sprintMs: SPRINT_MS }), []); // di bawah 3 menit, bukan sama dengan
   assert.deepEqual(earnedBy({ ...base, mode: "sprint40", sprintMs: null }), []); // Sprint gagal
-  assert.deepEqual(earnedBy({ ...base, quads: 9 }), []);
-  assert.deepEqual(earnedBy({ ...base, quads: 10 }), ["dawn"]);
+  // Fajar: 5 kali 4 Baris.
+  assert.deepEqual(earnedBy({ ...base, quads: 4 }), []);
+  assert.deepEqual(earnedBy({ ...base, quads: 5 }), ["dawn"]);
+  // Monokrom: Bersih Total atau Combo 8.
   assert.deepEqual(earnedBy({ ...base, perfects: 1 }), ["mono"]);
-  assert.deepEqual(earnedBy({ ...base, mode: "marathon150", marathonDone: true, quads: 12, perfects: 2 }), ["night", "dawn", "mono"]);
+  assert.deepEqual(earnedBy({ ...base, maxCombo: 7 }), []);
+  assert.deepEqual(earnedBy({ ...base, maxCombo: 8 }), ["mono"]);
+  assert.deepEqual(earnedBy({ ...base, mode: "marathon150", lines: 150, quads: 12, perfects: 2, maxCombo: 9 }), ["night", "dawn", "mono"]);
 });
 
 test("tema: unlock mencatat sekali, Klasik selalu terbuka", () => {
@@ -417,6 +425,10 @@ test("tema: unlock mencatat sekali, Klasik selalu terbuka", () => {
 test("tema: migrasi skema 1 ke 2, rekor lama langsung membuka tema", () => {
   assert.deepEqual(earnedByRecords({ marathon150: { lines: 150 }, sprint40: { timeMs: 170000 } }), ["night", "neon"]);
   assert.deepEqual(earnedByRecords({ marathon150: { lines: 90 }, sprint40: { timeMs: 200000 } }), []);
+  assert.deepEqual(earnedByRecords({ marathonEndless: { lines: 104 } }), ["night"]); // rekor tanpa batas juga dihitung
+  // Syarat dilonggarkan setelah rilis: rekor yang sudah tersimpan (Maraton tanpa batas 104 baris) langsung membuka Malam.
+  const v2 = parseSave(JSON.stringify({ schema: 2, settings: {}, records: { marathonEndless: { score: 50000, lines: 104, level: 11, at: "2026-10-05T08:00:00.000Z" } }, unlocks: {} })).data;
+  assert.equal(v2.unlocks.night, "2026-10-05T08:00:00.000Z");
   const old = {
     schema: 1,
     settings: { dasMs: 120 },

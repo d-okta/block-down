@@ -794,10 +794,11 @@ function showGameOver(): void {
     data.unlocks,
     earnedBy({
       mode: modeId,
-      marathonDone: modeId === "marathon150" && s.status === STATUS.FINISHED,
+      lines: s.lines,
       sprintMs: sprintDone ? ticksToMs(s.tick) : null,
       quads: s.quads,
       perfects: s.perfects,
+      maxCombo: s.maxCombo,
     }),
     new Date(),
   );

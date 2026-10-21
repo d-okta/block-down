@@ -4,7 +4,7 @@
 export const KEY = "blockdown";
 export const SCHEMA = 2;
 
-import { earnedByRecords, THEME_IDS, unlock, type ThemeId } from "../core/unlocks.ts";
+import { earnedByRecords, MARATHON_LINES, THEME_IDS, unlock, type ThemeId } from "../core/unlocks.ts";
 
 export type Locale = "id" | "en";
 export type Btn = "left" | "right" | "soft" | "hard" | "cw" | "ccw" | "hold";
@@ -200,9 +200,15 @@ export function parseSave(raw: string | null): { data: SaveData; status: LoadSta
     unlocks: readUnlocks(parsed["unlocks"]),
   };
   // Migrasi 1 ke 2 (PRD-6): rekor lama yang memenuhi syarat langsung membuka temanya. Dijalankan
-  // setiap muat, jadi juga memperbaiki data yang unlocks-nya hilang; tanggal dari rekornya.
+  // setiap muat, jadi syarat yang dilonggarkan (PRD-6 bagian 15) juga langsung membuka tema dari rekor
+  // yang sudah ada; tanggal dari rekornya.
   for (const id of earnedByRecords(data.records)) {
-    const at = id === "night" ? data.records.marathon150?.at : data.records.sprint40?.at;
+    const r = data.records;
+    // Tanggal dari rekor yang memenuhi syarat (Malam: Maraton 150 atau tanpa batas, mana yang cukup).
+    const at =
+      id === "night"
+        ? ((r.marathon150?.lines ?? 0) >= MARATHON_LINES ? r.marathon150?.at : r.marathonEndless?.at)
+        : r.sprint40?.at;
     unlock(data.unlocks, [id], at ? new Date(at) : new Date(0));
   }
   // Tema terpilih yang belum terbuka (data diubah tangan) kembali ke Klasik.

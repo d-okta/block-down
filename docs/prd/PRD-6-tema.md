@@ -50,8 +50,8 @@ Lima tema: satu bawaan dan empat yang terbuka. Syarat diambil dari data yang **s
 | **Klasik** | Tampilan sekarang | Bawaan | Titik awal. |
 | **Malam** | Biru tua dan ungu redup, blok sedikit transparan seperti kaca | Selesaikan Maraton 150 baris | Prestasi paling umum, didapat dengan bermain tekun. |
 | **Neon garis** | Blok hanya garis tepi menyala tipis di latar hitam | Sprint 40 selesai di bawah 3 menit | Hadiah untuk kecepatan. |
-| **Fajar** | Hijau laut dan toska lembut, aksen hijau | Satu permainan dengan 4 Baris sebanyak 10 kali | Hadiah untuk bermain rapi (menumpuk untuk 4 Baris). |
-| **Monokrom** | Abu-abu bertingkat, hanya piece aktif berwarna | Satu Bersih Total di mode apa pun | Prestasi langka, hadiah paling unik. |
+| **Fajar** | Hijau laut dan toska lembut, aksen hijau | 5 kali 4 Baris dalam satu permainan (bagian 15) | Hadiah untuk bermain rapi (menumpuk untuk 4 Baris). |
+| **Monokrom** | Abu-abu bertingkat, hanya piece aktif berwarna | Combo 8 atau satu Bersih Total (bagian 15) | Prestasi langka, hadiah paling unik. |
 
 Angka syarat sudah diputuskan pemilik (Sprint diubah dari 2 menjadi 3 menit). Nama dan isi tema juga usulan; desain akhir tiap tema dibuat dan dipilih pemilik lewat halaman pratinjau, seperti saat memilih ikon dan suara.
 
@@ -148,3 +148,18 @@ Keputusan: syarat Monokrom tetap satu Bersih Total. Ditambah **Blok Pengisi**, b
 Uji:
 - Tes core (5 baru, total 68): antrean 3; pemicu dengan sisa 2 sel; tidak muncul tanpa baris terhapus, saat sisa 18 sel, atau saat papan sudah kosong; Blok Pengisi menambal lubang terakhir dan menghasilkan Bersih Total dengan bonusnya; geser sampai dinding, putar tanpa perubahan, tidak berulang, dan urutan 7-bag sesudahnya sama dengan permainan tanpa Blok Pengisi.
 - Browser: 4 Baris di seed 1 menyisakan 8 sel; callout menulis "Blok Pengisi di antrean" dan pembaca layar mengumumkannya; Antrean menjadi "Blok Pengisi, L, S"; Blok Pengisi muncul di papan setelah piece yang sudah tampil. Dicek di Klasik, Monokrom, dan Neon, di HP dan desktop. Regresi lengkap lulus, 0 error.
+
+## 15. Syarat dilonggarkan (keputusan pemilik setelah mencoba)
+
+| Tema | Syarat lama | Syarat baru |
+|---|---|---|
+| Malam | Selesaikan Maraton 150 baris | Capai 100 baris dalam satu permainan Maraton (150 baris atau tanpa batas) |
+| Neon | Sprint 40 di bawah 3 menit | Tetap |
+| Fajar | 10 kali 4 Baris dalam satu permainan | 5 kali 4 Baris dalam satu permainan |
+| Monokrom | Satu Bersih Total | Combo 8, atau satu Bersih Total |
+
+Alasan Monokrom: pemilik masih kesulitan mendapat Bersih Total walau ada Blok Pengisi. Combo 8 (menghapus baris 8 kali berturut-turut) bisa dilatih dengan menyisakan satu kolom kosong dan tidak bergantung keberuntungan urutan blok. Bersih Total tetap berlaku sebagai jalan lain.
+
+Rekor tersimpan dicek ulang setiap game dibuka, jadi rekor Maraton yang sudah 100 baris ke atas (150 baris atau tanpa batas) langsung membuka Malam dengan tanggal rekornya. Kombo dan 4 Baris tidak tercatat di rekor, jadi Fajar dan Monokrom baru bisa didapat dari permainan berikutnya.
+
+Uji: tes syarat diperbarui (batas 99/100 baris, Zen tidak dihitung, 4/5 kali 4 Baris, Combo 7/8, Bersih Total) dan tes rekor tanpa batas 104 baris yang langsung membuka Malam; total 68 tes lulus. Layar Tema menampilkan syarat baru dalam bahasa Indonesia dan Inggris.
