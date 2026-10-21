@@ -1,6 +1,7 @@
 import {
   ACT,
   COLS,
+  FILLER_MAX_CELLS,
   FP,
   LOCK_TICKS,
   MAX_G,
@@ -13,7 +14,7 @@ import {
 import { clearLines, createBoard, fits, isEmpty } from "./board.ts";
 import { SHAPES, SPAWN_X, SPAWN_Y, shapeOffset } from "./piece.ts";
 import { findKick, kick } from "./srs.ts";
-import { createBag, peek, take, type Bag } from "./bag.ts";
+import { createBag, peek, queueFiller, take, type Bag } from "./bag.ts";
 import { gravityFor } from "./gravity.ts";
 import { detectTSpin, scoreLock, SC, SPIN_NONE } from "./score.ts";
 import { EV, EventQueue } from "./events.ts";
@@ -253,6 +254,20 @@ export function createGame(modeId: ModeId, seed: number, cfg: CoreConfig): Game 
     if (lockOut) {
       topOut(1);
       return;
+    }
+    // Blok Pengisi (PRD-6 bagian 14): baris baru saja terhapus dan papan tinggal sedikit, jadi satu blok 1x1
+    // ditaruh di depan antrean untuk menambal lubang menuju Bersih Total. Muncul sebagai piece berikutnya
+    // setelah piece yang sekarang muncul, supaya pemain sempat melihatnya di Antrean.
+    if (n > 0 && !bag.filler) {
+      let filled = 0;
+      for (let i = 0; i < s.board.length; i++) if (s.board[i] !== 0) filled++;
+      if (filled > 0 && filled <= FILLER_MAX_CELLS) {
+        const next = take(bag);
+        queueFiller(bag);
+        events.push(EV.FILLER, filled);
+        spawn(next, false);
+        return;
+      }
     }
     spawn(take(bag), false);
   }

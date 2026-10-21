@@ -41,7 +41,7 @@ export function transitionRow(from: Rot, to: Rot): number {
 
 /** Offset tes ke-i: axis 0 = dx, 1 = dy. */
 export function kick(type: PieceType, from: Rot, to: Rot, i: number, axis: 0 | 1): number {
-  if (type === PIECE.O) return 0;
+  if (type === PIECE.O || type === PIECE.F) return 0;
   const table = type === PIECE.I ? KICKS_I : KICKS_JLSTZ;
   return table[transitionRow(from, to) * 10 + i * 2 + axis]!;
 }
@@ -55,7 +55,7 @@ export function findKick(
   x: number,
   y: number,
 ): number {
-  const tests = type === PIECE.O ? 1 : 5;
+  const tests = type === PIECE.O || type === PIECE.F ? 1 : 5;
   for (let i = 0; i < tests; i++) {
     if (fits(b, type, to, x + kick(type, from, to, i, 0), y + kick(type, from, to, i, 1))) return i;
   }

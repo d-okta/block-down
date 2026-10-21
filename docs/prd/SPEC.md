@@ -79,7 +79,18 @@ Putaran 180 derajat tidak ada di fase 1.
 - Satu bag berisi ketujuh jenis piece tepat satu kali, diacak dengan Fisher-Yates.
 - Bag berikutnya dibuat saat queue butuh isi. Tidak ada aturan tambahan: tidak ada larangan S/Z sebagai piece pertama, dan tidak ada larangan piece kembar di batas bag.
 - Generator acak memakai seed (PRNG deterministik), sehingga permainan yang sama bisa diulang di tes.
-- Next queue menampilkan 5 piece.
+- Next queue menampilkan 3 piece (dikurangi dari 5 atas permintaan pemilik, PRD-6 bagian 14).
+
+### 4.1 Blok Pengisi (PRD-6 bagian 14)
+
+- Satu blok 1x1 (jenis ke-8), untuk menambal lubang menuju Bersih Total. Bukan bagian dari 7-bag.
+- Pemicu: setelah sebuah lock yang menghapus minimal satu baris, jika papan berisi 1 sampai 12 sel, satu Blok Pengisi ditaruh di depan antrean. Tidak muncul jika papan sudah kosong (Bersih Total) atau masih berisi lebih dari 12 sel.
+- Urutan: piece yang sudah tampil di Antrean saat pemicu terjadi tetap muncul lebih dulu; Blok Pengisi muncul sesudahnya. Urutan 7-bag tidak berubah, Blok Pengisi hanya disisipkan.
+- Paling banyak satu Blok Pengisi menunggu di antrean. Pemicu baru saat masih ada yang menunggu diabaikan.
+- Gerak: geser dan jatuh seperti piece lain. Putar tidak mengubah apa pun dan tidak memakai kick. Bisa disimpan (Hold).
+- Skor: sama dengan piece lain (baris, combo, Bersih Total). Tidak bisa menghasilkan T-Spin.
+- Berlaku di semua mode. Pemberitahuan: baris kecil callout "Blok Pengisi di antrean" dan pengumuman pembaca layar; tidak ada elemen baru di layar.
+- Tampilan: warna terang per tema dengan tanda tambah di tengah, terlihat juga tanpa mengandalkan warna.
 
 ## 5. Hold
 

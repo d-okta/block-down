@@ -463,3 +463,97 @@ test("25. key i18n id dan en identik dan tidak kosong", () => {
     assert.ok((en as Record<string, string>)[k]!.length > 0, `en ${k}`);
   }
 });
+
+// ---------- 26: Blok Pengisi dan antrean 3 (PRD-6 bagian 14) ----------
+
+const F = PIECE.F;
+
+test("26a. antrean berisi 3 piece dari 7-bag", () => {
+  const g = newGame();
+  const next = [g.peekNext(0), g.peekNext(1), g.peekNext(2)];
+  for (const p of next) assert.ok(p >= 1 && p <= 7);
+  tick(g, ACT.HARD);
+  assert.equal(S(g).type, next[0]);
+});
+
+test("26b. Blok Pengisi masuk antrean saat papan tinggal sedikit setelah baris terhapus", () => {
+  const g = newGame();
+  // Satu baris penuh kecuali kolom 3..6, ditambah 3 sel sisa di baris atasnya.
+  setRows(g, { 0: "###....###", 1: "#.#......." });
+  put(g, I, 0, 3, -2); // I mendatar menutup kolom 3..6 di baris 0
+  const nextBefore = g.peekNext(0);
+  tick(g, ACT.HARD);
+  assert.equal(events(g, EV.CLEAR)[0]!.a, 1, "satu baris terhapus");
+  const fe = events(g, EV.FILLER);
+  assert.equal(fe.length, 1, "event FILLER dikirim");
+  assert.equal(fe[0]!.a, 2, "sisa 2 sel di papan");
+  assert.equal(S(g).type, nextBefore, "piece yang sudah tampil di antrean tetap muncul lebih dulu");
+  assert.equal(g.peekNext(0), F, "Blok Pengisi di depan antrean");
+  tick(g, ACT.HARD);
+  assert.equal(S(g).type, F, "Blok Pengisi menjadi piece berikutnya");
+});
+
+test("26c. tidak ada Blok Pengisi tanpa baris terhapus, saat papan masih penuh, atau saat Bersih Total", () => {
+  const g1 = newGame();
+  setRows(g1, { 0: "#.#......." });
+  put(g1, O, 0, 3, -1);
+  tick(g1, ACT.HARD);
+  assert.equal(events(g1, EV.FILLER).length, 0, "tanpa baris terhapus");
+
+  const g2 = newGame();
+  setRows(g2, { 0: "###....###", 1: "#########.", 2: "#########." });
+  put(g2, I, 0, 3, -2);
+  tick(g2, ACT.HARD);
+  assert.equal(events(g2, EV.FILLER).length, 0, "18 sel tersisa, di atas batas 12");
+
+  const g3 = newGame();
+  setRows(g3, { 0: "###....###" });
+  put(g3, I, 0, 3, -2);
+  tick(g3, ACT.HARD);
+  assert.equal(S(g3).perfects, 1);
+  assert.equal(events(g3, EV.FILLER).length, 0, "papan sudah kosong");
+});
+
+test("26d. Blok Pengisi menambal lubang terakhir dan menghasilkan Bersih Total", () => {
+  const g = newGame();
+  setRows(g, { 0: "#####.####" });
+  put(g, F, 0, 4, 5); // sel tunggal di x+1 = 5
+  tick(g, ACT.HARD);
+  assert.equal(events(g, EV.CLEAR)[0]!.a, 1);
+  assert.equal(S(g).perfects, 1, "Bersih Total");
+  assert.equal(events(g, EV.CLEAR)[0]!.score[3], 800, "bonus Bersih Total Single");
+});
+
+test("26e. Blok Pengisi: geser bebas, putar tidak mengubah bentuk, tidak ditumpuk, tidak mengubah urutan 7-bag", () => {
+  const g = newGame();
+  put(g, F, 0, 4, 10);
+  tick(g, ACT.ROT_CW);
+  assert.equal(S(g).x, 4, "putar tanpa kick");
+  for (let i = 0; i < 9; i++) tick(g, ACT.LEFT);
+  assert.equal(S(g).x, -1, "sel di kolom 0");
+  // Urutan 7-bag sama dengan permainan tanpa Blok Pengisi.
+  const a = newGame("marathonEndless", 77);
+  const b = newGame("marathonEndless", 77);
+  setRows(b, { 0: "###....###", 1: "#........." });
+  put(b, I, 0, 3, -2);
+  tick(b, ACT.HARD);
+  assert.equal(b.peekNext(0), F);
+  const seqA: number[] = [];
+  const seqB: number[] = [];
+  for (let i = 0; i < 12; i++) {
+    seqA.push(S(a).type);
+    tick(a, ACT.HARD);
+  }
+  assert.equal(S(b).type, seqA[1], "p1 muncul sebelum Blok Pengisi");
+  tick(b, ACT.HARD); // p1
+  assert.equal(S(b).type, F);
+  tick(b, ACT.HARD); // Blok Pengisi
+  for (let i = 0; i < 9; i++) {
+    seqB.push(S(b).type);
+    tick(b, ACT.HARD);
+  }
+  assert.ok(!seqB.includes(F), "satu Blok Pengisi, tidak berulang tanpa pemicu baru");
+  // a: piece aktif berurutan p0, p1, p2, ... b: p0 (I tiruan, debugSetActive), p1, Blok Pengisi, lalu p2, p3, ...
+  // Blok Pengisi disisipkan, bukan menggantikan: urutan 7-bag sesudahnya sama dengan a mulai p2.
+  assert.deepEqual(seqB, seqA.slice(2, 11), "urutan bag lanjut seperti biasa");
+});

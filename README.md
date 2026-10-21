@@ -1,6 +1,6 @@
 # BlockDown
 
-Game puzzle blok jatuh untuk browser. Tenang saat bermain, meriah saat kamu menghapus banyak baris sekaligus. Aturannya modern: rotasi SRS, 7-bag, Simpan, lima piece berikutnya, lock delay, T-Spin, dan Back-to-Back.
+Game puzzle blok jatuh untuk browser. Tenang saat bermain, meriah saat kamu menghapus banyak baris sekaligus. Aturannya modern: rotasi SRS, 7-bag, Simpan, tiga piece berikutnya, lock delay, T-Spin, dan Back-to-Back.
 
 **Main sekarang: https://block-down.vercel.app**
 
@@ -12,7 +12,8 @@ Bisa dipasang ke layar utama HP atau komputer, lalu dimainkan tanpa internet.
 - Kontrol keyboard, gestur sentuh di HP (posisi tegak), dan gamepad.
 - Efek bertingkat setiap menghapus baris, dengan momen khusus untuk 4 Baris, T-Spin, dan Bersih Total, serta getar di HP.
 - Suara dan musik latar, dengan volume Musik dan Efek yang bisa diatur.
-- Ghost piece, Simpan (sekali per piece), dan 5 piece berikutnya.
+- Ghost piece, Simpan (sekali per piece), dan 3 piece berikutnya.
+- Blok Pengisi: saat papan tinggal sedikit setelah menghapus baris, satu blok 1x1 masuk Antrean untuk menambal lubang menuju Bersih Total.
 - Skor lengkap: 1 sampai 4 Baris, T-Spin dan Mini, Back-to-Back, Combo, Bersih Total.
 - Rekor pribadi per mode, tersimpan di perangkat.
 - Lima tema tampilan (ikon palet di Menu). Empat di antaranya terbuka lewat prestasi: Malam (selesaikan Maraton 150 baris), Neon (Sprint 40 di bawah 3 menit), Fajar (10 kali 4 Baris dalam satu permainan), dan Monokrom (satu Bersih Total).
@@ -52,7 +53,7 @@ Butuh Node 22.18 atau lebih baru.
 ```
 npm install
 npm run dev       # buka http://localhost:5173
-npm run check     # TypeScript + 63 tes
+npm run check     # TypeScript + 68 tes
 npm run build     # hasil di dist/
 ```
 

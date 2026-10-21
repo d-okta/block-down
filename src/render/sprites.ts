@@ -152,17 +152,31 @@ function drawBlock(ctx: Ctx, color: string, x: number, y: number, s: number, r: 
   ctx.restore();
 }
 
+/**
+ * Tanda Blok Pengisi: tanda tambah di tengah (PRD-6 bagian 14). Selalu tampil, tidak hanya di mode buta
+ * warna, karena warnanya (putih) bisa mirip blok lain di tema Monokrom.
+ */
+function drawFillerMark(ctx: Ctx, x: number, y: number, s: number, ink: string): void {
+  const u = s / 8;
+  ctx.save();
+  ctx.fillStyle = ink;
+  ctx.fillRect(x + u * 3.4, y + u * 2, u * 1.2, u * 4);
+  ctx.fillRect(x + u * 2, y + u * 3.4, u * 4, u * 1.2);
+  ctx.restore();
+}
+
 /** size: piksel perangkat per sel. dpr dipakai untuk menskalakan radius dan garis. */
 export function buildAtlas(size: number, dpr: number, colorSafe: boolean, theme: Theme = THEMES.classic): Atlas {
-  const canvas = makeCanvas(size * 8, size * 4);
+  const canvas = makeCanvas(size * 9, size * 4);
   const ctx = canvas.getContext("2d") as Ctx;
   const r = Math.max(1, Math.round(4 * dpr * (size / (22 * dpr))));
   const px = Math.max(1, Math.round(dpr));
   const inset = Math.max(1, Math.round(dpr)); // celah antar blok
 
-  for (let type = 1; type <= 7; type++) {
+  for (let type = 1; type <= 8; type++) {
     const color = theme.blocks[type]!;
-    const activeColor = theme.active ?? color;
+    // Blok Pengisi memakai warnanya sendiri juga di Monokrom, supaya tetap terlihat istimewa.
+    const activeColor = type === 8 ? color : (theme.active ?? color);
     const x = type * size + inset / 2;
     const s = size - inset;
 
@@ -170,7 +184,9 @@ export function buildAtlas(size: number, dpr: number, colorSafe: boolean, theme:
     for (const [row, c] of [[ROW_BLOCK, color], [ROW_ACTIVE, activeColor]] as const) {
       const y = row * size + inset / 2;
       drawBlock(ctx, c, x, y, s, r, px, theme.style);
-      if (colorSafe) {
+      // Tanda gelap di semua tema: di Neon, isi Blok Pengisi sudah terang karena cahayanya putih.
+      if (type === 8) drawFillerMark(ctx, x, y, s, theme.style === "neon" ? "rgba(5, 5, 7, 0.85)" : "rgba(15, 18, 23, 0.55)");
+      else if (colorSafe) {
         ctx.save();
         roundRect(ctx, x, y, s, s, r);
         ctx.clip();

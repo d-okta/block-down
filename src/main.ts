@@ -459,6 +459,9 @@ function handleEvents(now: number): void {
         announce(t("callout.levelUp"));
         break;
       case EV.CLEAR:
+        // Blok Pengisi (PRD-6 bagian 14) dikirim core sesudah CLEAR di tick yang sama: disebut di baris kecil callout ini.
+        fillerNow = false;
+        for (let j = i + 1; j < q.count; j++) if (q.at(j).type === EV.FILLER) fillerNow = true;
         onClear(now, e.a, e.b, e.c, e.score[1]! > 0, e.score[3]! > 0, e.score[4]!, e.rows, e.colors, e.shift, s.level, s.score);
         break;
       case EV.ZEN_RESET:
@@ -469,6 +472,9 @@ function handleEvents(now: number): void {
     }
   }
 }
+
+/** Blok Pengisi baru masuk antrean di tick ini (diisi handleEvents, dibaca onClear). */
+let fillerNow = false;
 
 const SPIN_KEYS: Record<number, Key> = { 0: "callout.tspin", 1: "callout.tspin1", 2: "callout.tspin2", 3: "callout.tspin3" };
 const MINI_KEYS: Record<number, Key> = { 0: "callout.tspinMini", 1: "callout.tspinMini1", 2: "callout.tspinMini2" };
@@ -522,6 +528,7 @@ function onClear(
   if (perfect && LINE_KEYS[n]) subs.push(t(LINE_KEYS[n]!));
   if (b2b) subs.push(t("callout.b2b"));
   if (combo >= 1) subs.push(`${t("callout.combo", { n: combo })} \u2713`);
+  if (fillerNow) subs.push(t("callout.filler"));
   const points = t("callout.points", { n: total });
   if (title || subs.length) {
     const tone: CalloutTone = perfect ? "gold" : spin > 0 ? "spin" : "normal";
@@ -578,9 +585,15 @@ function updateHud(force: boolean): void {
   }
   holdBuf[0] = s.hold;
   holdView.draw(holdBuf, s.holdUsed);
-  for (let i = 0; i < NEXT_COUNT; i++) nextBuf[i] = game!.peekNext(i);
+  let nextChanged = force;
+  for (let i = 0; i < NEXT_COUNT; i++) {
+    const p = game!.peekNext(i);
+    if (nextBuf[i] !== p) nextChanged = true;
+    nextBuf[i] = p;
+  }
   nextView.draw(nextBuf, false);
-  if (force) {
+  // Label dibuat ulang hanya saat isi antrean berubah (sekali per piece), bukan setiap frame.
+  if (nextChanged) {
     const names = Array.from(nextBuf, (p) => t(`piece.${p}` as Key)).join(", ");
     $("cv-next").setAttribute("aria-label", t("a11y.nextBox", { pieces: names }));
   }
@@ -591,10 +604,10 @@ const holdBuf = new Uint8Array(1);
 // ---------- tata letak ----------
 
 /**
- * Baris antrean: Simpan (4 sel mini) + Antrean 5 slot x 5 sel mini = 29 sel mini, ditambah
- * padding sumur dan jarak (sekitar 40 px). Sel mini dibatasi 7 sampai 14 px.
+ * Baris antrean: Simpan (4 sel mini) + Antrean NEXT_COUNT slot x 5 sel mini, ditambah padding sumur
+ * dan jarak (sekitar 36 px). Sel mini dibatasi 5 sampai 14 px.
  */
-const QUEUE_CELLS = 29;
+const QUEUE_CELLS = 4 + 5 * NEXT_COUNT;
 const QUEUE_CHROME = 36;
 
 function layout(): void {

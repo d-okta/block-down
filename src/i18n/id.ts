@@ -45,6 +45,7 @@ export const id = {
   "callout.b2b": "BERUNTUN",
   "callout.combo": "COMBO {n}",
   "callout.perfect": "BERSIH TOTAL",
+  "callout.filler": "Blok Pengisi di antrean",
   "callout.levelUp": "NAIK LEVEL",
   "callout.zenReset": "Mulai lagi",
   "callout.points": "+{n}",
@@ -167,6 +168,7 @@ export const id = {
   "piece.5": "Z",
   "piece.6": "J",
   "piece.7": "L",
+  "piece.8": "Blok Pengisi",
   "piece.none": "Kosong",
 
   "a11y.board": "Papan permainan, {mode}, level {level}",

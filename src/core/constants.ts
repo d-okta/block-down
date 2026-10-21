@@ -4,12 +4,16 @@ export const VISIBLE_ROWS = 20;
 export const TICK_HZ = 60;
 export const LOCK_TICKS = 24; // 400 ms
 export const MAX_RESETS = 15;
-export const NEXT_COUNT = 5;
+/** Jumlah piece di Antrean (dikurangi dari 5 atas permintaan pemilik, PRD-6 bagian 14). */
+export const NEXT_COUNT = 3;
+/** Blok Pengisi masuk antrean jika setelah baris terhapus papan berisi 1..FILLER_MAX_CELLS sel. */
+export const FILLER_MAX_CELLS = 12;
 export const FP = 65536; // 1 baris dalam unit gravitasi
 export const MAX_G = 20 * FP;
 
-export const PIECE = { I: 1, O: 2, T: 3, S: 4, Z: 5, J: 6, L: 7 } as const;
-export type PieceType = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+/** F: Blok Pengisi 1x1 (PRD-6 bagian 14), tidak berasal dari 7-bag. */
+export const PIECE = { I: 1, O: 2, T: 3, S: 4, Z: 5, J: 6, L: 7, F: 8 } as const;
+export type PieceType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 export type Rot = 0 | 1 | 2 | 3; // 0, R, 2, L
 
 export const ACT = {

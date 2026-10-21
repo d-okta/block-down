@@ -51,10 +51,10 @@ export class Particles {
     this.alive = alive;
   }
 
-  /** Gambar dikelompokkan per warna supaya fillStyle hanya berganti 7 kali per frame. */
+  /** Gambar dikelompokkan per warna supaya fillStyle hanya berganti 8 kali per frame. */
   draw(ctx: CanvasRenderingContext2D, colors: readonly string[]): void {
     if (this.alive === 0) return;
-    for (let c = 1; c <= 7; c++) {
+    for (let c = 1; c <= 8; c++) {
       ctx.fillStyle = colors[c]!;
       for (let i = 0; i < POOL; i++) {
         if (this.color[i] !== c || this.life[i]! <= 0) continue;

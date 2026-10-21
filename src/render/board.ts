@@ -414,12 +414,14 @@ export class PreviewRenderer {
       }
       const w = maxX - minX + 1;
       const h = maxY - minY + 1;
-      const ox = this.horizontal ? slot * c * 5 + ((5 - w) * c) / 2 : ((4 - w) * c) / 2;
-      const oy = this.horizontal ? ((3 - h) * c) / 2 : slot * c * 3 + ((3 - h) * c) / 2;
+      // Blok Pengisi (satu sel) digambar dua kali lebih besar supaya tetap terlihat di pratinjau kecil.
+      const k = type === 8 ? 2 : 1;
+      const ox = this.horizontal ? slot * c * 5 + ((5 - w * k) * c) / 2 : ((4 - w * k) * c) / 2;
+      const oy = this.horizontal ? ((3 - h * k) * c) / 2 : slot * c * 3 + ((3 - h * k) * c) / 2;
       for (let i = 0; i < 8; i += 2) {
         const x = SHAPES[o + i]! - minX;
         const y = maxY - SHAPES[o + i + 1]!;
-        ctx.drawImage(this.atlas.canvas, type * c, ROW_BLOCK * c, c, c, Math.round(ox + x * c), Math.round(oy + y * c), c, c);
+        ctx.drawImage(this.atlas.canvas, type * c, ROW_BLOCK * c, c, c, Math.round(ox + x * c * k), Math.round(oy + y * c * k), c * k, c * k);
       }
     }
     ctx.globalAlpha = 1;

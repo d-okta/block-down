@@ -1,4 +1,4 @@
-import { NEXT_COUNT, type PieceType } from "./constants.ts";
+import { NEXT_COUNT, PIECE, type PieceType } from "./constants.ts";
 
 export interface Rng {
   v: number;
@@ -20,10 +20,12 @@ export interface Bag {
   count: number;
   rng: Rng;
   scratch: Uint8Array;
+  /** Blok Pengisi menunggu di depan antrean (PRD-6 bagian 14). Tidak memakai RNG, jadi urutan 7-bag tetap. */
+  filler: boolean;
 }
 
 export function createBag(seed: number): Bag {
-  const bag: Bag = { ring: new Uint8Array(CAP), head: 0, count: 0, rng: { v: seed | 0 }, scratch: new Uint8Array(7) };
+  const bag: Bag = { ring: new Uint8Array(CAP), head: 0, count: 0, rng: { v: seed | 0 }, scratch: new Uint8Array(7), filler: false };
   refill(bag);
   return bag;
 }
@@ -44,6 +46,10 @@ function refill(bag: Bag): void {
 }
 
 export function take(bag: Bag): PieceType {
+  if (bag.filler) {
+    bag.filler = false;
+    return PIECE.F;
+  }
   const t = bag.ring[bag.head] as PieceType;
   bag.head = (bag.head + 1) % CAP;
   bag.count--;
@@ -53,5 +59,14 @@ export function take(bag: Bag): PieceType {
 
 /** Piece ke-i di antrean (0 = berikutnya), tanpa mengambil. */
 export function peek(bag: Bag, i: number): PieceType {
+  if (bag.filler) {
+    if (i === 0) return PIECE.F;
+    i--;
+  }
   return bag.ring[(bag.head + i) % CAP] as PieceType;
+}
+
+/** Taruh satu Blok Pengisi di depan antrean. Tidak ditumpuk: paling banyak satu menunggu. */
+export function queueFiller(bag: Bag): void {
+  bag.filler = true;
 }

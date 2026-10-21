@@ -221,7 +221,7 @@ Isi:
 - Playfield 10x20 di atas `surface-1`, grid samar (bisa dimatikan), bingkai `line-deco`.
 - Ghost piece: outline 2px warna bloknya, tanpa isi. Bisa dimatikan.
 - Hold: satu kotak berlabel "Simpan" / "Hold". Saat hold sudah dipakai untuk piece ini, isi kotak diredupkan ke opasitas 40% dan diberi label teks "Terkunci" untuk pembaca layar.
-- Next: 5 piece berlabel "Antrean" / "Next". Di ponsel berjajar mendatar di atas papan, di jendela lebar tegak di kanan papan. Kelima piece berukuran sama.
+- Next: 3 piece berlabel "Antrean" / "Next" (dikurangi dari 5, PRD-6 bagian 14). Di ponsel berjajar mendatar di atas papan, di jendela lebar tegak di kanan papan. Ketiga piece berukuran sama, kecuali Blok Pengisi yang digambar dua kali lebih besar supaya satu selnya tetap terlihat.
 - Baris atas: nama mode di kiri, skor `num-lg` di tengah, tombol jeda di kanan.
 - Baris statistik di bawah skor: Level, Baris, Waktu (Sprint dan Ultra), dan Combo. Combo hanya muncul saat combo berjalan (1 atau lebih). Semua angka memakai JetBrains Mono tabular. Statistik lain (persentase 4 Baris, piece per detik) tidak ditampilkan agar layar tetap tenang.
 - Satu tombol jeda, di kanan atas. Tidak ada panah kembali di layar Game, karena "Ke Menu" ada di Pause.
@@ -232,7 +232,7 @@ Tata letak ponsel (hanya tegak):
 ```
 [Maraton]          [ 1.234.567 ]           [Jeda]
         Level 3   Baris 24   Waktu 1:02.40
-[Simpan] [ Antrean: 5 piece mendatar          ]
+[Simpan] [ Antrean: 3 piece mendatar          ]
 [                                             ]
 [            playfield 10x20                  ]
 [            (selebar layar)                  ]

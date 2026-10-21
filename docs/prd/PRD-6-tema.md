@@ -138,3 +138,13 @@ Atas permintaan pemilik: https://block-down.vercel.app/?coba-tema membuka kelima
 - Tombol Pengaturan di Menu menjadi ikon roda gigi saja, tanpa tulisan. Namanya tetap dibacakan pembaca layar (`aria-label`) dan muncul sebagai tooltip.
 - Tema dipindah dari Pengaturan ke layar sendiri, dibuka dari ikon palet di samping ikon roda gigi (pilihan pemilik dari tiga usulan).
 - Uji Chrome di 320, 390, dan 1280 px: kedua ikon 44x44 px, layar Tema tanpa gulir mendatar (juga pada teks 200%), pilih tema dengan klik, panah, dan Enter, Esc kembali ke Menu dengan fokus di ikon palet, tema terkunci tidak bisa dipilih, Pengaturan tidak lagi berisi Tema, `?coba-tema` tetap membuka semua tema.
+
+## 14. Blok Pengisi dan Antrean 3 (masukan pemilik)
+
+Masukan pemilik: Monokrom (satu Bersih Total) terlalu sulit, karena urutan blok acak dan papan sulit dikosongkan. Pemilik meminta pola yang membantu mengisi ruang kosong, dengan pemicu tertentu, serta Antrean dikurangi menjadi 3.
+
+Keputusan: syarat Monokrom tetap satu Bersih Total. Ditambah **Blok Pengisi**, blok 1x1 yang masuk Antrean saat papan tinggal sedikit (1 sampai 12 sel) setelah baris terhapus (pemicu dipilih pemilik dari tiga usulan). Aturan lengkap di SPEC bagian 4.1.
+
+Uji:
+- Tes core (5 baru, total 68): antrean 3; pemicu dengan sisa 2 sel; tidak muncul tanpa baris terhapus, saat sisa 18 sel, atau saat papan sudah kosong; Blok Pengisi menambal lubang terakhir dan menghasilkan Bersih Total dengan bonusnya; geser sampai dinding, putar tanpa perubahan, tidak berulang, dan urutan 7-bag sesudahnya sama dengan permainan tanpa Blok Pengisi.
+- Browser: 4 Baris di seed 1 menyisakan 8 sel; callout menulis "Blok Pengisi di antrean" dan pembaca layar mengumumkannya; Antrean menjadi "Blok Pengisi, L, S"; Blok Pengisi muncul di papan setelah piece yang sudah tampil. Dicek di Klasik, Monokrom, dan Neon, di HP dan desktop. Regresi lengkap lulus, 0 error.

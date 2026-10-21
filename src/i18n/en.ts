@@ -46,6 +46,7 @@ export const en: Record<Key, string> = {
   "callout.b2b": "BACK-TO-BACK",
   "callout.combo": "COMBO {n}",
   "callout.perfect": "ALL CLEAR",
+  "callout.filler": "Filler block in queue",
   "callout.levelUp": "LEVEL UP",
   "callout.zenReset": "Fresh start",
   "callout.points": "+{n}",
@@ -168,6 +169,7 @@ export const en: Record<Key, string> = {
   "piece.5": "Z",
   "piece.6": "J",
   "piece.7": "L",
+  "piece.8": "Filler block",
   "piece.none": "Empty",
 
   "a11y.board": "Game board, {mode}, level {level}",

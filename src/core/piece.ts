@@ -45,11 +45,19 @@ const RAW: Record<PieceType, number[][]> = {
     [0, 1, 1, 1, 2, 1, 0, 0],
     [0, 2, 1, 2, 1, 1, 1, 0],
   ],
+  // Blok Pengisi: satu sel di tengah kotak 3 lebar. Keempat entri sama, jadi kode yang membaca 4 sel
+  // (fits, lock, gambar) tetap bekerja tanpa cabang khusus. Tidak berubah saat diputar.
+  8: [
+    [1, 0, 1, 0, 1, 0, 1, 0],
+    [1, 0, 1, 0, 1, 0, 1, 0],
+    [1, 0, 1, 0, 1, 0, 1, 0],
+    [1, 0, 1, 0, 1, 0, 1, 0],
+  ],
 };
 
 /** SHAPES[(type * 4 + rot) * 8 + i] */
-export const SHAPES = new Int8Array(8 * 4 * 8);
-for (let t = 1 as PieceType; t <= 7; t++) {
+export const SHAPES = new Int8Array(9 * 4 * 8);
+for (let t = 1 as PieceType; t <= 8; t++) {
   for (let r = 0; r < 4; r++) SHAPES.set(RAW[t][r]!, (t * 4 + r) * 8);
 }
 
@@ -59,4 +67,4 @@ export function shapeOffset(type: PieceType, rot: Rot): number {
 
 export const SPAWN_X = 3;
 /** Baris bawah bentuk berada di y = 20 (EDD-1 bagian 4). Indeks = jenis. */
-export const SPAWN_Y = Int8Array.of(0, 18, 20, 19, 19, 19, 19, 19);
+export const SPAWN_Y = Int8Array.of(0, 18, 20, 19, 19, 19, 19, 19, 20);

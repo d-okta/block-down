@@ -14,6 +14,8 @@ export const EV = {
   GAME_OVER: 11,
   FINISH: 12,
   TIME_UP: 13,
+  /** Blok Pengisi masuk antrean (PRD-6 bagian 14). a = sisa sel di papan. */
+  FILLER: 14,
 } as const;
 
 /**
