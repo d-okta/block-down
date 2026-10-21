@@ -51,7 +51,7 @@ Lima tema: satu bawaan dan empat yang terbuka. Syarat diambil dari data yang **s
 | **Malam** | Biru tua dan ungu redup, blok sedikit transparan seperti kaca | Selesaikan Maraton 150 baris | Prestasi paling umum, didapat dengan bermain tekun. |
 | **Neon garis** | Blok hanya garis tepi menyala tipis di latar hitam | Sprint 40 selesai di bawah 3 menit | Hadiah untuk kecepatan. |
 | **Fajar** | Hijau laut dan toska lembut, aksen hijau | 5 kali 4 Baris dalam satu permainan (bagian 15) | Hadiah untuk bermain rapi (menumpuk untuk 4 Baris). |
-| **Monokrom** | Abu-abu bertingkat, hanya piece aktif berwarna | Combo 8 atau satu Bersih Total (bagian 15) | Prestasi langka, hadiah paling unik. |
+| **Monokrom** | Abu-abu bertingkat, hanya piece aktif berwarna | Combo 3 atau satu Bersih Total (bagian 15) | Prestasi langka, hadiah paling unik. |
 
 Angka syarat sudah diputuskan pemilik (Sprint diubah dari 2 menjadi 3 menit). Nama dan isi tema juga usulan; desain akhir tiap tema dibuat dan dipilih pemilik lewat halaman pratinjau, seperti saat memilih ikon dan suara.
 
@@ -156,10 +156,14 @@ Uji:
 | Malam | Selesaikan Maraton 150 baris | Capai 100 baris dalam satu permainan Maraton (150 baris atau tanpa batas) |
 | Neon | Sprint 40 di bawah 3 menit | Tetap |
 | Fajar | 10 kali 4 Baris dalam satu permainan | 5 kali 4 Baris dalam satu permainan |
-| Monokrom | Satu Bersih Total | Combo 8, atau satu Bersih Total |
+| Monokrom | Satu Bersih Total | Combo 3, atau satu Bersih Total (revisi kedua, lihat di bawah) |
 
 Alasan Monokrom: pemilik masih kesulitan mendapat Bersih Total walau ada Blok Pengisi. Combo 8 (menghapus baris 8 kali berturut-turut) bisa dilatih dengan menyisakan satu kolom kosong dan tidak bergantung keberuntungan urutan blok. Bersih Total tetap berlaku sebagai jalan lain.
 
 Rekor tersimpan dicek ulang setiap game dibuka, jadi rekor Maraton yang sudah 100 baris ke atas (150 baris atau tanpa batas) langsung membuka Malam dengan tanggal rekornya. Kombo dan 4 Baris tidak tercatat di rekor, jadi Fajar dan Monokrom baru bisa didapat dari permainan berikutnya.
 
 Uji: tes syarat diperbarui (batas 99/100 baris, Zen tidak dihitung, 4/5 kali 4 Baris, Combo 7/8, Bersih Total) dan tes rekor tanpa batas 104 baris yang langsung membuka Malam; total 68 tes lulus. Layar Tema menampilkan syarat baru dalam bahasa Indonesia dan Inggris.
+
+**Revisi kedua Monokrom:** pemilik belum bisa mencapai Combo 8 (combo terpanjangnya 1 dalam satu permainan Maraton 20 baris). Combo dihitung mulai penghapusan kedua, jadi Combo 8 berarti 9 kali menghapus baris berturut-turut, lebih sulit dari kedengarannya. Diganti **Combo 3** (4 kali berturut-turut), pilihan pemilik. Teks syarat menjelaskan artinya: "Dapatkan Combo 3 (hapus baris 4 kali berturut-turut), atau satu Bersih Total."
+
+Uji: Combo 3 sungguhan dimainkan di Chrome (seed 10, urutan dari `node tests/tools/plan-combo.ts 10 3`), Zen diakhiri, Game Over menampilkan combo terpanjang 3 dan `Tema Monokrom terbuka`. Tes batas Combo 2/3; 68 tes lulus.

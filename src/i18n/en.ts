@@ -127,7 +127,7 @@ export const en: Record<Key, string> = {
   "theme.req.night": "Reach 100 lines in one Marathon game.",
   "theme.req.neon": "Finish Sprint 40 in under 3 minutes.",
   "theme.req.dawn": "Get 5 Quads in one game.",
-  "theme.req.mono": "Get Combo 8, or one All Clear.",
+  "theme.req.mono": "Get Combo 3 (clear lines 4 times in a row), or one All Clear.",
   "settings.ghost": "Ghost piece",
   "settings.ghost.desc": "Shows where the piece will land.",
   "settings.grid": "Grid",

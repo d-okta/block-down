@@ -7,8 +7,11 @@ export type ThemeId = (typeof THEME_IDS)[number];
 export const MARATHON_LINES = 100;
 export const SPRINT_MS = 3 * 60 * 1000;
 export const QUADS_IN_GAME = 5;
-/** Monokrom: Bersih Total, atau combo ini (hapus baris berturut-turut) dalam satu permainan. */
-export const MONO_COMBO = 8;
+/**
+ * Monokrom: Bersih Total, atau combo ini dalam satu permainan. Combo dihitung mulai penghapusan kedua,
+ * jadi Combo 3 = 4 kali menghapus baris berturut-turut (pemilik: Combo 8 masih terlalu sulit).
+ */
+export const MONO_COMBO = 3;
 
 /** Hasil satu permainan yang selesai (bukan ditinggalkan lewat Ke Menu). */
 export interface GameResult {

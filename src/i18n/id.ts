@@ -126,7 +126,7 @@ export const id = {
   "theme.req.night": "Capai 100 baris dalam satu permainan Maraton.",
   "theme.req.neon": "Selesaikan Sprint 40 di bawah 3 menit.",
   "theme.req.dawn": "Dapatkan 5 kali 4 Baris dalam satu permainan.",
-  "theme.req.mono": "Dapatkan Combo 8, atau satu Bersih Total.",
+  "theme.req.mono": "Dapatkan Combo 3 (hapus baris 4 kali berturut-turut), atau satu Bersih Total.",
   "settings.ghost": "Ghost piece",
   "settings.ghost.desc": "Bayangan tempat piece akan mendarat.",
   "settings.grid": "Grid",

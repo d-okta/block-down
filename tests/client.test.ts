@@ -405,10 +405,10 @@ test("tema: syarat terbuka dari satu permainan (PRD-6 bagian 15)", () => {
   // Fajar: 5 kali 4 Baris.
   assert.deepEqual(earnedBy({ ...base, quads: 4 }), []);
   assert.deepEqual(earnedBy({ ...base, quads: 5 }), ["dawn"]);
-  // Monokrom: Bersih Total atau Combo 8.
+  // Monokrom: Bersih Total atau Combo 3.
   assert.deepEqual(earnedBy({ ...base, perfects: 1 }), ["mono"]);
-  assert.deepEqual(earnedBy({ ...base, maxCombo: 7 }), []);
-  assert.deepEqual(earnedBy({ ...base, maxCombo: 8 }), ["mono"]);
+  assert.deepEqual(earnedBy({ ...base, maxCombo: 2 }), []);
+  assert.deepEqual(earnedBy({ ...base, maxCombo: 3 }), ["mono"]);
   assert.deepEqual(earnedBy({ ...base, mode: "marathon150", lines: 150, quads: 12, perfects: 2, maxCombo: 9 }), ["night", "dawn", "mono"]);
 });
 
