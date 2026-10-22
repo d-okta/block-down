@@ -6,7 +6,7 @@
 //   offline, sambil mengambil versi terbaru di latar untuk kunjungan berikutnya. Versi v1 hanya cache-first,
 //   sehingga icons.svg lama tidak pernah diperbarui (ikon palet tidak muncul di HP pemilik).
 // - VERSION diganti jika daftar PRECACHE berubah atau cache lama harus dibuang; cache versi lama dihapus saat aktif.
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE = `blockdown-${VERSION}`;
 const PRECACHE = [
   "./",
@@ -54,7 +54,9 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const req = e.request;
-  if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
+  // /api/ (leaderboard, PRD-7) selalu langsung ke jaringan: data peringkat tidak boleh disajikan dari cache.
+  const url = new URL(req.url);
+  if (req.method !== "GET" || url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
   if (req.mode === "navigate") {
     e.respondWith(
       (async () => {

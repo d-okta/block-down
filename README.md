@@ -15,12 +15,13 @@ Bisa dipasang ke layar utama HP atau komputer, lalu dimainkan tanpa internet.
 - Ghost piece, Simpan (sekali per piece), dan 3 piece berikutnya.
 - Blok Pengisi: saat papan tinggal sedikit setelah menghapus baris, satu blok 1x1 masuk Antrean untuk menambal lubang menuju Bersih Total.
 - Skor lengkap: 1 sampai 4 Baris, T-Spin dan Mini, Back-to-Back, Combo, Bersih Total.
-- Rekor pribadi per mode, tersimpan di perangkat.
+- Rekor pribadi per mode dan statistik pribadi (jumlah permainan, waktu bermain, baris, 4 Baris, T-Spin, Bersih Total, combo terpanjang), tersimpan di perangkat.
+- Peringkat online untuk Sprint 40, Ultra, dan Maraton 150. Skor dikirim hanya jika pemain memilih "Kirim ke Peringkat", dan server memutar ulang permainan untuk memastikan skornya sah.
 - Lima tema tampilan (ikon palet di Menu). Empat di antaranya terbuka lewat prestasi: Malam (100 baris dalam satu permainan Maraton), Neon (Sprint 40 di bawah 3 menit), Fajar (5 kali 4 Baris dalam satu permainan), dan Monokrom (Combo 3, yaitu hapus baris 4 kali berturut-turut, atau satu Bersih Total).
 - Pengaturan: DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, ghost, grid, mode aman buta warna, intensitas efek, kurangi animasi, getar, dan bahasa.
 - Bahasa Indonesia dan Inggris.
 
-Semua data (rekor dan pengaturan) hanya disimpan di browser perangkatmu. Tidak ada akun, iklan, atau data yang dikirim ke server.
+Rekor, statistik, dan pengaturan hanya disimpan di browser perangkatmu. Tidak ada akun dan iklan. Data hanya dikirim ke server jika kamu memilih "Kirim ke Peringkat": nama panggilan, kode acak perangkat (bukti pemilik nama), dan rekaman tombol permainan itu. Rincian di `docs/prd/PRD-7-statistik-peringkat.md`.
 
 ## Memasang ke layar utama
 
@@ -53,7 +54,7 @@ Butuh Node 22.18 atau lebih baru.
 ```
 npm install
 npm run dev       # buka http://localhost:5173
-npm run check     # TypeScript + 68 tes
+npm run check     # TypeScript + 76 tes
 npm run build     # hasil di dist/
 ```
 
@@ -81,9 +82,11 @@ block-down/
     ui/         layar Pengaturan, callout
     store/      penyimpanan dan rekor
     platform/   getar
+    server/     logika peringkat online (dites tanpa server)
     i18n/       kamus id dan en
     fonts/      Sora dan JetBrains Mono, self-host
-  tests/        tes core dan klien (node:test)
+  api/          fungsi Vercel untuk peringkat online
+  tests/        tes core, klien, dan server (node:test)
   public/
     sfx/        efek suara dan musik
     app-icon/   ikon aplikasi (PNG)

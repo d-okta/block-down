@@ -20,6 +20,9 @@
             <button type="button" class="seg-btn" data-locale="en" aria-pressed="false">EN</button>
           </div>
           <!-- Ikon saja; nama dibacakan lewat aria-label dan muncul sebagai tooltip (title). -->
+          <button type="button" class="icon-btn menu-icon" id="btn-stats" data-i18n-aria="menu.stats" data-i18n-title="menu.stats">
+            <svg class="icon" aria-hidden="true"><use href="/icons.svg#leaderboard" /></svg>
+          </button>
           <button type="button" class="icon-btn menu-icon" id="btn-themes" data-i18n-aria="menu.themes" data-i18n-title="menu.themes">
             <svg class="icon" aria-hidden="true"><use href="/icons.svg#palette" /></svg>
           </button>
@@ -149,6 +152,38 @@
               <span class="callout-sub" id="callout-sub"></span>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- ================= STATISTIK DAN PERINGKAT (PRD-7) ================= -->
+      <section id="scr-stats" class="screen settings stats-screen" hidden aria-labelledby="stats-title">
+        <header class="settings-top">
+          <button type="button" class="icon-btn" id="btn-stats-back" data-i18n-aria="settings.back">
+            <svg class="icon" aria-hidden="true"><use href="/icons.svg#arrow_back" /></svg>
+          </button>
+          <h1 id="stats-title" data-i18n="stats.title"></h1>
+        </header>
+        <div class="seg stats-tabs" role="tablist" data-i18n-aria="stats.title">
+          <button type="button" class="seg-btn" role="tab" id="tab-me" aria-controls="panel-me" data-tab="me" data-i18n="stats.tabMe"></button>
+          <button type="button" class="seg-btn" role="tab" id="tab-board" aria-controls="panel-board" data-tab="board" data-i18n="stats.tabBoard"></button>
+        </div>
+
+        <div id="panel-me" role="tabpanel" aria-labelledby="tab-me">
+          <p class="stats-empty" id="stats-empty" data-i18n="stats.empty" hidden></p>
+          <dl class="stats-grid" id="stats-grid"></dl>
+          <h2 class="stats-sub" data-i18n="stats.records"></h2>
+          <dl class="stats-list" id="stats-records"></dl>
+        </div>
+
+        <div id="panel-board" role="tabpanel" aria-labelledby="tab-board" hidden>
+          <div class="seg board-modes" role="group" data-i18n-aria="stats.boardMode">
+            <button type="button" class="seg-btn" data-board="sprint40" data-i18n="mode.sprint40.name"></button>
+            <button type="button" class="seg-btn" data-board="ultra" data-i18n="mode.ultra.name"></button>
+            <button type="button" class="seg-btn" data-board="marathon150" data-i18n="board.marathon150"></button>
+          </div>
+          <p class="board-me" id="board-me"></p>
+          <p class="board-status" id="board-status" role="status"></p>
+          <ol class="board-list" id="board-list"></ol>
         </div>
       </section>
 
@@ -357,6 +392,20 @@
       </div>
     </dialog>
 
+    <dialog id="dlg-name" class="panel" aria-labelledby="name-title">
+      <h2 id="name-title" data-i18n="board.nameTitle"></h2>
+      <form method="dialog" id="name-form">
+        <label class="set-label" for="in-name" data-i18n="board.nameTitle"></label>
+        <input type="text" id="in-name" class="text-input" maxlength="16" autocomplete="nickname" aria-describedby="name-hint name-error" />
+        <p class="set-desc" id="name-hint" data-i18n="board.nameHint"></p>
+        <p class="notice" id="name-error" role="alert"></p>
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" id="name-ok" data-i18n="board.nameSave"></button>
+          <button type="button" class="btn" id="name-cancel" data-i18n="board.cancel"></button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog id="dlg-over" class="panel" aria-labelledby="over-title">
       <p class="over-mode" id="over-mode"></p>
       <h2 id="over-title"></h2>
@@ -381,6 +430,14 @@
         <button type="button" class="btn btn-small" id="over-unlock-use" data-i18n="over.themeUse"></button>
       </div>
       <p class="notice" id="over-notice" hidden></p>
+      <!-- Leaderboard online (PRD-7): hanya untuk Sprint 40, Ultra, dan Maraton 150 yang selesai. -->
+      <div class="over-board" id="over-board" hidden>
+        <button type="button" class="btn" id="over-send">
+          <svg class="icon" aria-hidden="true"><use href="/icons.svg#leaderboard" /></svg>
+          <span data-i18n="board.send"></span>
+        </button>
+        <p class="notice" id="over-board-msg" role="status"></p>
+      </div>
       <div class="actions">
         <button type="button" class="btn btn-primary" data-act="again" autofocus>
           <svg class="icon" aria-hidden="true"><use href="/icons.svg#replay" /></svg>

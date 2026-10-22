@@ -9,8 +9,10 @@ import { bindGestures } from "./input/touch.ts";
 import { GamepadInput, type MenuNav } from "./input/gamepad.ts";
 import { BoardRenderer, PreviewRenderer } from "./render/board.ts";
 import { applyI18n, fmt, formatClock, formatMs, pickLocale, setLocale, t, type Key } from "./i18n/index.ts";
-import { BTNS, load, save, submitResult, type Locale, type ResultInput, type SaveData } from "./store/storage.ts";
+import { addGame, BTNS, load, NAME_RE, save, submitResult, type Locale, type ResultInput, type SaveData } from "./store/storage.ts";
 import { ThemesScreen } from "./ui/themes.ts";
+import { StatsScreen, type BoardMode } from "./ui/stats.ts";
+import { ReplayRecorder, toBase64 } from "./core/replay.ts";
 import { SettingsScreen } from "./ui/settings.ts";
 import { perfFrame, perfPause, perfTag } from "./debug/perf.ts";
 import { Effects } from "./render/effects.ts";
@@ -61,6 +63,7 @@ const scrMenu = $("scr-menu");
 const scrGame = $("scr-game");
 const scrSettings = $("scr-settings");
 const scrThemes = $("scr-themes");
+const scrStats = $("scr-stats");
 const dlgPause = $<HTMLDialogElement>("dlg-pause");
 const dlgConfirm = $<HTMLDialogElement>("dlg-confirm");
 const dlgOver = $<HTMLDialogElement>("dlg-over");
@@ -124,6 +127,12 @@ function toast(text: string): void {
 
 let game: Game | null = null;
 let modeId: ModeId = "marathon150";
+// Rekaman permainan untuk leaderboard (PRD-7).
+let recorder = new ReplayRecorder();
+let gameSeed = 0;
+let softAtStart: number | "instant" = 20;
+/** Jatuh pelan diubah di tengah permainan (Pause > Pengaturan): rekaman tidak bisa diputar ulang. */
+let softChanged = false;
 let running = false;
 let overShown = false;
 const clk = {
@@ -174,6 +183,7 @@ function applySettings(): void {
   input.das = s.dasMs;
   input.arr = s.arrMs;
   keyboard.setKeymap(s.keymap);
+  if (game && s.softDropFactor !== softAtStart) softChanged = true; // rekaman tidak bisa diputar ulang
   game?.setConfig({ softDropFactor: s.softDropFactor });
   const theme = THEMES[s.theme];
   const displayChanged = board.ghost !== s.ghost || board.grid !== s.grid || board.colorSafe !== s.colorSafe || board.theme !== theme;
@@ -250,6 +260,11 @@ function startGame(id: ModeId): void {
   const seedParam = Number(new URLSearchParams(location.search).get("seed"));
   const seed = Number.isSafeInteger(seedParam) && seedParam > 0 ? seedParam : crypto.getRandomValues(new Uint32Array(1))[0]!;
   game = createGame(id, seed, { softDropFactor: data.settings.softDropFactor });
+  // Rekaman untuk leaderboard (PRD-7): seed, pengaturan jatuh pelan, dan aksi per tick.
+  recorder = new ReplayRecorder();
+  gameSeed = seed;
+  softAtStart = data.settings.softDropFactor;
+  softChanged = false;
   input.releaseAll();
   releaseGesture();
   shown.score = shown.level = shown.lines = shown.hold = shown.time = -1;
@@ -317,6 +332,7 @@ function frame(now: number): void {
   while (clk.acc >= STEP && s.status === STATUS.PLAYING) {
     clk.sim += STEP;
     input.fill(clk.sim, actions);
+    recorder.record(s.tick, actions.data, actions.count);
     const beforeY = s.y;
     const beforePieces = s.pieces;
     game.events.clear();
@@ -802,7 +818,13 @@ function showGameOver(): void {
     }),
     new Date(),
   );
-  const saved = isNew || freshThemes.length > 0 ? persist() : true;
+  // Statistik pribadi (PRD-7): setiap permainan yang berakhir dicatat, jadi selalu disimpan.
+  addGame(
+    data.stats,
+    { mode: modeId, lines: s.lines, pieces: s.pieces, quads: s.quads, tspins: s.tspins, perfects: s.perfects, maxCombo: s.maxCombo, ms: ticksToMs(s.tick) },
+    new Date(),
+  );
+  const saved = persist();
   $("over-new").hidden = !(isNew && saved);
   const unlocked = $("over-unlock");
   unlocked.hidden = freshThemes.length === 0;
@@ -822,10 +844,110 @@ function showGameOver(): void {
     notice.textContent = t("notice.storageFailed");
   }
 
+  // Leaderboard (PRD-7): hanya mode berpanjang tetap, permainan yang benar-benar selesai, dan tanpa
+  // perubahan jatuh pelan di tengah permainan (rekaman harus bisa diputar ulang persis).
+  const boardMode: BoardMode | null =
+    modeId === "sprint40" && sprintDone ? "sprint40" : modeId === "ultra" && s.score > 0 ? "ultra" : modeId === "marathon150" && s.score > 0 ? "marathon150" : null;
+  pendingReplay =
+    boardMode && !softChanged
+      ? { mode: boardMode, seed: gameSeed, ticks: recorder.ticks, soft: softAtStart, data: toBase64(recorder.bytes()) }
+      : null;
+  $("over-board").hidden = pendingReplay === null;
+  $("over-board-msg").textContent = "";
+  ($("over-send") as HTMLButtonElement).disabled = false;
+
   dlgOver.showModal();
   announce(
     `${t(titleKey)}. ${t(label)} ${value}${isNew && saved ? `. ${t("over.newRecord")}` : ""}${freshThemes.length ? `. ${$("over-unlock-text").textContent}` : ""}`,
   );
+}
+
+// ---------- kirim ke peringkat (PRD-7) ----------
+
+let pendingReplay: { mode: BoardMode; seed: number; ticks: number; soft: number | "instant"; data: string } | null = null;
+const dlgName = $<HTMLDialogElement>("dlg-name");
+const inName = $<HTMLInputElement>("in-name");
+/** Kode rahasia yang sudah dibuat saat nama ternyata dipakai orang lain, untuk nama berikutnya. */
+let pendingKey: string | null = null;
+
+/** Kode rahasia perangkat: 16 byte acak dalam hex, bukti kepemilikan nama di server. */
+function newKey(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+$("over-send").addEventListener("click", () => {
+  if (!pendingReplay) return;
+  if (!data.online) {
+    inName.value = "";
+    $("name-error").textContent = "";
+    dlgName.showModal();
+    inName.focus();
+    return;
+  }
+  void sendScore();
+});
+
+$("name-form").addEventListener("submit", (e) => {
+  const name = inName.value.trim();
+  if (!NAME_RE.test(name)) {
+    e.preventDefault();
+    $("name-error").textContent = t("board.nameInvalid");
+    inName.focus();
+    return;
+  }
+  data.online = { name, key: pendingKey ?? newKey() };
+  pendingKey = null;
+  persist();
+  // Dialog tertutup sendiri (method="dialog"), lalu skor dikirim.
+  queueMicrotask(() => void sendScore());
+});
+$("name-cancel").addEventListener("click", () => {
+  dlgName.close();
+  $("over-send").focus();
+});
+
+async function sendScore(): Promise<void> {
+  const btn = $("over-send") as HTMLButtonElement;
+  const msg = $("over-board-msg");
+  if (!pendingReplay || !data.online) return;
+  btn.disabled = true;
+  msg.textContent = t("board.sending");
+  let text: string;
+  try {
+    const res = await fetch("/api/leaderboard", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: data.online.name, key: data.online.key, replay: pendingReplay }),
+    });
+    const j = (await res.json()) as { ok?: boolean; rank?: number; improved?: boolean; error?: string };
+    if (res.ok && j.ok) {
+      text = t(j.improved ? "board.sent" : "board.sentNotBest", { rank: j.rank ?? 0 });
+      pendingReplay = null; // sekali kirim per permainan
+    } else if (j.error === "name_taken") {
+      // Nama sudah dipakai orang lain: minta nama lain. Kode rahasia dipakai lagi untuk nama berikutnya.
+      pendingKey = data.online.key;
+      data.online = null;
+      persist();
+      text = t("board.nameTaken");
+      btn.disabled = false;
+      dlgName.showModal();
+      inName.value = "";
+      $("name-error").textContent = t("board.nameTaken");
+      inName.focus();
+    } else if (j.error === "rejected") {
+      text = t("board.rejected");
+    } else if (j.error === "disabled") {
+      text = t("board.disabled");
+    } else {
+      text = t("board.failed");
+      btn.disabled = false;
+    }
+  } catch {
+    text = t("board.failed");
+    btn.disabled = false;
+  }
+  msg.textContent = text;
+  announce(text);
 }
 
 /** "Pakai sekarang" di Game Over: ganti tema tanpa membuka Pengaturan. */
@@ -926,6 +1048,7 @@ scrMenu.addEventListener("click", (e) => {
 
 $("btn-settings").addEventListener("click", () => openSettings("menu"));
 $("btn-themes").addEventListener("click", () => openThemes());
+$("btn-stats").addEventListener("click", () => openStats());
 
 // Panah atas/bawah memindahkan fokus di daftar mode (DESIGN 7.1).
 scrMenu.querySelector(".modes")!.addEventListener("keydown", (e) => {
@@ -948,6 +1071,7 @@ function activeRoot(): ParentNode {
   for (const d of [dlgConfirm, dlgPause, dlgOver]) if (d.open) return d;
   if (!scrSettings.hidden) return scrSettings;
   if (!scrThemes.hidden) return scrThemes;
+  if (!scrStats.hidden) return scrStats;
   return scrMenu;
 }
 
@@ -962,6 +1086,7 @@ function menuNav(nav: MenuNav): void {
     else if (dlgConfirm.open) dlgConfirm.dispatchEvent(new Event("cancel", { cancelable: true }));
     else if (!scrSettings.hidden) closeSettings();
     else if (!scrThemes.hidden) closeThemes();
+    else if (!scrStats.hidden) closeStats();
     return;
   }
   const el = document.activeElement as HTMLElement | null;
@@ -993,6 +1118,7 @@ function applyLocale(l: Locale): void {
   renderControlsList();
   if (!scrSettings.hidden) settings.render();
   if (!scrThemes.hidden) themes.render();
+  if (!scrStats.hidden) statsScreen.render();
   if (game) {
     hud.mode.textContent = modeLabel(modeId);
     shown.level = -1;
@@ -1003,8 +1129,8 @@ function applyLocale(l: Locale): void {
  * Ganti layar. enter: putar animasi masuk (CSS `.enter`, styles.css). Tidak dipakai saat kembali
  * dari Pengaturan ke Pause, karena papan permainan yang sedang dijeda harus tetap diam.
  */
-function showScreen(which: "menu" | "game" | "settings" | "themes", enter = true): void {
-  const screens = { menu: scrMenu, game: scrGame, settings: scrSettings, themes: scrThemes };
+function showScreen(which: "menu" | "game" | "settings" | "themes" | "stats", enter = true): void {
+  const screens = { menu: scrMenu, game: scrGame, settings: scrSettings, themes: scrThemes, stats: scrStats };
   for (const [k, el] of Object.entries(screens)) {
     el.hidden = k !== which;
     el.classList.remove("enter");
@@ -1092,6 +1218,32 @@ function openThemes(): void {
 function closeThemes(): void {
   showScreen("menu");
   $("btn-themes").focus();
+}
+
+// ---------- statistik dan peringkat (PRD-7) ----------
+
+const statsScreen = new StatsScreen(scrStats, data.stats, data.records, () => data.online, {
+  back: () => closeStats(),
+  fmt,
+  async fetchBoard(mode) {
+    try {
+      const res = await fetch(`/api/leaderboard?mode=${mode}`);
+      if (!res.ok) return null;
+      return (await res.json()) as { entries: { name: string; value: number; at: string }[]; enabled: boolean };
+    } catch {
+      return null;
+    }
+  },
+});
+
+function openStats(): void {
+  showScreen("stats");
+  statsScreen.open();
+}
+
+function closeStats(): void {
+  showScreen("menu");
+  $("btn-stats").focus();
 }
 
 // Gamepad di menu dan Pengaturan: loop kecil yang hanya berjalan saat permainan tidak berjalan.

@@ -557,3 +557,68 @@ test("26e. Blok Pengisi: geser bebas, putar tidak mengubah bentuk, tidak ditumpu
   // Blok Pengisi disisipkan, bukan menggantikan: urutan 7-bag sesudahnya sama dengan a mulai p2.
   assert.deepEqual(seqB, seqA.slice(2, 11), "urutan bag lanjut seperti biasa");
 });
+
+// ---------- 27: rekaman dan putar ulang untuk leaderboard (PRD-7) ----------
+
+import { ReplayRecorder, replay, toBase64, fromBase64, type Replay } from "../src/core/replay.ts";
+
+/** Mainkan acak tapi deterministik, rekam setiap tick, kembalikan game dan rekamannya. */
+function playRecorded(mode: ModeId, seed: number, maxTicks: number, rngSeed = 7): { g: Game; rec: Replay } {
+  const g = createGame(mode, seed, CFG);
+  const r = new ReplayRecorder();
+  let x = rngSeed;
+  const rnd = () => ((x = (x * 1103515245 + 12345) & 0x7fffffff) % 1000) / 1000;
+  const acts = new Uint8Array(8);
+  for (let t = 0; t < maxTicks && S(g).status === STATUS.PLAYING; t++) {
+    let n = 0;
+    const p = rnd();
+    if (p < 0.05) acts[n++] = ACT.HARD;
+    else if (p < 0.15) acts[n++] = ACT.LEFT;
+    else if (p < 0.25) acts[n++] = ACT.RIGHT;
+    else if (p < 0.3) acts[n++] = ACT.ROT_CW;
+    else if (p < 0.32) acts[n++] = ACT.HOLD;
+    else if (p < 0.34) acts[n++] = ACT.SOFT_ON;
+    else if (p < 0.36) acts[n++] = ACT.SOFT_OFF;
+    r.record(t, acts, n);
+    g.events.clear();
+    g.step(acts, n);
+  }
+  return { g, rec: { mode, seed, ticks: r.ticks, soft: CFG.softDropFactor, data: toBase64(r.bytes()) } };
+}
+
+test("27a. putar ulang menghasilkan skor, baris, dan status yang sama persis", () => {
+  for (const [mode, seed] of [["marathon150", 3], ["ultra", 9], ["sprint40", 21]] as const) {
+    const { g, rec } = playRecorded(mode, seed, 7200);
+    const res = replay(rec)!;
+    assert.ok(res, `${mode}: rekaman sah diterima`);
+    assert.equal(res.score, S(g).score, `${mode}: skor`);
+    assert.equal(res.lines, S(g).lines, `${mode}: baris`);
+    assert.equal(res.status, S(g).status, `${mode}: status`);
+  }
+});
+
+test("27b. rekaman palsu atau rusak ditolak, atau menghasilkan skor yang berbeda", () => {
+  const { g, rec } = playRecorded("ultra", 5, 3000);
+  // Seed lain: permainan berbeda, skor tidak sama dengan yang diklaim.
+  const other = replay({ ...rec, seed: 6 });
+  assert.ok(!other || other.score !== S(g).score, "seed lain tidak menghasilkan skor yang sama");
+  // Aksi di luar rentang.
+  const bad = fromBase64(rec.data)!.slice();
+  bad[bad.length - 1] = 99;
+  assert.equal(replay({ ...rec, data: toBase64(bad) }), null, "aksi 99 ditolak");
+  // Terpotong di tengah catatan.
+  assert.equal(replay({ ...rec, data: toBase64(fromBase64(rec.data)!.subarray(0, fromBase64(rec.data)!.length - 1)) }), null, "terpotong ditolak");
+  // Base64 rusak, ticks di luar batas, soft drop tidak sah.
+  assert.equal(replay({ ...rec, data: "%%%" }), null);
+  assert.equal(replay({ ...rec, ticks: 0 }), null);
+  assert.equal(replay({ ...rec, ticks: 60 * 60 * 60 + 1 }), null);
+  assert.equal(replay({ ...rec, soft: 7 }), null);
+  // Catatan setelah tick terakhir.
+  assert.equal(replay({ ...rec, ticks: 1 }), null, "aksi setelah tick terakhir ditolak");
+});
+
+test("27c. tick tambahan setelah permainan berakhir ditolak", () => {
+  const { rec } = playRecorded("ultra", 11, 8000);
+  assert.ok(replay(rec), "rekaman asli sah");
+  assert.equal(replay({ ...rec, ticks: rec.ticks + 10 }), null, "Ultra berakhir di 7200 tick, tick sesudahnya tidak sah");
+});

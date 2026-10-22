@@ -1460,3 +1460,165 @@ html:not(.reduce) .themes-screen.enter .theme-card:nth-child(5) { animation-dela
   border: 0;
   font-weight: 600;
 }
+
+/*
+ * ---------- layar Statistik dan Peringkat (PRD-7) ----------
+ * Statistik: kisi angka dua kolom (label di atas, angka besar di bawah), lalu daftar rekor.
+ * Peringkat: daftar bernomor dengan nama dan nilai; baris milik pemain ditandai tepi aksen.
+ */
+.stats-tabs {
+  display: flex;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.stats-tabs .seg-btn {
+  flex: 1 1 0;
+  min-height: 44px;
+}
+
+.stats-empty,
+.board-me,
+.board-status {
+  margin: 0 0 12px;
+  color: var(--text-dim);
+}
+
+.board-status:empty {
+  display: none;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr));
+  gap: 8px;
+  margin: 0 0 24px;
+}
+
+.stats-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--line-deco);
+  border-radius: var(--r-control);
+  background: var(--surface-1);
+}
+
+.stats-grid dt {
+  color: var(--text-dim);
+  font-size: 0.875rem;
+}
+
+.stats-grid dd {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+
+.stats-sub {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.stats-list {
+  margin: 0;
+}
+
+.stats-list div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line-deco);
+}
+
+.stats-list dt {
+  color: var(--text-dim);
+}
+
+.stats-list dd {
+  margin: 0 0 0 auto;
+}
+
+.board-modes {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.board-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.board-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--line-deco);
+}
+
+.board-list li.mine {
+  border: 1px solid var(--accent);
+  border-radius: var(--r-control);
+}
+
+.board-rank {
+  flex: none;
+  min-width: 2ch;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.board-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.board-value {
+  flex: none;
+}
+
+/* Game Over: tombol kirim ke peringkat dan pesannya. */
+.over-board {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 8px;
+}
+
+.over-board .notice:empty {
+  display: none;
+}
+
+/* Dialog nama di peringkat. */
+.text-input {
+  width: 100%;
+  min-height: 48px;
+  margin: 6px 0 4px;
+  padding: 0 12px;
+  border: 1px solid var(--line-control);
+  border-radius: var(--r-control);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+#dlg-name .notice:empty {
+  display: none;
+}
+
+html:not(.reduce) .stats-screen.enter .settings-top,
+html:not(.reduce) .stats-screen.enter .stats-tabs {
+  animation: enter-slide 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html:not(.reduce) .stats-screen.enter .stats-grid div {
+  animation: enter-rise 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
