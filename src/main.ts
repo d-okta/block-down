@@ -9,10 +9,10 @@ import { bindGestures } from "./input/touch.ts";
 import { GamepadInput, type MenuNav } from "./input/gamepad.ts";
 import { BoardRenderer, PreviewRenderer } from "./render/board.ts";
 import { applyI18n, fmt, formatClock, formatMs, pickLocale, setLocale, t, type Key } from "./i18n/index.ts";
-import { addGame, BTNS, load, NAME_RE, save, submitResult, type Locale, type ResultInput, type SaveData } from "./store/storage.ts";
+import { addGame, BTNS, load, loadResume, NAME_RE, save, saveResume, submitResult, type Locale, type ResultInput, type SaveData } from "./store/storage.ts";
 import { ThemesScreen } from "./ui/themes.ts";
 import { StatsScreen, type BoardMode } from "./ui/stats.ts";
-import { ReplayRecorder, toBase64 } from "./core/replay.ts";
+import { fromBase64, ReplayRecorder, replayGame, toBase64 } from "./core/replay.ts";
 import { SettingsScreen } from "./ui/settings.ts";
 import { perfFrame, perfPause, perfTag } from "./debug/perf.ts";
 import { Effects } from "./render/effects.ts";
@@ -131,8 +131,8 @@ let modeId: ModeId = "marathon150";
 let recorder = new ReplayRecorder();
 let gameSeed = 0;
 let softAtStart: number | "instant" = 20;
-/** Jatuh pelan diubah di tengah permainan (Pause > Pengaturan): rekaman tidak bisa diputar ulang. */
-let softChanged = false;
+/** Jatuh pelan yang sedang dipakai game (untuk mendeteksi perubahan dan mencatatnya di rekaman). */
+let currentSoft: number | "instant" = 20;
 let running = false;
 let overShown = false;
 const clk = {
@@ -183,7 +183,9 @@ function applySettings(): void {
   input.das = s.dasMs;
   input.arr = s.arrMs;
   keyboard.setKeymap(s.keymap);
-  if (game && s.softDropFactor !== softAtStart) softChanged = true; // rekaman tidak bisa diputar ulang
+  // Perubahan jatuh pelan di tengah permainan ikut terekam, jadi rekaman tetap bisa diputar ulang.
+  if (game && game.state.status === STATUS.PLAYING && s.softDropFactor !== currentSoft) recorder.setSoft(s.softDropFactor);
+  currentSoft = s.softDropFactor;
   game?.setConfig({ softDropFactor: s.softDropFactor });
   const theme = THEMES[s.theme];
   const displayChanged = board.ghost !== s.ghost || board.grid !== s.grid || board.colorSafe !== s.colorSafe || board.theme !== theme;
@@ -255,23 +257,55 @@ function scoreText(now: number, actual: number): string | null {
 }
 
 function startGame(id: ModeId): void {
-  modeId = id;
   // ?seed=N di URL: urutan piece tetap, untuk uji dan reproduksi laporan. Tanpa itu, acak.
   const seedParam = Number(new URLSearchParams(location.search).get("seed"));
   const seed = Number.isSafeInteger(seedParam) && seedParam > 0 ? seedParam : crypto.getRandomValues(new Uint32Array(1))[0]!;
-  game = createGame(id, seed, { softDropFactor: data.settings.softDropFactor });
-  // Rekaman untuk leaderboard (PRD-7): seed, pengaturan jatuh pelan, dan aksi per tick.
+  // Permainan baru menggantikan permainan tersimpan (PRD-8).
+  clearSaved();
+  // Rekaman untuk leaderboard (PRD-7) dan untuk menyimpan permainan (PRD-8).
   recorder = new ReplayRecorder();
   gameSeed = seed;
-  softAtStart = data.settings.softDropFactor;
-  softChanged = false;
+  softAtStart = currentSoft = data.settings.softDropFactor;
+  enterGame(id, createGame(id, seed, { softDropFactor: data.settings.softDropFactor }), false);
+}
+
+/**
+ * Lanjutkan permainan tersimpan (PRD-8): putar ulang rekamannya sampai tick terakhir, lalu masuk ke
+ * Pause supaya pemain siap sebelum blok bergerak. Rekaman rusak dibuang dan permainan baru dimulai.
+ */
+function continueGame(): void {
+  const sv = loadResume();
+  if (!sv) return renderResume();
+  const g = replayGame({ mode: sv.mode, seed: sv.seed, ticks: sv.ticks, soft: sv.soft, data: sv.data });
+  const bytes = fromBase64(sv.data);
+  if (!g || !bytes || g.state.status !== STATUS.PLAYING) {
+    clearSaved();
+    toast(t("resume.broken"));
+    return renderResume();
+  }
+  recorder = ReplayRecorder.from(bytes, sv.ticks, g.lastEntry);
+  gameSeed = sv.seed;
+  softAtStart = sv.soft;
+  currentSoft = data.settings.softDropFactor;
+  // Pengaturan jatuh pelan sekarang mungkin berbeda dari saat disimpan: dicatat sebagai perubahan.
+  if (g.soft !== data.settings.softDropFactor) {
+    g.setConfig({ softDropFactor: data.settings.softDropFactor });
+    recorder.setSoft(data.settings.softDropFactor);
+  }
+  enterGame(sv.mode, g, true);
+}
+
+function enterGame(id: ModeId, g: Game, resumed: boolean): void {
+  modeId = id;
+  game = g;
   input.releaseAll();
   releaseGesture();
   shown.score = shown.level = shown.lines = shown.hold = shown.time = -1;
   shown.combo = -2;
   overShown = false;
   clk.fallFrom = NaN;
-  clk.sim = 0;
+  // Jam simulasi melanjutkan dari tick tersimpan, supaya DAS dan ARR tetap konsisten dengan waktu permainan.
+  clk.sim = g.state.tick * STEP;
   board.reset();
   callout.hide();
   fxFlash.hidden = fxPillar.hidden = true;
@@ -279,7 +313,7 @@ function startGame(id: ModeId): void {
   roll.t = -1;
   hud.score.classList.remove("bump");
   comboWarm = 0;
-  ambientFor(1);
+  ambientFor(g.state.level);
   hud.mode.textContent = modeLabel(id);
   hud.timeBox.hidden = !(id === "sprint40" || id === "ultra");
   $("btn-end").hidden = id !== "zen";
@@ -294,7 +328,14 @@ function startGame(id: ModeId): void {
   updateHud(true);
   sound.musicStop();
   sound.musicStart();
-  resume();
+  if (resumed) {
+    // Gambar papan yang sudah terisi, lalu tunggu di Pause.
+    board.draw(g.state, NaN, 1, performance.now(), true);
+    running = true;
+    pauseGame();
+  } else {
+    resume();
+  }
 }
 let warmedUp = false;
 
@@ -412,6 +453,8 @@ function drawLight(now: number): void {
  */
 function endGame(now: number): void {
   stopLoop();
+  // Permainan berakhir: tidak ada lagi yang bisa dilanjutkan (PRD-8).
+  clearSaved();
   const s = game!.state;
   sound.musicStop();
   if (s.status === STATUS.GAME_OVER) {
@@ -676,9 +719,35 @@ window.addEventListener("resize", layout);
 
 // ---------- pause dan dialog ----------
 
+// ---------- simpan permainan (PRD-8) ----------
+
+/** Simpan permainan yang sedang berjalan. Dipanggil saat Pause, tab tersembunyi, halaman ditutup, dan Ke Menu. */
+function saveCurrent(): void {
+  if (!game || game.state.status !== STATUS.PLAYING || game.state.pieces < 1) return;
+  saveResume({
+    v: 1,
+    mode: modeId,
+    seed: gameSeed,
+    soft: softAtStart,
+    ticks: recorder.ticks,
+    data: toBase64(recorder.bytes()),
+    lines: game.state.lines,
+    score: game.state.score,
+    at: new Date().toISOString(),
+  });
+}
+
+function clearSaved(): void {
+  saveResume(null);
+}
+
+// Menutup tab atau aplikasi: pagehide berjalan di semua browser, termasuk saat aplikasi PWA ditutup.
+window.addEventListener("pagehide", () => saveCurrent());
+
 function pauseGame(): void {
   if (!game || !running || game.state.status !== STATUS.PLAYING) return;
   stopLoop();
+  saveCurrent();
   sound.musicDuck(true);
   $("pause-time").textContent = formatClock(ticksToMs(game.state.tick));
   dlgPause.showModal();
@@ -698,7 +767,6 @@ dlgPause.addEventListener("keydown", (e) => {
   if (e.code === "KeyP") resumeGame();
 });
 
-let confirmAction: "restart" | "menu" = "menu";
 dlgPause.addEventListener("click", (e) => {
   const act = (e.target as HTMLElement).closest<HTMLElement>("[data-act]")?.dataset["act"];
   if (act === "resume") resumeGame();
@@ -710,16 +778,20 @@ dlgPause.addEventListener("click", (e) => {
   } else if (act === "settings") {
     dlgPause.close();
     openSettings("pause");
-  } else if (act === "restart" || act === "menu") {
-    // Konfirmasi hanya jika permainan sudah berjalan lebih dari satu piece (DESIGN 7.3).
+  } else if (act === "menu") {
+    // Ke Menu menyimpan permainan (PRD-8), jadi tidak perlu konfirmasi: bisa dilanjutkan dari Menu.
+    dlgPause.close();
+    saveCurrent();
+    showMenu();
+  } else if (act === "restart") {
+    // Ulangi membuang permainan ini. Konfirmasi hanya jika sudah lebih dari satu piece (DESIGN 7.3).
     if (game && game.state.pieces > 1) {
-      confirmAction = act;
-      $("confirm-ok").textContent = t(act === "restart" ? "confirm.restart" : "confirm.menu");
+      $("confirm-ok").textContent = t("confirm.restart");
       dlgPause.close();
       dlgConfirm.showModal();
     } else {
       dlgPause.close();
-      act === "restart" ? startGame(modeId) : showMenu();
+      startGame(modeId);
     }
   }
 });
@@ -731,7 +803,7 @@ dlgConfirm.addEventListener("click", (e) => {
     dlgPause.showModal();
   } else if (act === "ok") {
     dlgConfirm.close();
-    confirmAction === "restart" ? startGame(modeId) : showMenu();
+    startGame(modeId);
   }
 });
 dlgConfirm.addEventListener("cancel", (e) => {
@@ -773,6 +845,8 @@ function resultFor(id: ModeId): ResultInput {
 }
 
 function showGameOver(): void {
+  // Semua jalan ke Game Over (top out, target, waktu habis, Akhiri dari Pause) menghapus simpanan (PRD-8).
+  clearSaved();
   const s = game!.state;
   const titleKey: Key =
     modeId === "zen" || s.status === STATUS.FINISHED
@@ -844,12 +918,11 @@ function showGameOver(): void {
     notice.textContent = t("notice.storageFailed");
   }
 
-  // Leaderboard (PRD-7): hanya mode berpanjang tetap, permainan yang benar-benar selesai, dan tanpa
-  // perubahan jatuh pelan di tengah permainan (rekaman harus bisa diputar ulang persis).
+  // Leaderboard (PRD-7): hanya mode berpanjang tetap dan permainan yang benar-benar selesai.
   const boardMode: BoardMode | null =
     modeId === "sprint40" && sprintDone ? "sprint40" : modeId === "ultra" && s.score > 0 ? "ultra" : modeId === "marathon150" && s.score > 0 ? "marathon150" : null;
   pendingReplay =
-    boardMode && !softChanged
+    boardMode
       ? { mode: boardMode, seed: gameSeed, ticks: recorder.ticks, soft: softAtStart, data: toBase64(recorder.bytes()) }
       : null;
   $("over-board").hidden = pendingReplay === null;
@@ -1043,7 +1116,7 @@ btnMarathon.addEventListener("click", () => {
 
 scrMenu.addEventListener("click", (e) => {
   const mode = (e.target as HTMLElement).closest<HTMLElement>("[data-mode]")?.dataset["mode"];
-  if (mode) startGame(mode as ModeId);
+  if (mode && !askReplace(mode as ModeId)) startGame(mode as ModeId);
 });
 
 $("btn-settings").addEventListener("click", () => openSettings("menu"));
@@ -1151,8 +1224,43 @@ function showMenu(): void {
   game = null;
   showScreen("menu");
   renderRecords();
-  btnMarathon.focus();
+  renderResume();
+  (resumeRow.hidden ? btnMarathon : resumeRow).focus();
 }
+
+// ---------- lanjutkan permainan (PRD-8) ----------
+
+const resumeRow = $<HTMLButtonElement>("btn-resume");
+
+/** Baris "Lanjutkan" di atas daftar mode, hanya jika ada permainan tersimpan. */
+function renderResume(): void {
+  const sv = loadResume();
+  resumeRow.hidden = !sv;
+  if (!sv) return;
+  $("resume-desc").textContent = t("resume.desc", { mode: modeLabel(sv.mode), lines: sv.lines, score: fmt(sv.score) });
+}
+
+resumeRow.addEventListener("click", () => continueGame());
+
+/** Memulai mode lain saat ada permainan tersimpan: tanyakan dulu, karena simpanan akan dibuang. */
+let pendingMode: ModeId | null = null;
+const dlgReplace = $<HTMLDialogElement>("dlg-replace");
+function askReplace(id: ModeId): boolean {
+  if (!loadResume()) return false;
+  pendingMode = id;
+  dlgReplace.showModal();
+  return true;
+}
+dlgReplace.addEventListener("click", (e) => {
+  const act = (e.target as HTMLElement).closest<HTMLElement>("[data-act]")?.dataset["act"];
+  if (act === "cancel") {
+    dlgReplace.close();
+    resumeRow.focus();
+  } else if (act === "ok" && pendingMode) {
+    dlgReplace.close();
+    startGame(pendingMode);
+  }
+});
 
 // ---------- pengaturan ----------
 

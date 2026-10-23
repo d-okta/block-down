@@ -5,6 +5,12 @@ export const en: Record<Key, string> = {
 
   "menu.settings": "Settings",
   "menu.themes": "Themes",
+  "resume.title": "Continue",
+  "resume.desc": "{mode}, {lines} lines, score {score}",
+  "resume.broken": "The saved game couldn't be opened, so it was discarded.",
+  "resume.replaceTitle": "Start a new game?",
+  "resume.replaceBody": "Your saved game will be discarded.",
+  "resume.replaceOk": "Start new",
   "menu.stats": "Stats and Leaderboard",
   "stats.title": "Stats",
   "stats.tabMe": "Me",
@@ -95,8 +101,8 @@ export const en: Record<Key, string> = {
   "pause.sessionTime": "Session time",
   "pause.end": "End session",
 
-  "confirm.title": "Leave this game?",
-  "confirm.body": "This game will not count toward your records.",
+  "confirm.title": "Restart this game?",
+  "confirm.body": "This game will be discarded and won't count toward your records.",
   "confirm.cancel": "Cancel",
   "confirm.restart": "Restart",
   "confirm.menu": "Main menu",

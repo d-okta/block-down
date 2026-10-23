@@ -4,6 +4,12 @@ export const id = {
 
   "menu.settings": "Pengaturan",
   "menu.themes": "Tema",
+  "resume.title": "Lanjutkan",
+  "resume.desc": "{mode}, {lines} baris, skor {score}",
+  "resume.broken": "Permainan tersimpan tidak bisa dibuka, jadi dibuang.",
+  "resume.replaceTitle": "Mulai permainan baru?",
+  "resume.replaceBody": "Permainan yang tersimpan akan dibuang.",
+  "resume.replaceOk": "Mulai baru",
   "menu.stats": "Statistik dan Peringkat",
   "stats.title": "Statistik",
   "stats.tabMe": "Saya",
@@ -94,8 +100,8 @@ export const id = {
   "pause.sessionTime": "Waktu sesi",
   "pause.end": "Akhiri sesi",
 
-  "confirm.title": "Tinggalkan permainan ini?",
-  "confirm.body": "Progres permainan ini tidak disimpan sebagai rekor.",
+  "confirm.title": "Ulangi permainan ini?",
+  "confirm.body": "Permainan ini dibuang dan tidak disimpan sebagai rekor.",
   "confirm.cancel": "Batal",
   "confirm.restart": "Ulangi",
   "confirm.menu": "Ke Menu",

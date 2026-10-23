@@ -560,7 +560,7 @@ test("26e. Blok Pengisi: geser bebas, putar tidak mengubah bentuk, tidak ditumpu
 
 // ---------- 27: rekaman dan putar ulang untuk leaderboard (PRD-7) ----------
 
-import { ReplayRecorder, replay, toBase64, fromBase64, type Replay } from "../src/core/replay.ts";
+import { ReplayRecorder, replay, replayGame, toBase64, fromBase64, type Replay } from "../src/core/replay.ts";
 
 /** Mainkan acak tapi deterministik, rekam setiap tick, kembalikan game dan rekamannya. */
 function playRecorded(mode: ModeId, seed: number, maxTicks: number, rngSeed = 7): { g: Game; rec: Replay } {
@@ -621,4 +621,83 @@ test("27c. tick tambahan setelah permainan berakhir ditolak", () => {
   const { rec } = playRecorded("ultra", 11, 8000);
   assert.ok(replay(rec), "rekaman asli sah");
   assert.equal(replay({ ...rec, ticks: rec.ticks + 10 }), null, "Ultra berakhir di 7200 tick, tick sesudahnya tidak sah");
+});
+
+// ---------- 28: simpan dan lanjutkan permainan (PRD-8) ----------
+
+test("28a. simpan di tengah, lanjutkan dari rekaman: hasil akhir sama dengan permainan tanpa jeda", () => {
+  // Permainan referensi tanpa jeda.
+  const full = playRecorded("marathon150", 12, 6000, 5);
+  // Permainan yang sama, disimpan di tick 2500, dilanjutkan, lalu dimainkan sisanya dengan aksi yang sama.
+  const bytes = fromBase64(full.rec.data)!;
+  const half = new ReplayRecorder();
+  const g1 = createGame("marathon150", 12, CFG);
+  let x = 5;
+  const rnd = () => ((x = (x * 1103515245 + 12345) & 0x7fffffff) % 1000) / 1000;
+  const acts = new Uint8Array(8);
+  const pick = (): number => {
+    let n = 0;
+    const p = rnd();
+    if (p < 0.05) acts[n++] = ACT.HARD;
+    else if (p < 0.15) acts[n++] = ACT.LEFT;
+    else if (p < 0.25) acts[n++] = ACT.RIGHT;
+    else if (p < 0.3) acts[n++] = ACT.ROT_CW;
+    else if (p < 0.32) acts[n++] = ACT.HOLD;
+    else if (p < 0.34) acts[n++] = ACT.SOFT_ON;
+    else if (p < 0.36) acts[n++] = ACT.SOFT_OFF;
+    return n;
+  };
+  let t = 0;
+  for (; t < 2500 && S(g1).status === STATUS.PLAYING; t++) {
+    const n = pick();
+    half.record(t, acts, n);
+    g1.events.clear();
+    g1.step(acts, n);
+  }
+  // "Keluar": hanya rekaman yang disimpan. "Kembali": putar ulang.
+  const saved: Replay = { mode: "marathon150", seed: 12, ticks: half.ticks, soft: 20, data: toBase64(half.bytes()) };
+  const g2 = replayGame(saved)!;
+  assert.ok(g2, "rekaman tersimpan bisa diputar ulang");
+  assert.equal(S(g2).score, S(g1).score);
+  assert.equal(S(g2).tick, S(g1).tick);
+  assert.deepEqual(Array.from(S(g2).board), Array.from(S(g1).board), "papan sama persis");
+  const rec2 = ReplayRecorder.from(fromBase64(saved.data)!, saved.ticks, g2.lastEntry);
+  for (; t < 6000 && S(g2).status === STATUS.PLAYING; t++) {
+    const n = pick();
+    rec2.record(t, acts, n);
+    g2.events.clear();
+    g2.step(acts, n);
+  }
+  assert.equal(S(g2).score, S(full.g).score, "skor akhir sama dengan tanpa jeda");
+  assert.equal(S(g2).lines, S(full.g).lines);
+  assert.equal(toBase64(rec2.bytes()), toBase64(bytes), "rekaman lanjutan identik, jadi tetap sah untuk peringkat");
+});
+
+test("28b. perubahan jatuh pelan di tengah permainan ikut terekam dan diputar ulang", () => {
+  const g = createGame("ultra", 3, CFG);
+  const r = new ReplayRecorder();
+  const acts = new Uint8Array(4);
+  for (let t = 0; t < 600; t++) {
+    let n = 0;
+    if (t === 100) acts[n++] = ACT.SOFT_ON;
+    if (t === 300) {
+      g.setConfig({ softDropFactor: 40 });
+      r.setSoft(40);
+    }
+    if (t === 500) acts[n++] = ACT.HARD;
+    r.record(t, acts, n);
+    g.events.clear();
+    g.step(acts, n);
+  }
+  const rec: Replay = { mode: "ultra", seed: 3, ticks: r.ticks, soft: 20, data: toBase64(r.bytes()) };
+  const back = replayGame(rec)!;
+  assert.equal(S(back).score, S(g).score, "skor sama, termasuk poin jatuh pelan setelah perubahan");
+  assert.equal(back.soft, 40);
+  // Kode konfigurasi hanya sah di urutan pertama sebuah catatan.
+  const bad = fromBase64(rec.data)!.slice();
+  const i = bad.indexOf(9 + 7); // kode 40x
+  assert.ok(i > 0);
+  bad[i] = ACT.LEFT;
+  bad[i + 1] = 9 + 7;
+  assert.equal(replay({ ...rec, data: toBase64(bad) }), null, "kode konfigurasi di tengah ditolak");
 });

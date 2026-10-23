@@ -378,3 +378,48 @@ export function submitResult(records: Records, r: ResultInput, now: Date): boole
     }
   }
 }
+
+// ---------- permainan tersimpan (PRD-8) ----------
+
+/**
+ * Satu permainan yang sedang berjalan, disimpan saat pemain keluar. Kunci terpisah dari data utama,
+ * supaya rekaman yang besar tidak ikut ditulis setiap kali pengaturan berubah. Isinya rekaman (seed,
+ * jatuh pelan awal, aksi per tick), bukan isi papan: game dibangun ulang dengan memutar ulang rekaman.
+ */
+export const RESUME_KEY = "blockdown-resume";
+
+export interface SavedGame {
+  v: 1;
+  mode: "marathon150" | "marathonEndless" | "sprint40" | "ultra" | "zen";
+  seed: number;
+  soft: number | "instant";
+  ticks: number;
+  data: string;
+  /** Untuk baris Lanjutkan di Menu (dibaca tanpa memutar ulang). */
+  lines: number;
+  score: number;
+  at: string;
+}
+
+export function loadResume(): SavedGame | null {
+  try {
+    const raw = localStorage.getItem(RESUME_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as Partial<SavedGame>;
+    if (v.v !== 1 || typeof v.data !== "string" || !Number.isSafeInteger(v.seed) || !Number.isSafeInteger(v.ticks)) return null;
+    if (!["marathon150", "marathonEndless", "sprint40", "ultra", "zen"].includes(v.mode as string)) return null;
+    return v as SavedGame;
+  } catch {
+    return null;
+  }
+}
+
+export function saveResume(g: SavedGame | null): boolean {
+  try {
+    if (g) localStorage.setItem(RESUME_KEY, JSON.stringify(g));
+    else localStorage.removeItem(RESUME_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}

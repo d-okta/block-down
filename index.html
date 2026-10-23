@@ -36,6 +36,14 @@
         </h1>
 
         <div class="modes">
+          <!-- Permainan tersimpan (PRD-8): tampil hanya jika ada. -->
+          <button type="button" class="mode-row resume-row" id="btn-resume" hidden>
+            <span class="mode-text">
+              <span class="mode-name" data-i18n="resume.title"></span>
+              <span class="mode-desc" id="resume-desc"></span>
+            </span>
+            <svg class="icon" aria-hidden="true"><use href="/icons.svg#play_arrow" /></svg>
+          </button>
           <button type="button" class="mode-row" id="mode-marathon" aria-expanded="false" aria-controls="marathon-variants">
             <span class="mode-text">
               <span class="mode-name" data-i18n="mode.marathon.name"></span>
@@ -389,6 +397,15 @@
       <div class="actions">
         <button type="button" class="btn" data-act="cancel" autofocus data-i18n="confirm.cancel"></button>
         <button type="button" class="btn btn-primary" data-act="ok" id="confirm-ok"></button>
+      </div>
+    </dialog>
+
+    <dialog id="dlg-replace" class="panel" aria-labelledby="replace-title" aria-describedby="replace-body">
+      <h2 id="replace-title" data-i18n="resume.replaceTitle"></h2>
+      <p id="replace-body" class="panel-text" data-i18n="resume.replaceBody"></p>
+      <div class="actions">
+        <button type="button" class="btn" data-act="cancel" autofocus data-i18n="confirm.cancel"></button>
+        <button type="button" class="btn btn-primary" data-act="ok" data-i18n="resume.replaceOk"></button>
       </div>
     </dialog>
 

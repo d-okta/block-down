@@ -19,6 +19,7 @@ Bisa dipasang ke layar utama HP atau komputer, lalu dimainkan tanpa internet.
 - Peringkat online untuk Sprint 40, Ultra, dan Maraton 150. Skor dikirim hanya jika pemain memilih "Kirim ke Peringkat", dan server memutar ulang permainan untuk memastikan skornya sah.
 - Lima tema tampilan (ikon palet di Menu). Empat di antaranya terbuka lewat prestasi: Malam (100 baris dalam satu permainan Maraton), Neon (Sprint 40 di bawah 3 menit), Fajar (5 kali 4 Baris dalam satu permainan), dan Monokrom (Combo 3, yaitu hapus baris 4 kali berturut-turut, atau satu Bersih Total).
 - Pengaturan: DAS, ARR, kecepatan jatuh pelan, atur tombol keyboard, ghost, grid, mode aman buta warna, intensitas efek, kurangi animasi, getar, dan bahasa.
+- Permainan tersimpan otomatis saat keluar (tutup aplikasi, pindah aplikasi, atau Ke Menu) dan bisa dilanjutkan dari Menu.
 - Bahasa Indonesia dan Inggris.
 
 Rekor, statistik, dan pengaturan hanya disimpan di browser perangkatmu. Tidak ada akun dan iklan. Data hanya dikirim ke server jika kamu memilih "Kirim ke Peringkat": nama panggilan, kode acak perangkat (bukti pemilik nama), dan rekaman tombol permainan itu. Rincian di `docs/prd/PRD-7-statistik-peringkat.md`.
@@ -54,7 +55,7 @@ Butuh Node 22.18 atau lebih baru.
 ```
 npm install
 npm run dev       # buka http://localhost:5173
-npm run check     # TypeScript + 76 tes
+npm run check     # TypeScript + 78 tes
 npm run build     # hasil di dist/
 ```
 
