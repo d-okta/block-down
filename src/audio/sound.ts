@@ -46,8 +46,12 @@ export class Sound {
   private sfx: GainNode | null = null;
   private music: GainNode | null = null;
   private buffers = new Map<SoundId, AudioBuffer>();
-  private musicBuf: AudioBuffer | null = null;
-  private musicSrc: AudioBufferSourceNode | null = null;
+  /**
+   * Musik diputar sebagai stream lewat elemen <audio>, bukan di-dekode penuh: buffer 50 detik stereo
+   * 48 kHz memakan sekitar 18 MB memori, besar untuk HP kelas bawah. Suaranya tetap lewat GainNode
+   * musik, jadi volume dan redam saat Pause tidak berubah.
+   */
+  private musicEl: HTMLAudioElement | null = null;
   private wantMusic = false;
   private duck = 1;
   private rapid = 0;
@@ -64,8 +68,14 @@ export class Sound {
     window.addEventListener("keydown", unlock, true);
     document.addEventListener("visibilitychange", () => {
       if (!this.ctx) return;
-      if (document.hidden) void this.ctx.suspend();
-      else void this.ctx.resume();
+      // Elemen musik ikut berhenti bersama AudioContext; saat kembali, lanjut jika memang sedang diputar.
+      if (document.hidden) {
+        void this.ctx.suspend();
+        this.musicEl?.pause();
+      } else {
+        void this.ctx.resume();
+        if (this.wantMusic) this.startMusic();
+      }
     });
   }
 
@@ -84,13 +94,12 @@ export class Sound {
     for (const [id, file] of Object.entries(FILES) as [SoundId, string][]) {
       load(file).then((b) => this.buffers.set(id, b), () => {});
     }
-    load(MUSIC).then(
-      (b) => {
-        this.musicBuf = b;
-        if (this.wantMusic) this.startMusic();
-      },
-      () => {},
-    );
+    const el = new Audio(base + MUSIC);
+    el.loop = true;
+    el.preload = "auto";
+    ctx.createMediaElementSource(el).connect(this.music);
+    this.musicEl = el;
+    if (this.wantMusic) this.startMusic();
   }
 
   setVolume(music: number, sfx: number): void {
@@ -141,10 +150,9 @@ export class Sound {
 
   musicStop(): void {
     this.wantMusic = false;
-    if (this.musicSrc) {
-      this.musicSrc.stop();
-      this.musicSrc.disconnect();
-      this.musicSrc = null;
+    if (this.musicEl) {
+      this.musicEl.pause();
+      this.musicEl.currentTime = 0;
     }
   }
 
@@ -155,12 +163,7 @@ export class Sound {
   }
 
   private startMusic(): void {
-    if (!this.ctx || !this.musicBuf || this.musicSrc) return;
-    const src = this.ctx.createBufferSource();
-    src.buffer = this.musicBuf;
-    src.loop = true;
-    src.connect(this.music!);
-    src.start();
-    this.musicSrc = src;
+    if (!this.musicEl || !this.musicEl.paused) return;
+    void this.musicEl.play().catch(() => {});
   }
 }

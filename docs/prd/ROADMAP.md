@@ -357,3 +357,17 @@ Masukan pemilik: tampilan masih ada yang kurang sejajar. Diukur tepi kiri dan ka
 - Pengaturan: nilai slider (misalnya `167 ms`) berada di tengah deskripsi; kini sejajar dengan judul pengaturan.
 
 Ditemukan saat perbaikan: tinggi antrean ikut menentukan tinggi papan dan papan menentukan ukuran antrean, sehingga di DPR 3 keduanya berganti setiap frame (tombol jeda tidak stabil). Tinggi sumur antrean kini dihitung dari lebar layar saja. Diuji di 320x568, 320x640, 360x740, 390x844, 412x915, 768x1024, 1280x800: tepi kiri dan kanan baris atas, antrean, dan papan sama persis, isi antrean muat, posisi stabil di DPR 3. 59 tes dan seluruh regresi (gestur, landscape, Game Over, efek, suara, animasi, teks 200%, PWA offline) lulus, 0 error.
+
+## Finalisasi (keputusan pemilik: tidak ada fitur baru, optimasi maksimum)
+
+Audit, diukur sebelum diubah. Hanya yang terbukti berdampak yang diterapkan.
+
+| Bagian | Hasil ukur | Tindakan |
+|---|---|---|
+| Muat awal (HP emulasi, CPU 4x lebih lambat, 4G lambat, cache kosong) | FCP dan LCP 1,14 s, CLS 0, Menu siap 1,2 s; 108 KB sebelum ketukan pertama (JS 35 KB brotli, 4 font Sora 60 KB, CSS 6 KB) | Sudah baik. Keenam berat font benar-benar dipakai (dicek di semua layar), jadi tidak ada yang dibuang. |
+| Suara | Musik di-dekode penuh: 50 detik stereo 48 kHz menjadi sekitar 18 MB memori, 170 ms dekode di CPU 4x | Musik diputar sebagai stream (`<audio>` lewat `MediaElementSource`), tetap lewat GainNode musik. Volume, redam saat Pause, berhenti di menu dan Game Over, berhenti saat tab disembunyikan, dan offline (service worker) diuji. |
+| Sourcemap | 357 KB per build, tidak pernah dipakai pemain (Vercel sudah tidak menyajikannya) | Dimatikan di build produksi. |
+| Kode | Tidak ada variabel atau parameter mati (`tsc --noUnusedLocals --noUnusedParameters`); dua ekspor tidak terpakai | `getLocale` dan `BLOCK_COLORS` dihapus. |
+| Server | HTML dan JS dikirim dengan brotli; `assets/` di-cache setahun (immutable); `sw.js` no-cache | Sudah benar, tidak diubah. |
+
+Performa setelah finalisasi (CPU 6x lebih lambat, 1 detik setelah 4 Baris, 9 putaran): kerja p99 1,9 sampai 4,0 ms, maks 15,5 ms, tidak ada frame di atas 16,7 ms. Regresi: 78 tes, Game Over, suara, gestur, PWA offline lulus, 0 error.

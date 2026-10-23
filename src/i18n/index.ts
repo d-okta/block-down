@@ -8,10 +8,6 @@ const DICTS: Record<Locale, Record<Key, string>> = { id, en };
 let locale: Locale = "id";
 let numFmt = new Intl.NumberFormat("id-ID");
 
-export function getLocale(): Locale {
-  return locale;
-}
-
 /** Pilihan tersimpan, lalu bahasa browser, lalu id (SPEC 9). */
 export function pickLocale(saved: Locale | null, nav: readonly string[]): Locale {
   if (saved) return saved;

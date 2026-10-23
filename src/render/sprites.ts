@@ -3,9 +3,6 @@
 
 import { THEMES, type Theme } from "./themes.ts";
 
-/** Warna blok tema Klasik (dipakai tes dan sebagai bawaan). Tema lain: render/themes.ts. */
-export const BLOCK_COLORS = THEMES.classic.blocks;
-
 export const ROW_BLOCK = 0;
 export const ROW_GHOST = 1;
 export const ROW_FLASH = 2;

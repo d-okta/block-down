@@ -18,8 +18,6 @@ export interface StatsHooks {
   fmt(n: number): string;
 }
 
-const BOARD_MODES: readonly BoardMode[] = ["sprint40", "ultra", "marathon150"];
-
 /** Format nilai leaderboard: Sprint waktu, lainnya skor. */
 export function boardValue(mode: BoardMode, v: number, fmt: (n: number) => string): string {
   return mode === "sprint40" ? formatMs(v) : fmt(v);
@@ -181,4 +179,3 @@ export class StatsScreen {
   }
 }
 
-export { BOARD_MODES };
